@@ -1,0 +1,27 @@
+"""
+Maps a Time GraphQL scalar to a Go time.Time struct.
+"""
+scalar Time
+scalar Uint64
+scalar Cursor
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+}
