@@ -1,4 +1,4 @@
-package todo
+package indexer
 
 import (
 	"github.com/99designs/gqlgen/graphql"

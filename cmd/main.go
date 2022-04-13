@@ -9,7 +9,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alecthomas/kong"
-	todo "github.com/tarrencev/starknet-indexer"
+	indexer "github.com/tarrencev/starknet-indexer"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 	"go.uber.org/zap"
@@ -40,14 +40,14 @@ func main() {
 		log.Fatal("running schema migration", zap.Error(err))
 	}
 
-	srv := handler.NewDefaultServer(todo.NewSchema(client))
+	srv := handler.NewDefaultServer(indexer.NewSchema(client))
 	srv.Use(entgql.Transactioner{TxOpener: client})
 	if cli.Debug {
 		srv.Use(&debug.Tracer{})
 	}
 
 	http.Handle("/",
-		playground.Handler("Todo", "/query"),
+		playground.Handler("Starknet Indexer", "/query"),
 	)
 	http.Handle("/query", srv)
 
