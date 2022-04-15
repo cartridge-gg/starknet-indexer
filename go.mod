@@ -6,6 +6,7 @@ require (
 	entgo.io/contrib v0.2.1-0.20220405093919-945c677d460d
 	entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd
 	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
+	github.com/alecthomas/kong v0.2.11
 	github.com/dontpanicdao/caigo v0.2.1-0.20220415013706-54326538fada
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lucsky/cuid v1.2.1
@@ -24,9 +25,16 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
+	github.com/logrusorgru/aurora/v3 v3.0.0 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
+	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
