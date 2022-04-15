@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/tarrencev/starknet-indexer/ent/account"
+	"github.com/tarrencev/starknet-indexer/ent/syncstate"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -512,5 +513,236 @@ func (a *Account) ToEdge(order *AccountOrder) *AccountEdge {
 	return &AccountEdge{
 		Node:   a,
 		Cursor: order.Field.toCursor(a),
+	}
+}
+
+// SyncStateEdge is the edge representation of SyncState.
+type SyncStateEdge struct {
+	Node   *SyncState `json:"node"`
+	Cursor Cursor     `json:"cursor"`
+}
+
+// SyncStateConnection is the connection containing edges to SyncState.
+type SyncStateConnection struct {
+	Edges      []*SyncStateEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
+	TotalCount int              `json:"totalCount"`
+}
+
+func (c *SyncStateConnection) build(nodes []*SyncState, pager *syncstatePager, first, last *int) {
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *SyncState
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *SyncState {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *SyncState {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*SyncStateEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &SyncStateEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	c.PageInfo.StartCursor = &c.Edges[0].Cursor
+	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// SyncStatePaginateOption enables pagination customization.
+type SyncStatePaginateOption func(*syncstatePager) error
+
+// WithSyncStateOrder configures pagination ordering.
+func WithSyncStateOrder(order *SyncStateOrder) SyncStatePaginateOption {
+	if order == nil {
+		order = DefaultSyncStateOrder
+	}
+	o := *order
+	return func(pager *syncstatePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultSyncStateOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithSyncStateFilter configures pagination filter.
+func WithSyncStateFilter(filter func(*SyncStateQuery) (*SyncStateQuery, error)) SyncStatePaginateOption {
+	return func(pager *syncstatePager) error {
+		if filter == nil {
+			return errors.New("SyncStateQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type syncstatePager struct {
+	order  *SyncStateOrder
+	filter func(*SyncStateQuery) (*SyncStateQuery, error)
+}
+
+func newSyncStatePager(opts []SyncStatePaginateOption) (*syncstatePager, error) {
+	pager := &syncstatePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultSyncStateOrder
+	}
+	return pager, nil
+}
+
+func (p *syncstatePager) applyFilter(query *SyncStateQuery) (*SyncStateQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *syncstatePager) toCursor(ss *SyncState) Cursor {
+	return p.order.Field.toCursor(ss)
+}
+
+func (p *syncstatePager) applyCursors(query *SyncStateQuery, after, before *Cursor) *SyncStateQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultSyncStateOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *syncstatePager) applyOrder(query *SyncStateQuery, reverse bool) *SyncStateQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultSyncStateOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultSyncStateOrder.Field.field))
+	}
+	return query
+}
+
+func (p *syncstatePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultSyncStateOrder.Field {
+			b.Comma().Ident(DefaultSyncStateOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to SyncState.
+func (ss *SyncStateQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...SyncStatePaginateOption,
+) (*SyncStateConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newSyncStatePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ss, err = pager.applyFilter(ss); err != nil {
+		return nil, err
+	}
+	conn := &SyncStateConnection{Edges: []*SyncStateEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = ss.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := ss.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	ss = pager.applyCursors(ss, after, before)
+	ss = pager.applyOrder(ss, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ss.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ss.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ss.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
+}
+
+// SyncStateOrderField defines the ordering field of SyncState.
+type SyncStateOrderField struct {
+	field    string
+	toCursor func(*SyncState) Cursor
+}
+
+// SyncStateOrder defines the ordering of SyncState.
+type SyncStateOrder struct {
+	Direction OrderDirection       `json:"direction"`
+	Field     *SyncStateOrderField `json:"field"`
+}
+
+// DefaultSyncStateOrder is the default ordering of SyncState.
+var DefaultSyncStateOrder = &SyncStateOrder{
+	Direction: OrderDirectionAsc,
+	Field: &SyncStateOrderField{
+		field: syncstate.FieldID,
+		toCursor: func(ss *SyncState) Cursor {
+			return Cursor{ID: ss.ID}
+		},
+	},
+}
+
+// ToEdge converts SyncState into SyncStateEdge.
+func (ss *SyncState) ToEdge(order *SyncStateOrder) *SyncStateEdge {
+	if order == nil {
+		order = DefaultSyncStateOrder
+	}
+	return &SyncStateEdge{
+		Node:   ss,
+		Cursor: order.Field.toCursor(ss),
 	}
 }

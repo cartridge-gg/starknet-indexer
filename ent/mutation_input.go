@@ -49,3 +49,43 @@ func (u *AccountUpdateOne) SetInput(i UpdateAccountInput) *AccountUpdateOne {
 	i.Mutate(u.Mutation())
 	return u
 }
+
+// CreateSyncStateInput represents a mutation input for creating syncstates.
+type CreateSyncStateInput struct {
+	StartBlock uint64
+}
+
+// Mutate applies the CreateSyncStateInput on the SyncStateCreate builder.
+func (i *CreateSyncStateInput) Mutate(m *SyncStateCreate) {
+	m.SetStartBlock(i.StartBlock)
+}
+
+// SetInput applies the change-set in the CreateSyncStateInput on the create builder.
+func (c *SyncStateCreate) SetInput(i CreateSyncStateInput) *SyncStateCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateSyncStateInput represents a mutation input for updating syncstates.
+type UpdateSyncStateInput struct {
+	StartBlock *uint64
+}
+
+// Mutate applies the UpdateSyncStateInput on the SyncStateMutation.
+func (i *UpdateSyncStateInput) Mutate(m *SyncStateMutation) {
+	if v := i.StartBlock; v != nil {
+		m.SetStartBlock(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateSyncStateInput on the update builder.
+func (u *SyncStateUpdate) SetInput(i UpdateSyncStateInput) *SyncStateUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateSyncStateInput on the update-one builder.
+func (u *SyncStateUpdateOne) SetInput(i UpdateSyncStateInput) *SyncStateUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}

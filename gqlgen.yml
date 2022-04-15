@@ -1,7 +1,9 @@
-schema:
-  - node.graphql
-  - account.graphql
-  - ent.graphql
+schema: "*.graphql"
+
+exec:
+  layout: follow-schema
+  dir: gqlgen
+  package: gqlgen
 
 resolver:
   layout: follow-schema
@@ -18,3 +20,6 @@ models:
   Node:
     model:
       - github.com/tarrencev/starknet-indexer/ent.Noder
+  Long:
+    model:
+      - github.com/tarrencev/starknet-indexer/model.Uint64

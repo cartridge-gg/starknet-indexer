@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
 	"github.com/tarrencev/starknet-indexer/ent/account"
+	"github.com/tarrencev/starknet-indexer/ent/syncstate"
 )
 
 // Noder wraps the basic Node method.
@@ -62,6 +63,25 @@ func (a *Account) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
+func (ss *SyncState) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ss.ID,
+		Type:   "SyncState",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ss.StartBlock); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "uint64",
+		Name:  "start_block",
 		Value: string(buf),
 	}
 	return node, nil
@@ -138,6 +158,18 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		query := c.Account.Query().
 			Where(account.ID(id))
 		query, err := query.CollectFields(ctx, "Account")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case syncstate.Table:
+		query := c.SyncState.Query().
+			Where(syncstate.ID(id))
+		query, err := query.CollectFields(ctx, "SyncState")
 		if err != nil {
 			return nil, err
 		}
@@ -223,6 +255,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		query := c.Account.Query().
 			Where(account.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Account")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case syncstate.Table:
+		query := c.SyncState.Query().
+			Where(syncstate.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "SyncState")
 		if err != nil {
 			return nil, err
 		}

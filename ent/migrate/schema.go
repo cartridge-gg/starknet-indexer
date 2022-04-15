@@ -20,9 +20,21 @@ var (
 		Columns:    AccountsColumns,
 		PrimaryKey: []*schema.Column{AccountsColumns[0]},
 	}
+	// SyncStatesColumns holds the columns for the "sync_states" table.
+	SyncStatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "start_block", Type: field.TypeUint64},
+	}
+	// SyncStatesTable holds the schema information for the "sync_states" table.
+	SyncStatesTable = &schema.Table{
+		Name:       "sync_states",
+		Columns:    SyncStatesColumns,
+		PrimaryKey: []*schema.Column{SyncStatesColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		SyncStatesTable,
 	}
 )
 

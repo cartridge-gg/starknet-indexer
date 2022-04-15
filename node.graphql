@@ -4,6 +4,7 @@ Maps a Time GraphQL scalar to a Go time.Time struct.
 scalar Time
 scalar Uint64
 scalar Cursor
+scalar Long
 
 interface Node {
   id: ID!

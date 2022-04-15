@@ -8,3 +8,6 @@ import (
 
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
+
+// SyncState is the predicate function for syncstate builders.
+type SyncState func(*sql.Selector)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/account"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
+	"github.com/tarrencev/starknet-indexer/ent/syncstate"
 )
 
 // AccountWhereInput represents a where input for filtering Account queries.
@@ -206,5 +207,150 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 		return predicates[0], nil
 	default:
 		return account.And(predicates...), nil
+	}
+}
+
+// SyncStateWhereInput represents a where input for filtering SyncState queries.
+type SyncStateWhereInput struct {
+	Not *SyncStateWhereInput   `json:"not,omitempty"`
+	Or  []*SyncStateWhereInput `json:"or,omitempty"`
+	And []*SyncStateWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "start_block" field predicates.
+	StartBlock      *uint64  `json:"startBlock,omitempty"`
+	StartBlockNEQ   *uint64  `json:"startBlockNEQ,omitempty"`
+	StartBlockIn    []uint64 `json:"startBlockIn,omitempty"`
+	StartBlockNotIn []uint64 `json:"startBlockNotIn,omitempty"`
+	StartBlockGT    *uint64  `json:"startBlockGT,omitempty"`
+	StartBlockGTE   *uint64  `json:"startBlockGTE,omitempty"`
+	StartBlockLT    *uint64  `json:"startBlockLT,omitempty"`
+	StartBlockLTE   *uint64  `json:"startBlockLTE,omitempty"`
+}
+
+// Filter applies the SyncStateWhereInput filter on the SyncStateQuery builder.
+func (i *SyncStateWhereInput) Filter(q *SyncStateQuery) (*SyncStateQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering syncstates.
+// An error is returned if the input is empty or invalid.
+func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
+	var predicates []predicate.SyncState
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, syncstate.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.SyncState, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, syncstate.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.SyncState, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, syncstate.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, syncstate.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, syncstate.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, syncstate.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, syncstate.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, syncstate.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, syncstate.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, syncstate.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, syncstate.IDLTE(*i.IDLTE))
+	}
+	if i.StartBlock != nil {
+		predicates = append(predicates, syncstate.StartBlockEQ(*i.StartBlock))
+	}
+	if i.StartBlockNEQ != nil {
+		predicates = append(predicates, syncstate.StartBlockNEQ(*i.StartBlockNEQ))
+	}
+	if len(i.StartBlockIn) > 0 {
+		predicates = append(predicates, syncstate.StartBlockIn(i.StartBlockIn...))
+	}
+	if len(i.StartBlockNotIn) > 0 {
+		predicates = append(predicates, syncstate.StartBlockNotIn(i.StartBlockNotIn...))
+	}
+	if i.StartBlockGT != nil {
+		predicates = append(predicates, syncstate.StartBlockGT(*i.StartBlockGT))
+	}
+	if i.StartBlockGTE != nil {
+		predicates = append(predicates, syncstate.StartBlockGTE(*i.StartBlockGTE))
+	}
+	if i.StartBlockLT != nil {
+		predicates = append(predicates, syncstate.StartBlockLT(*i.StartBlockLT))
+	}
+	if i.StartBlockLTE != nil {
+		predicates = append(predicates, syncstate.StartBlockLTE(*i.StartBlockLTE))
+	}
+
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate SyncStateWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return syncstate.And(predicates...), nil
 	}
 }

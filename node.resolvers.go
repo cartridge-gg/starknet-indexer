@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/tarrencev/starknet-indexer/ent"
+	"github.com/tarrencev/starknet-indexer/gqlgen"
 )
 
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
@@ -17,7 +18,7 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, e
 	return r.client.Noders(ctx, ids)
 }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+// Query returns gqlgen.QueryResolver implementation.
+func (r *Resolver) Query() gqlgen.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }

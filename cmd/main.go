@@ -9,12 +9,11 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alecthomas/kong"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 	indexer "github.com/tarrencev/starknet-indexer"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
-	"go.uber.org/zap"
-
-	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/tarrencev/starknet-indexer/ent/runtime"
 )
 
@@ -25,19 +24,18 @@ func main() {
 	}
 	kong.Parse(&cli)
 
-	log, _ := zap.NewDevelopment()
 	client, err := ent.Open(
 		"sqlite3",
 		"file:ent?mode=memory&cache=shared&_fk=1",
 	)
 	if err != nil {
-		log.Fatal("opening ent client", zap.Error(err))
+		log.Fatal().Err(err).Msg("Opening ent client")
 	}
 	if err := client.Schema.Create(
 		context.Background(),
 		migrate.WithGlobalUniqueID(true),
 	); err != nil {
-		log.Fatal("running schema migration", zap.Error(err))
+		log.Fatal().Err(err).Msg("Running schema migration")
 	}
 
 	srv := handler.NewDefaultServer(indexer.NewSchema(client))
@@ -51,8 +49,10 @@ func main() {
 	)
 	http.Handle("/query", srv)
 
-	log.Info("listening on", zap.String("address", cli.Addr))
+	log.Info().Str("address", cli.Addr).Msg("listening on")
 	if err := http.ListenAndServe(cli.Addr, nil); err != nil {
-		log.Error("http server terminated", zap.Error(err))
+		log.Err(err).Msg("http server terminated")
 	}
+
+	indexer.NewIndexer()
 }
