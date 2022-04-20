@@ -3,6 +3,7 @@ package indexer
 import "net/http"
 
 type indexerOptions struct {
+	debug  bool
 	client *http.Client
 }
 
@@ -30,5 +31,11 @@ type IndexerOption interface {
 func WithHttpClient(client http.Client) IndexerOption {
 	return newFuncIndexerOption(func(o *indexerOptions) {
 		o.client = &client
+	})
+}
+
+func WithDebug() IndexerOption {
+	return newFuncIndexerOption(func(o *indexerOptions) {
+		o.debug = true
 	})
 }

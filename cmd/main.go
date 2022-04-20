@@ -1,7 +1,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/alecthomas/kong"
+	"github.com/dontpanicdao/caigo"
 	_ "github.com/mattn/go-sqlite3"
 	indexer "github.com/tarrencev/starknet-indexer"
 	_ "github.com/tarrencev/starknet-indexer/ent/runtime"
@@ -14,5 +17,15 @@ func main() {
 	}
 	kong.Parse(&cli)
 
-	indexer.NewIndexer(cli.Addr)
+	indexer.New(cli.Addr, indexer.Config{
+		Interval: 2 * time.Second,
+		Contracts: []indexer.Contract{{
+			Address:    "0x",
+			StartBlock: 1000,
+			Handler: func(caigo.Transaction, caigo.TransactionReceipt) error {
+				// handle transaction
+				return nil
+			},
+		}},
+	})
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 )
 
-func NewIndexer(addr string, opts ...IndexerOption) {
+func New(addr string, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,

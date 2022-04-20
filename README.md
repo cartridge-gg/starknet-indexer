@@ -5,7 +5,6 @@ Starknet Indexer provides a simple cloud service for indexing the starknet block
 To learn more about the entql binding generation see: https://entgo.io/docs/tutorial-todo-gql
 
 # TODO:
-- [ ] Implement sync engine (see: https://github.com/dopedao/dope-monorepo/blob/master/packages/api/engine/ethereum.go)
 - [ ] Implement starknet contract binding generation (see: https://github.com/dontpanicdao/caigo/issues/1)
 - [ ] Implement starknet processor generation (see: https://github.com/withtally/synceth/blob/main/codegen/processor.go)
 
