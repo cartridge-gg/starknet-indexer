@@ -3,10 +3,7 @@ package indexer
 import "net/http"
 
 type indexerOptions struct {
-	client       *http.Client
-	debug        bool
-	chainID      string
-	errorHandler func(e error) error
+	client *http.Client
 }
 
 // funcIndexerOption wraps a function that modifies indexerOptions into an

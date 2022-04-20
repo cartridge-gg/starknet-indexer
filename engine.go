@@ -13,7 +13,7 @@ import (
 type Contract struct {
 	Address    string
 	StartBlock uint64
-	Handlers   map[string]func(caigo.JSTransaction) error
+	Handlers   map[string]func(caigo.Transaction, caigo.TransactionReceipt) error
 }
 
 type Config struct {
@@ -99,10 +99,10 @@ func (e *Engine) Start(ctx context.Context) {
 }
 
 func (e *Engine) parse(b *caigo.Block) error {
-	for _, txn := range b.Transactions {
+	for i, txn := range b.Transactions {
 		if c, ok := e.contracts[txn.ContractAddress]; ok {
 			if h, ok := c.Handlers[txn.EntryPointSelector]; ok {
-				if err := h(txn); err != nil {
+				if err := h(txn, b.TransactionReceipts[i]); err != nil {
 					return err
 				}
 			}
@@ -110,11 +110,4 @@ func (e *Engine) parse(b *caigo.Block) error {
 	}
 
 	return nil
-}
-
-func Min(x, y uint64) uint64 {
-	if x < y {
-		return x
-	}
-	return y
 }
