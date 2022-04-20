@@ -2,8 +2,12 @@ schema: "*.graphql"
 
 exec:
   layout: follow-schema
-  dir: gqlgen
-  package: gqlgen
+  dir: gql
+  package: gql
+
+model:
+  filename: gql/models.generated.go
+  package: gql
 
 resolver:
   layout: follow-schema
