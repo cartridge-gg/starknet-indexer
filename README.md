@@ -4,10 +4,6 @@ Starknet Indexer provides a simple cloud service for indexing the starknet block
 
 To learn more about the entql binding generation see: https://entgo.io/docs/tutorial-todo-gql
 
-# TODO:
-- [ ] Implement starknet contract binding generation (see: https://github.com/dontpanicdao/caigo/issues/1)
-- [ ] Implement starknet processor generation (see: https://github.com/withtally/synceth/blob/main/codegen/processor.go)
-
 ## Quick start
 
 Standup the service using a sqlite db
@@ -16,7 +12,16 @@ Standup the service using a sqlite db
 go run cmd/main.go
 ```
 
+Visit:
+
+```
+http://localhost:8081/playground
+```
+
+## Development
+
 Generate schema, bindings, ect.
+
 ```sh
 go generate ./...
 ```
