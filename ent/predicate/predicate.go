@@ -6,8 +6,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Account is the predicate function for account builders.
-type Account func(*sql.Selector)
+// Block is the predicate function for block builders.
+type Block func(*sql.Selector)
 
-// SyncState is the predicate function for syncstate builders.
-type SyncState func(*sql.Selector)
+// Transaction is the predicate function for transaction builders.
+type Transaction func(*sql.Selector)
+
+// TransactionReceipt is the predicate function for transactionreceipt builders.
+type TransactionReceipt func(*sql.Selector)

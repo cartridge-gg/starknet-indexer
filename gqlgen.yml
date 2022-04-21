@@ -13,10 +13,6 @@ resolver:
   layout: follow-schema
   dir: .
 
-autobind:
-  - github.com/tarrencev/starknet-indexer/ent
-  - github.com/tarrencev/starknet-indexer/ent/account
-
 models:
   ID:
     model:
@@ -26,4 +22,16 @@ models:
       - github.com/tarrencev/starknet-indexer/ent.Noder
   Long:
     model:
-      - github.com/tarrencev/starknet-indexer/model.Uint64
+      - github.com/99designs/gqlgen/graphql.Uint64
+  JSON:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema/json.RawMessage
+  L1ToL2ConsumedMessage:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.L1ToL2ConsumedMessage
+  BuiltinInstanceCounter:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.BuiltinInstanceCounter
+  ExecutionResources:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.ExecutionResources

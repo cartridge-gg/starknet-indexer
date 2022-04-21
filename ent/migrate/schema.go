@@ -8,35 +8,91 @@ import (
 )
 
 var (
-	// AccountsColumns holds the columns for the "accounts" table.
-	AccountsColumns = []*schema.Column{
+	// BlocksColumns holds the columns for the "blocks" table.
+	BlocksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "address", Type: field.TypeString},
-		{Name: "created_at", Type: field.TypeTime},
+		{Name: "block_hash", Type: field.TypeString, Unique: true},
+		{Name: "parent_block_hash", Type: field.TypeString},
+		{Name: "block_number", Type: field.TypeUint64, Unique: true},
+		{Name: "state_root", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACCEPTED_ON_L1", "ACCEPTED_ON_L2"}},
+		{Name: "timestamp", Type: field.TypeTime},
 	}
-	// AccountsTable holds the schema information for the "accounts" table.
-	AccountsTable = &schema.Table{
-		Name:       "accounts",
-		Columns:    AccountsColumns,
-		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	// BlocksTable holds the schema information for the "blocks" table.
+	BlocksTable = &schema.Table{
+		Name:       "blocks",
+		Columns:    BlocksColumns,
+		PrimaryKey: []*schema.Column{BlocksColumns[0]},
 	}
-	// SyncStatesColumns holds the columns for the "sync_states" table.
-	SyncStatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString},
-		{Name: "start_block", Type: field.TypeUint64},
+	// TransactionsColumns holds the columns for the "transactions" table.
+	TransactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "contract_address", Type: field.TypeString},
+		{Name: "entry_point_selector", Type: field.TypeString},
+		{Name: "entry_point_type", Type: field.TypeString},
+		{Name: "transaction_hash", Type: field.TypeString},
+		{Name: "calldata", Type: field.TypeJSON},
+		{Name: "signature", Type: field.TypeJSON},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"INVOKE_FUNCTION", "DEPLOY"}},
+		{Name: "nonce", Type: field.TypeString},
+		{Name: "block_transactions", Type: field.TypeString, Nullable: true},
 	}
-	// SyncStatesTable holds the schema information for the "sync_states" table.
-	SyncStatesTable = &schema.Table{
-		Name:       "sync_states",
-		Columns:    SyncStatesColumns,
-		PrimaryKey: []*schema.Column{SyncStatesColumns[0]},
+	// TransactionsTable holds the schema information for the "transactions" table.
+	TransactionsTable = &schema.Table{
+		Name:       "transactions",
+		Columns:    TransactionsColumns,
+		PrimaryKey: []*schema.Column{TransactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "transactions_blocks_transactions",
+				Columns:    []*schema.Column{TransactionsColumns[9]},
+				RefColumns: []*schema.Column{BlocksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TransactionReceiptsColumns holds the columns for the "transaction_receipts" table.
+	TransactionReceiptsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "transaction_index", Type: field.TypeInt32},
+		{Name: "transaction_hash", Type: field.TypeString},
+		{Name: "l1_to_l2_consumed_message", Type: field.TypeJSON},
+		{Name: "execution_resources", Type: field.TypeJSON},
+		{Name: "events", Type: field.TypeJSON},
+		{Name: "l2_to_l1_messages", Type: field.TypeJSON},
+		{Name: "block_transaction_receipts", Type: field.TypeString, Nullable: true},
+		{Name: "transaction_receipts", Type: field.TypeString, Unique: true, Nullable: true},
+	}
+	// TransactionReceiptsTable holds the schema information for the "transaction_receipts" table.
+	TransactionReceiptsTable = &schema.Table{
+		Name:       "transaction_receipts",
+		Columns:    TransactionReceiptsColumns,
+		PrimaryKey: []*schema.Column{TransactionReceiptsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "transaction_receipts_blocks_transaction_receipts",
+				Columns:    []*schema.Column{TransactionReceiptsColumns[7]},
+				RefColumns: []*schema.Column{BlocksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "transaction_receipts_transactions_receipts",
+				Columns:    []*schema.Column{TransactionReceiptsColumns[8]},
+				RefColumns: []*schema.Column{TransactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AccountsTable,
-		SyncStatesTable,
+		BlocksTable,
+		TransactionsTable,
+		TransactionReceiptsTable,
 	}
 )
 
 func init() {
+	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
+	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
+	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable
 }

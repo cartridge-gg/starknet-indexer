@@ -1,0 +1,45 @@
+scalar Time
+scalar Long
+scalar JSON
+
+type L1ToL2ConsumedMessage {
+  fromAddress: String!
+  toAddress: String!
+  selector: String!
+  payload: [String!]
+}
+
+type BuiltinInstanceCounter {
+  pedersenBuiltin: Long
+  rangeCheckBuiltin: Long
+  bitwiseBuiltin: Long
+  outputBuiltin: Long
+  ecdsaBuiltin: Long
+  ecOpBuiltin: Long
+}
+
+type ExecutionResources {
+  nSteps: Long
+  builtinInstanceCounter: BuiltinInstanceCounter
+  nMemoryHoles: Long
+}
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  blocks(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: BlockOrder
+    where: BlockWhereInput
+  ): BlockConnection
+  transactions(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: TransactionWhereInput
+  ): TransactionConnection
+}

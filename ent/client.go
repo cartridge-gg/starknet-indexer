@@ -9,11 +9,13 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -21,10 +23,12 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Account is the client for interacting with the Account builders.
-	Account *AccountClient
-	// SyncState is the client for interacting with the SyncState builders.
-	SyncState *SyncStateClient
+	// Block is the client for interacting with the Block builders.
+	Block *BlockClient
+	// Transaction is the client for interacting with the Transaction builders.
+	Transaction *TransactionClient
+	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
+	TransactionReceipt *TransactionReceiptClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -38,8 +42,9 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Account = NewAccountClient(c.config)
-	c.SyncState = NewSyncStateClient(c.config)
+	c.Block = NewBlockClient(c.config)
+	c.Transaction = NewTransactionClient(c.config)
+	c.TransactionReceipt = NewTransactionReceiptClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -71,10 +76,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		SyncState: NewSyncStateClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		Block:              NewBlockClient(cfg),
+		Transaction:        NewTransactionClient(cfg),
+		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
 }
 
@@ -92,17 +98,18 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		SyncState: NewSyncStateClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		Block:              NewBlockClient(cfg),
+		Transaction:        NewTransactionClient(cfg),
+		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Account.
+//		Block.
 //		Query().
 //		Count(ctx)
 //
@@ -125,88 +132,89 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Account.Use(hooks...)
-	c.SyncState.Use(hooks...)
+	c.Block.Use(hooks...)
+	c.Transaction.Use(hooks...)
+	c.TransactionReceipt.Use(hooks...)
 }
 
-// AccountClient is a client for the Account schema.
-type AccountClient struct {
+// BlockClient is a client for the Block schema.
+type BlockClient struct {
 	config
 }
 
-// NewAccountClient returns a client for the Account from the given config.
-func NewAccountClient(c config) *AccountClient {
-	return &AccountClient{config: c}
+// NewBlockClient returns a client for the Block from the given config.
+func NewBlockClient(c config) *BlockClient {
+	return &BlockClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `account.Hooks(f(g(h())))`.
-func (c *AccountClient) Use(hooks ...Hook) {
-	c.hooks.Account = append(c.hooks.Account, hooks...)
+// A call to `Use(f, g, h)` equals to `block.Hooks(f(g(h())))`.
+func (c *BlockClient) Use(hooks ...Hook) {
+	c.hooks.Block = append(c.hooks.Block, hooks...)
 }
 
-// Create returns a create builder for Account.
-func (c *AccountClient) Create() *AccountCreate {
-	mutation := newAccountMutation(c.config, OpCreate)
-	return &AccountCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for Block.
+func (c *BlockClient) Create() *BlockCreate {
+	mutation := newBlockMutation(c.config, OpCreate)
+	return &BlockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Account entities.
-func (c *AccountClient) CreateBulk(builders ...*AccountCreate) *AccountCreateBulk {
-	return &AccountCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Block entities.
+func (c *BlockClient) CreateBulk(builders ...*BlockCreate) *BlockCreateBulk {
+	return &BlockCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Account.
-func (c *AccountClient) Update() *AccountUpdate {
-	mutation := newAccountMutation(c.config, OpUpdate)
-	return &AccountUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Block.
+func (c *BlockClient) Update() *BlockUpdate {
+	mutation := newBlockMutation(c.config, OpUpdate)
+	return &BlockUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *AccountClient) UpdateOne(a *Account) *AccountUpdateOne {
-	mutation := newAccountMutation(c.config, OpUpdateOne, withAccount(a))
-	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *BlockClient) UpdateOne(b *Block) *BlockUpdateOne {
+	mutation := newBlockMutation(c.config, OpUpdateOne, withBlock(b))
+	return &BlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AccountClient) UpdateOneID(id string) *AccountUpdateOne {
-	mutation := newAccountMutation(c.config, OpUpdateOne, withAccountID(id))
-	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *BlockClient) UpdateOneID(id string) *BlockUpdateOne {
+	mutation := newBlockMutation(c.config, OpUpdateOne, withBlockID(id))
+	return &BlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Account.
-func (c *AccountClient) Delete() *AccountDelete {
-	mutation := newAccountMutation(c.config, OpDelete)
-	return &AccountDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Block.
+func (c *BlockClient) Delete() *BlockDelete {
+	mutation := newBlockMutation(c.config, OpDelete)
+	return &BlockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *AccountClient) DeleteOne(a *Account) *AccountDeleteOne {
-	return c.DeleteOneID(a.ID)
+func (c *BlockClient) DeleteOne(b *Block) *BlockDeleteOne {
+	return c.DeleteOneID(b.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *AccountClient) DeleteOneID(id string) *AccountDeleteOne {
-	builder := c.Delete().Where(account.ID(id))
+func (c *BlockClient) DeleteOneID(id string) *BlockDeleteOne {
+	builder := c.Delete().Where(block.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &AccountDeleteOne{builder}
+	return &BlockDeleteOne{builder}
 }
 
-// Query returns a query builder for Account.
-func (c *AccountClient) Query() *AccountQuery {
-	return &AccountQuery{
+// Query returns a query builder for Block.
+func (c *BlockClient) Query() *BlockQuery {
+	return &BlockQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a Account entity by its id.
-func (c *AccountClient) Get(ctx context.Context, id string) (*Account, error) {
-	return c.Query().Where(account.ID(id)).Only(ctx)
+// Get returns a Block entity by its id.
+func (c *BlockClient) Get(ctx context.Context, id string) (*Block, error) {
+	return c.Query().Where(block.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AccountClient) GetX(ctx context.Context, id string) *Account {
+func (c *BlockClient) GetX(ctx context.Context, id string) *Block {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -214,89 +222,121 @@ func (c *AccountClient) GetX(ctx context.Context, id string) *Account {
 	return obj
 }
 
-// Hooks returns the client hooks.
-func (c *AccountClient) Hooks() []Hook {
-	return c.hooks.Account
+// QueryTransactions queries the transactions edge of a Block.
+func (c *BlockClient) QueryTransactions(b *Block) *TransactionQuery {
+	query := &TransactionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(block.Table, block.FieldID, id),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionsTable, block.TransactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
-// SyncStateClient is a client for the SyncState schema.
-type SyncStateClient struct {
+// QueryTransactionReceipts queries the transaction_receipts edge of a Block.
+func (c *BlockClient) QueryTransactionReceipts(b *Block) *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(block.Table, block.FieldID, id),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionReceiptsTable, block.TransactionReceiptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BlockClient) Hooks() []Hook {
+	return c.hooks.Block
+}
+
+// TransactionClient is a client for the Transaction schema.
+type TransactionClient struct {
 	config
 }
 
-// NewSyncStateClient returns a client for the SyncState from the given config.
-func NewSyncStateClient(c config) *SyncStateClient {
-	return &SyncStateClient{config: c}
+// NewTransactionClient returns a client for the Transaction from the given config.
+func NewTransactionClient(c config) *TransactionClient {
+	return &TransactionClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `syncstate.Hooks(f(g(h())))`.
-func (c *SyncStateClient) Use(hooks ...Hook) {
-	c.hooks.SyncState = append(c.hooks.SyncState, hooks...)
+// A call to `Use(f, g, h)` equals to `transaction.Hooks(f(g(h())))`.
+func (c *TransactionClient) Use(hooks ...Hook) {
+	c.hooks.Transaction = append(c.hooks.Transaction, hooks...)
 }
 
-// Create returns a create builder for SyncState.
-func (c *SyncStateClient) Create() *SyncStateCreate {
-	mutation := newSyncStateMutation(c.config, OpCreate)
-	return &SyncStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for Transaction.
+func (c *TransactionClient) Create() *TransactionCreate {
+	mutation := newTransactionMutation(c.config, OpCreate)
+	return &TransactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of SyncState entities.
-func (c *SyncStateClient) CreateBulk(builders ...*SyncStateCreate) *SyncStateCreateBulk {
-	return &SyncStateCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Transaction entities.
+func (c *TransactionClient) CreateBulk(builders ...*TransactionCreate) *TransactionCreateBulk {
+	return &TransactionCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for SyncState.
-func (c *SyncStateClient) Update() *SyncStateUpdate {
-	mutation := newSyncStateMutation(c.config, OpUpdate)
-	return &SyncStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Transaction.
+func (c *TransactionClient) Update() *TransactionUpdate {
+	mutation := newTransactionMutation(c.config, OpUpdate)
+	return &TransactionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *SyncStateClient) UpdateOne(ss *SyncState) *SyncStateUpdateOne {
-	mutation := newSyncStateMutation(c.config, OpUpdateOne, withSyncState(ss))
-	return &SyncStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TransactionClient) UpdateOne(t *Transaction) *TransactionUpdateOne {
+	mutation := newTransactionMutation(c.config, OpUpdateOne, withTransaction(t))
+	return &TransactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SyncStateClient) UpdateOneID(id string) *SyncStateUpdateOne {
-	mutation := newSyncStateMutation(c.config, OpUpdateOne, withSyncStateID(id))
-	return &SyncStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TransactionClient) UpdateOneID(id string) *TransactionUpdateOne {
+	mutation := newTransactionMutation(c.config, OpUpdateOne, withTransactionID(id))
+	return &TransactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for SyncState.
-func (c *SyncStateClient) Delete() *SyncStateDelete {
-	mutation := newSyncStateMutation(c.config, OpDelete)
-	return &SyncStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Transaction.
+func (c *TransactionClient) Delete() *TransactionDelete {
+	mutation := newTransactionMutation(c.config, OpDelete)
+	return &TransactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *SyncStateClient) DeleteOne(ss *SyncState) *SyncStateDeleteOne {
-	return c.DeleteOneID(ss.ID)
+func (c *TransactionClient) DeleteOne(t *Transaction) *TransactionDeleteOne {
+	return c.DeleteOneID(t.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *SyncStateClient) DeleteOneID(id string) *SyncStateDeleteOne {
-	builder := c.Delete().Where(syncstate.ID(id))
+func (c *TransactionClient) DeleteOneID(id string) *TransactionDeleteOne {
+	builder := c.Delete().Where(transaction.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &SyncStateDeleteOne{builder}
+	return &TransactionDeleteOne{builder}
 }
 
-// Query returns a query builder for SyncState.
-func (c *SyncStateClient) Query() *SyncStateQuery {
-	return &SyncStateQuery{
+// Query returns a query builder for Transaction.
+func (c *TransactionClient) Query() *TransactionQuery {
+	return &TransactionQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a SyncState entity by its id.
-func (c *SyncStateClient) Get(ctx context.Context, id string) (*SyncState, error) {
-	return c.Query().Where(syncstate.ID(id)).Only(ctx)
+// Get returns a Transaction entity by its id.
+func (c *TransactionClient) Get(ctx context.Context, id string) (*Transaction, error) {
+	return c.Query().Where(transaction.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SyncStateClient) GetX(ctx context.Context, id string) *SyncState {
+func (c *TransactionClient) GetX(ctx context.Context, id string) *Transaction {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -304,7 +344,161 @@ func (c *SyncStateClient) GetX(ctx context.Context, id string) *SyncState {
 	return obj
 }
 
+// QueryBlock queries the block edge of a Transaction.
+func (c *TransactionClient) QueryBlock(t *Transaction) *BlockQuery {
+	query := &BlockQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, id),
+			sqlgraph.To(block.Table, block.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, transaction.BlockTable, transaction.BlockColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReceipts queries the receipts edge of a Transaction.
+func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, id),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *SyncStateClient) Hooks() []Hook {
-	return c.hooks.SyncState
+func (c *TransactionClient) Hooks() []Hook {
+	return c.hooks.Transaction
+}
+
+// TransactionReceiptClient is a client for the TransactionReceipt schema.
+type TransactionReceiptClient struct {
+	config
+}
+
+// NewTransactionReceiptClient returns a client for the TransactionReceipt from the given config.
+func NewTransactionReceiptClient(c config) *TransactionReceiptClient {
+	return &TransactionReceiptClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `transactionreceipt.Hooks(f(g(h())))`.
+func (c *TransactionReceiptClient) Use(hooks ...Hook) {
+	c.hooks.TransactionReceipt = append(c.hooks.TransactionReceipt, hooks...)
+}
+
+// Create returns a create builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Create() *TransactionReceiptCreate {
+	mutation := newTransactionReceiptMutation(c.config, OpCreate)
+	return &TransactionReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TransactionReceipt entities.
+func (c *TransactionReceiptClient) CreateBulk(builders ...*TransactionReceiptCreate) *TransactionReceiptCreateBulk {
+	return &TransactionReceiptCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Update() *TransactionReceiptUpdate {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdate)
+	return &TransactionReceiptUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TransactionReceiptClient) UpdateOne(tr *TransactionReceipt) *TransactionReceiptUpdateOne {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdateOne, withTransactionReceipt(tr))
+	return &TransactionReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TransactionReceiptClient) UpdateOneID(id string) *TransactionReceiptUpdateOne {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdateOne, withTransactionReceiptID(id))
+	return &TransactionReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Delete() *TransactionReceiptDelete {
+	mutation := newTransactionReceiptMutation(c.config, OpDelete)
+	return &TransactionReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TransactionReceiptClient) DeleteOne(tr *TransactionReceipt) *TransactionReceiptDeleteOne {
+	return c.DeleteOneID(tr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TransactionReceiptClient) DeleteOneID(id string) *TransactionReceiptDeleteOne {
+	builder := c.Delete().Where(transactionreceipt.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TransactionReceiptDeleteOne{builder}
+}
+
+// Query returns a query builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Query() *TransactionReceiptQuery {
+	return &TransactionReceiptQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TransactionReceipt entity by its id.
+func (c *TransactionReceiptClient) Get(ctx context.Context, id string) (*TransactionReceipt, error) {
+	return c.Query().Where(transactionreceipt.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TransactionReceiptClient) GetX(ctx context.Context, id string) *TransactionReceipt {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBlock queries the block edge of a TransactionReceipt.
+func (c *TransactionReceiptClient) QueryBlock(tr *TransactionReceipt) *BlockQuery {
+	query := &BlockQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
+			sqlgraph.To(block.Table, block.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransaction queries the transaction edge of a TransactionReceipt.
+func (c *TransactionReceiptClient) QueryTransaction(tr *TransactionReceipt) *TransactionQuery {
+	query := &TransactionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TransactionReceiptClient) Hooks() []Hook {
+	return c.hooks.TransactionReceipt
 }

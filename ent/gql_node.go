@@ -10,8 +10,9 @@ import (
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Noder wraps the basic Node method.
@@ -41,48 +42,255 @@ type Edge struct {
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-func (a *Account) Node(ctx context.Context) (node *Node, err error) {
+func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     a.ID,
-		Type:   "Account",
-		Fields: make([]*Field, 2),
-		Edges:  make([]*Edge, 0),
+		ID:     b.ID,
+		Type:   "Block",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(a.Address); err != nil {
+	if buf, err = json.Marshal(b.BlockHash); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
 		Type:  "string",
-		Name:  "address",
+		Name:  "block_hash",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(a.CreatedAt); err != nil {
+	if buf, err = json.Marshal(b.ParentBlockHash); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
-		Type:  "time.Time",
-		Name:  "created_at",
+		Type:  "string",
+		Name:  "parent_block_hash",
 		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.BlockNumber); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "uint64",
+		Name:  "block_number",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.StateRoot); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "state_root",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "block.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Timestamp); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "time.Time",
+		Name:  "timestamp",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Transaction",
+		Name: "transactions",
+	}
+	err = b.QueryTransactions().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "TransactionReceipt",
+		Name: "transaction_receipts",
+	}
+	err = b.QueryTransactionReceipts().
+		Select(transactionreceipt.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
 
-func (ss *SyncState) Node(ctx context.Context) (node *Node, err error) {
+func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     ss.ID,
-		Type:   "SyncState",
-		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 0),
+		ID:     t.ID,
+		Type:   "Transaction",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(ss.StartBlock); err != nil {
+	if buf, err = json.Marshal(t.ContractAddress); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
-		Type:  "uint64",
-		Name:  "start_block",
+		Type:  "string",
+		Name:  "contract_address",
 		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.EntryPointSelector); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "entry_point_selector",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.EntryPointType); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "entry_point_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.TransactionHash); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "transaction_hash",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Calldata); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "[]string",
+		Name:  "calldata",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Signature); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]string",
+		Name:  "signature",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Type); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "transaction.Type",
+		Name:  "type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Nonce); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "nonce",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Block",
+		Name: "block",
+	}
+	err = t.QueryBlock().
+		Select(block.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "TransactionReceipt",
+		Name: "receipts",
+	}
+	err = t.QueryReceipts().
+		Select(transactionreceipt.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     tr.ID,
+		Type:   "TransactionReceipt",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(tr.TransactionIndex); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int32",
+		Name:  "transaction_index",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.TransactionHash); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "transaction_hash",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.L1ToL2ConsumedMessage); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "schema.L1ToL2ConsumedMessage",
+		Name:  "l1_to_l2_consumed_message",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.ExecutionResources); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "schema.ExecutionResources",
+		Name:  "execution_resources",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.Events); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "json.RawMessage",
+		Name:  "events",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.L2ToL1Messages); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "json.RawMessage",
+		Name:  "l2_to_l1_messages",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Block",
+		Name: "block",
+	}
+	err = tr.QueryBlock().
+		Select(block.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Transaction",
+		Name: "transaction",
+	}
+	err = tr.QueryTransaction().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
@@ -154,10 +362,10 @@ func (c *Client) Noder(ctx context.Context, id string, opts ...NodeOption) (_ No
 
 func (c *Client) noder(ctx context.Context, table string, id string) (Noder, error) {
 	switch table {
-	case account.Table:
-		query := c.Account.Query().
-			Where(account.ID(id))
-		query, err := query.CollectFields(ctx, "Account")
+	case block.Table:
+		query := c.Block.Query().
+			Where(block.ID(id))
+		query, err := query.CollectFields(ctx, "Block")
 		if err != nil {
 			return nil, err
 		}
@@ -166,10 +374,22 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
-	case syncstate.Table:
-		query := c.SyncState.Query().
-			Where(syncstate.ID(id))
-		query, err := query.CollectFields(ctx, "SyncState")
+	case transaction.Table:
+		query := c.Transaction.Query().
+			Where(transaction.ID(id))
+		query, err := query.CollectFields(ctx, "Transaction")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case transactionreceipt.Table:
+		query := c.TransactionReceipt.Query().
+			Where(transactionreceipt.ID(id))
+		query, err := query.CollectFields(ctx, "TransactionReceipt")
 		if err != nil {
 			return nil, err
 		}
@@ -251,10 +471,10 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
-	case account.Table:
-		query := c.Account.Query().
-			Where(account.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Account")
+	case block.Table:
+		query := c.Block.Query().
+			Where(block.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Block")
 		if err != nil {
 			return nil, err
 		}
@@ -267,10 +487,26 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 				*noder = node
 			}
 		}
-	case syncstate.Table:
-		query := c.SyncState.Query().
-			Where(syncstate.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "SyncState")
+	case transaction.Table:
+		query := c.Transaction.Query().
+			Where(transaction.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Transaction")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case transactionreceipt.Table:
+		query := c.TransactionReceipt.Query().
+			Where(transactionreceipt.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "TransactionReceipt")
 		if err != nil {
 			return nil, err
 		}

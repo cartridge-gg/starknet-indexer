@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tarrencev/starknet-indexer/ent/account"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
-// AccountWhereInput represents a where input for filtering Account queries.
-type AccountWhereInput struct {
-	Not *AccountWhereInput   `json:"not,omitempty"`
-	Or  []*AccountWhereInput `json:"or,omitempty"`
-	And []*AccountWhereInput `json:"and,omitempty"`
+// BlockWhereInput represents a where input for filtering Block queries.
+type BlockWhereInput struct {
+	Not *BlockWhereInput   `json:"not,omitempty"`
+	Or  []*BlockWhereInput `json:"or,omitempty"`
+	And []*BlockWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -27,34 +28,88 @@ type AccountWhereInput struct {
 	IDLT    *string  `json:"idLT,omitempty"`
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
-	// "address" field predicates.
-	Address             *string  `json:"address,omitempty"`
-	AddressNEQ          *string  `json:"addressNEQ,omitempty"`
-	AddressIn           []string `json:"addressIn,omitempty"`
-	AddressNotIn        []string `json:"addressNotIn,omitempty"`
-	AddressGT           *string  `json:"addressGT,omitempty"`
-	AddressGTE          *string  `json:"addressGTE,omitempty"`
-	AddressLT           *string  `json:"addressLT,omitempty"`
-	AddressLTE          *string  `json:"addressLTE,omitempty"`
-	AddressContains     *string  `json:"addressContains,omitempty"`
-	AddressHasPrefix    *string  `json:"addressHasPrefix,omitempty"`
-	AddressHasSuffix    *string  `json:"addressHasSuffix,omitempty"`
-	AddressEqualFold    *string  `json:"addressEqualFold,omitempty"`
-	AddressContainsFold *string  `json:"addressContainsFold,omitempty"`
+	// "block_hash" field predicates.
+	BlockHash             *string  `json:"blockHash,omitempty"`
+	BlockHashNEQ          *string  `json:"blockHashNEQ,omitempty"`
+	BlockHashIn           []string `json:"blockHashIn,omitempty"`
+	BlockHashNotIn        []string `json:"blockHashNotIn,omitempty"`
+	BlockHashGT           *string  `json:"blockHashGT,omitempty"`
+	BlockHashGTE          *string  `json:"blockHashGTE,omitempty"`
+	BlockHashLT           *string  `json:"blockHashLT,omitempty"`
+	BlockHashLTE          *string  `json:"blockHashLTE,omitempty"`
+	BlockHashContains     *string  `json:"blockHashContains,omitempty"`
+	BlockHashHasPrefix    *string  `json:"blockHashHasPrefix,omitempty"`
+	BlockHashHasSuffix    *string  `json:"blockHashHasSuffix,omitempty"`
+	BlockHashEqualFold    *string  `json:"blockHashEqualFold,omitempty"`
+	BlockHashContainsFold *string  `json:"blockHashContainsFold,omitempty"`
 
-	// "created_at" field predicates.
-	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
-	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
-	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
-	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
-	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
-	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
-	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
-	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+	// "parent_block_hash" field predicates.
+	ParentBlockHash             *string  `json:"parentBlockHash,omitempty"`
+	ParentBlockHashNEQ          *string  `json:"parentBlockHashNEQ,omitempty"`
+	ParentBlockHashIn           []string `json:"parentBlockHashIn,omitempty"`
+	ParentBlockHashNotIn        []string `json:"parentBlockHashNotIn,omitempty"`
+	ParentBlockHashGT           *string  `json:"parentBlockHashGT,omitempty"`
+	ParentBlockHashGTE          *string  `json:"parentBlockHashGTE,omitempty"`
+	ParentBlockHashLT           *string  `json:"parentBlockHashLT,omitempty"`
+	ParentBlockHashLTE          *string  `json:"parentBlockHashLTE,omitempty"`
+	ParentBlockHashContains     *string  `json:"parentBlockHashContains,omitempty"`
+	ParentBlockHashHasPrefix    *string  `json:"parentBlockHashHasPrefix,omitempty"`
+	ParentBlockHashHasSuffix    *string  `json:"parentBlockHashHasSuffix,omitempty"`
+	ParentBlockHashEqualFold    *string  `json:"parentBlockHashEqualFold,omitempty"`
+	ParentBlockHashContainsFold *string  `json:"parentBlockHashContainsFold,omitempty"`
+
+	// "block_number" field predicates.
+	BlockNumber      *uint64  `json:"blockNumber,omitempty"`
+	BlockNumberNEQ   *uint64  `json:"blockNumberNEQ,omitempty"`
+	BlockNumberIn    []uint64 `json:"blockNumberIn,omitempty"`
+	BlockNumberNotIn []uint64 `json:"blockNumberNotIn,omitempty"`
+	BlockNumberGT    *uint64  `json:"blockNumberGT,omitempty"`
+	BlockNumberGTE   *uint64  `json:"blockNumberGTE,omitempty"`
+	BlockNumberLT    *uint64  `json:"blockNumberLT,omitempty"`
+	BlockNumberLTE   *uint64  `json:"blockNumberLTE,omitempty"`
+
+	// "state_root" field predicates.
+	StateRoot             *string  `json:"stateRoot,omitempty"`
+	StateRootNEQ          *string  `json:"stateRootNEQ,omitempty"`
+	StateRootIn           []string `json:"stateRootIn,omitempty"`
+	StateRootNotIn        []string `json:"stateRootNotIn,omitempty"`
+	StateRootGT           *string  `json:"stateRootGT,omitempty"`
+	StateRootGTE          *string  `json:"stateRootGTE,omitempty"`
+	StateRootLT           *string  `json:"stateRootLT,omitempty"`
+	StateRootLTE          *string  `json:"stateRootLTE,omitempty"`
+	StateRootContains     *string  `json:"stateRootContains,omitempty"`
+	StateRootHasPrefix    *string  `json:"stateRootHasPrefix,omitempty"`
+	StateRootHasSuffix    *string  `json:"stateRootHasSuffix,omitempty"`
+	StateRootEqualFold    *string  `json:"stateRootEqualFold,omitempty"`
+	StateRootContainsFold *string  `json:"stateRootContainsFold,omitempty"`
+
+	// "status" field predicates.
+	Status      *block.Status  `json:"status,omitempty"`
+	StatusNEQ   *block.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []block.Status `json:"statusIn,omitempty"`
+	StatusNotIn []block.Status `json:"statusNotIn,omitempty"`
+
+	// "timestamp" field predicates.
+	Timestamp      *time.Time  `json:"timestamp,omitempty"`
+	TimestampNEQ   *time.Time  `json:"timestampNEQ,omitempty"`
+	TimestampIn    []time.Time `json:"timestampIn,omitempty"`
+	TimestampNotIn []time.Time `json:"timestampNotIn,omitempty"`
+	TimestampGT    *time.Time  `json:"timestampGT,omitempty"`
+	TimestampGTE   *time.Time  `json:"timestampGTE,omitempty"`
+	TimestampLT    *time.Time  `json:"timestampLT,omitempty"`
+	TimestampLTE   *time.Time  `json:"timestampLTE,omitempty"`
+
+	// "transactions" edge predicates.
+	HasTransactions     *bool                    `json:"hasTransactions,omitempty"`
+	HasTransactionsWith []*TransactionWhereInput `json:"hasTransactionsWith,omitempty"`
+
+	// "transaction_receipts" edge predicates.
+	HasTransactionReceipts     *bool                           `json:"hasTransactionReceipts,omitempty"`
+	HasTransactionReceiptsWith []*TransactionReceiptWhereInput `json:"hasTransactionReceiptsWith,omitempty"`
 }
 
-// Filter applies the AccountWhereInput filter on the AccountQuery builder.
-func (i *AccountWhereInput) Filter(q *AccountQuery) (*AccountQuery, error) {
+// Filter applies the BlockWhereInput filter on the BlockQuery builder.
+func (i *BlockWhereInput) Filter(q *BlockQuery) (*BlockQuery, error) {
 	if i == nil {
 		return q, nil
 	}
@@ -65,16 +120,16 @@ func (i *AccountWhereInput) Filter(q *AccountQuery) (*AccountQuery, error) {
 	return q.Where(p), nil
 }
 
-// P returns a predicate for filtering accounts.
+// P returns a predicate for filtering blocks.
 // An error is returned if the input is empty or invalid.
-func (i *AccountWhereInput) P() (predicate.Account, error) {
-	var predicates []predicate.Account
+func (i *BlockWhereInput) P() (predicate.Block, error) {
+	var predicates []predicate.Block
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
 			return nil, err
 		}
-		predicates = append(predicates, account.Not(p))
+		predicates = append(predicates, block.Not(p))
 	}
 	switch n := len(i.Or); {
 	case n == 1:
@@ -84,7 +139,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		or := make([]predicate.Account, 0, n)
+		or := make([]predicate.Block, 0, n)
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
@@ -92,7 +147,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 			}
 			or = append(or, p)
 		}
-		predicates = append(predicates, account.Or(or...))
+		predicates = append(predicates, block.Or(or...))
 	}
 	switch n := len(i.And); {
 	case n == 1:
@@ -102,7 +157,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		and := make([]predicate.Account, 0, n)
+		and := make([]predicate.Block, 0, n)
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
@@ -110,111 +165,261 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 			}
 			and = append(and, p)
 		}
-		predicates = append(predicates, account.And(and...))
+		predicates = append(predicates, block.And(and...))
 	}
 	if i.ID != nil {
-		predicates = append(predicates, account.IDEQ(*i.ID))
+		predicates = append(predicates, block.IDEQ(*i.ID))
 	}
 	if i.IDNEQ != nil {
-		predicates = append(predicates, account.IDNEQ(*i.IDNEQ))
+		predicates = append(predicates, block.IDNEQ(*i.IDNEQ))
 	}
 	if len(i.IDIn) > 0 {
-		predicates = append(predicates, account.IDIn(i.IDIn...))
+		predicates = append(predicates, block.IDIn(i.IDIn...))
 	}
 	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, account.IDNotIn(i.IDNotIn...))
+		predicates = append(predicates, block.IDNotIn(i.IDNotIn...))
 	}
 	if i.IDGT != nil {
-		predicates = append(predicates, account.IDGT(*i.IDGT))
+		predicates = append(predicates, block.IDGT(*i.IDGT))
 	}
 	if i.IDGTE != nil {
-		predicates = append(predicates, account.IDGTE(*i.IDGTE))
+		predicates = append(predicates, block.IDGTE(*i.IDGTE))
 	}
 	if i.IDLT != nil {
-		predicates = append(predicates, account.IDLT(*i.IDLT))
+		predicates = append(predicates, block.IDLT(*i.IDLT))
 	}
 	if i.IDLTE != nil {
-		predicates = append(predicates, account.IDLTE(*i.IDLTE))
+		predicates = append(predicates, block.IDLTE(*i.IDLTE))
 	}
-	if i.Address != nil {
-		predicates = append(predicates, account.AddressEQ(*i.Address))
+	if i.BlockHash != nil {
+		predicates = append(predicates, block.BlockHashEQ(*i.BlockHash))
 	}
-	if i.AddressNEQ != nil {
-		predicates = append(predicates, account.AddressNEQ(*i.AddressNEQ))
+	if i.BlockHashNEQ != nil {
+		predicates = append(predicates, block.BlockHashNEQ(*i.BlockHashNEQ))
 	}
-	if len(i.AddressIn) > 0 {
-		predicates = append(predicates, account.AddressIn(i.AddressIn...))
+	if len(i.BlockHashIn) > 0 {
+		predicates = append(predicates, block.BlockHashIn(i.BlockHashIn...))
 	}
-	if len(i.AddressNotIn) > 0 {
-		predicates = append(predicates, account.AddressNotIn(i.AddressNotIn...))
+	if len(i.BlockHashNotIn) > 0 {
+		predicates = append(predicates, block.BlockHashNotIn(i.BlockHashNotIn...))
 	}
-	if i.AddressGT != nil {
-		predicates = append(predicates, account.AddressGT(*i.AddressGT))
+	if i.BlockHashGT != nil {
+		predicates = append(predicates, block.BlockHashGT(*i.BlockHashGT))
 	}
-	if i.AddressGTE != nil {
-		predicates = append(predicates, account.AddressGTE(*i.AddressGTE))
+	if i.BlockHashGTE != nil {
+		predicates = append(predicates, block.BlockHashGTE(*i.BlockHashGTE))
 	}
-	if i.AddressLT != nil {
-		predicates = append(predicates, account.AddressLT(*i.AddressLT))
+	if i.BlockHashLT != nil {
+		predicates = append(predicates, block.BlockHashLT(*i.BlockHashLT))
 	}
-	if i.AddressLTE != nil {
-		predicates = append(predicates, account.AddressLTE(*i.AddressLTE))
+	if i.BlockHashLTE != nil {
+		predicates = append(predicates, block.BlockHashLTE(*i.BlockHashLTE))
 	}
-	if i.AddressContains != nil {
-		predicates = append(predicates, account.AddressContains(*i.AddressContains))
+	if i.BlockHashContains != nil {
+		predicates = append(predicates, block.BlockHashContains(*i.BlockHashContains))
 	}
-	if i.AddressHasPrefix != nil {
-		predicates = append(predicates, account.AddressHasPrefix(*i.AddressHasPrefix))
+	if i.BlockHashHasPrefix != nil {
+		predicates = append(predicates, block.BlockHashHasPrefix(*i.BlockHashHasPrefix))
 	}
-	if i.AddressHasSuffix != nil {
-		predicates = append(predicates, account.AddressHasSuffix(*i.AddressHasSuffix))
+	if i.BlockHashHasSuffix != nil {
+		predicates = append(predicates, block.BlockHashHasSuffix(*i.BlockHashHasSuffix))
 	}
-	if i.AddressEqualFold != nil {
-		predicates = append(predicates, account.AddressEqualFold(*i.AddressEqualFold))
+	if i.BlockHashEqualFold != nil {
+		predicates = append(predicates, block.BlockHashEqualFold(*i.BlockHashEqualFold))
 	}
-	if i.AddressContainsFold != nil {
-		predicates = append(predicates, account.AddressContainsFold(*i.AddressContainsFold))
+	if i.BlockHashContainsFold != nil {
+		predicates = append(predicates, block.BlockHashContainsFold(*i.BlockHashContainsFold))
 	}
-	if i.CreatedAt != nil {
-		predicates = append(predicates, account.CreatedAtEQ(*i.CreatedAt))
+	if i.ParentBlockHash != nil {
+		predicates = append(predicates, block.ParentBlockHashEQ(*i.ParentBlockHash))
 	}
-	if i.CreatedAtNEQ != nil {
-		predicates = append(predicates, account.CreatedAtNEQ(*i.CreatedAtNEQ))
+	if i.ParentBlockHashNEQ != nil {
+		predicates = append(predicates, block.ParentBlockHashNEQ(*i.ParentBlockHashNEQ))
 	}
-	if len(i.CreatedAtIn) > 0 {
-		predicates = append(predicates, account.CreatedAtIn(i.CreatedAtIn...))
+	if len(i.ParentBlockHashIn) > 0 {
+		predicates = append(predicates, block.ParentBlockHashIn(i.ParentBlockHashIn...))
 	}
-	if len(i.CreatedAtNotIn) > 0 {
-		predicates = append(predicates, account.CreatedAtNotIn(i.CreatedAtNotIn...))
+	if len(i.ParentBlockHashNotIn) > 0 {
+		predicates = append(predicates, block.ParentBlockHashNotIn(i.ParentBlockHashNotIn...))
 	}
-	if i.CreatedAtGT != nil {
-		predicates = append(predicates, account.CreatedAtGT(*i.CreatedAtGT))
+	if i.ParentBlockHashGT != nil {
+		predicates = append(predicates, block.ParentBlockHashGT(*i.ParentBlockHashGT))
 	}
-	if i.CreatedAtGTE != nil {
-		predicates = append(predicates, account.CreatedAtGTE(*i.CreatedAtGTE))
+	if i.ParentBlockHashGTE != nil {
+		predicates = append(predicates, block.ParentBlockHashGTE(*i.ParentBlockHashGTE))
 	}
-	if i.CreatedAtLT != nil {
-		predicates = append(predicates, account.CreatedAtLT(*i.CreatedAtLT))
+	if i.ParentBlockHashLT != nil {
+		predicates = append(predicates, block.ParentBlockHashLT(*i.ParentBlockHashLT))
 	}
-	if i.CreatedAtLTE != nil {
-		predicates = append(predicates, account.CreatedAtLTE(*i.CreatedAtLTE))
+	if i.ParentBlockHashLTE != nil {
+		predicates = append(predicates, block.ParentBlockHashLTE(*i.ParentBlockHashLTE))
+	}
+	if i.ParentBlockHashContains != nil {
+		predicates = append(predicates, block.ParentBlockHashContains(*i.ParentBlockHashContains))
+	}
+	if i.ParentBlockHashHasPrefix != nil {
+		predicates = append(predicates, block.ParentBlockHashHasPrefix(*i.ParentBlockHashHasPrefix))
+	}
+	if i.ParentBlockHashHasSuffix != nil {
+		predicates = append(predicates, block.ParentBlockHashHasSuffix(*i.ParentBlockHashHasSuffix))
+	}
+	if i.ParentBlockHashEqualFold != nil {
+		predicates = append(predicates, block.ParentBlockHashEqualFold(*i.ParentBlockHashEqualFold))
+	}
+	if i.ParentBlockHashContainsFold != nil {
+		predicates = append(predicates, block.ParentBlockHashContainsFold(*i.ParentBlockHashContainsFold))
+	}
+	if i.BlockNumber != nil {
+		predicates = append(predicates, block.BlockNumberEQ(*i.BlockNumber))
+	}
+	if i.BlockNumberNEQ != nil {
+		predicates = append(predicates, block.BlockNumberNEQ(*i.BlockNumberNEQ))
+	}
+	if len(i.BlockNumberIn) > 0 {
+		predicates = append(predicates, block.BlockNumberIn(i.BlockNumberIn...))
+	}
+	if len(i.BlockNumberNotIn) > 0 {
+		predicates = append(predicates, block.BlockNumberNotIn(i.BlockNumberNotIn...))
+	}
+	if i.BlockNumberGT != nil {
+		predicates = append(predicates, block.BlockNumberGT(*i.BlockNumberGT))
+	}
+	if i.BlockNumberGTE != nil {
+		predicates = append(predicates, block.BlockNumberGTE(*i.BlockNumberGTE))
+	}
+	if i.BlockNumberLT != nil {
+		predicates = append(predicates, block.BlockNumberLT(*i.BlockNumberLT))
+	}
+	if i.BlockNumberLTE != nil {
+		predicates = append(predicates, block.BlockNumberLTE(*i.BlockNumberLTE))
+	}
+	if i.StateRoot != nil {
+		predicates = append(predicates, block.StateRootEQ(*i.StateRoot))
+	}
+	if i.StateRootNEQ != nil {
+		predicates = append(predicates, block.StateRootNEQ(*i.StateRootNEQ))
+	}
+	if len(i.StateRootIn) > 0 {
+		predicates = append(predicates, block.StateRootIn(i.StateRootIn...))
+	}
+	if len(i.StateRootNotIn) > 0 {
+		predicates = append(predicates, block.StateRootNotIn(i.StateRootNotIn...))
+	}
+	if i.StateRootGT != nil {
+		predicates = append(predicates, block.StateRootGT(*i.StateRootGT))
+	}
+	if i.StateRootGTE != nil {
+		predicates = append(predicates, block.StateRootGTE(*i.StateRootGTE))
+	}
+	if i.StateRootLT != nil {
+		predicates = append(predicates, block.StateRootLT(*i.StateRootLT))
+	}
+	if i.StateRootLTE != nil {
+		predicates = append(predicates, block.StateRootLTE(*i.StateRootLTE))
+	}
+	if i.StateRootContains != nil {
+		predicates = append(predicates, block.StateRootContains(*i.StateRootContains))
+	}
+	if i.StateRootHasPrefix != nil {
+		predicates = append(predicates, block.StateRootHasPrefix(*i.StateRootHasPrefix))
+	}
+	if i.StateRootHasSuffix != nil {
+		predicates = append(predicates, block.StateRootHasSuffix(*i.StateRootHasSuffix))
+	}
+	if i.StateRootEqualFold != nil {
+		predicates = append(predicates, block.StateRootEqualFold(*i.StateRootEqualFold))
+	}
+	if i.StateRootContainsFold != nil {
+		predicates = append(predicates, block.StateRootContainsFold(*i.StateRootContainsFold))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, block.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, block.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, block.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, block.StatusNotIn(i.StatusNotIn...))
+	}
+	if i.Timestamp != nil {
+		predicates = append(predicates, block.TimestampEQ(*i.Timestamp))
+	}
+	if i.TimestampNEQ != nil {
+		predicates = append(predicates, block.TimestampNEQ(*i.TimestampNEQ))
+	}
+	if len(i.TimestampIn) > 0 {
+		predicates = append(predicates, block.TimestampIn(i.TimestampIn...))
+	}
+	if len(i.TimestampNotIn) > 0 {
+		predicates = append(predicates, block.TimestampNotIn(i.TimestampNotIn...))
+	}
+	if i.TimestampGT != nil {
+		predicates = append(predicates, block.TimestampGT(*i.TimestampGT))
+	}
+	if i.TimestampGTE != nil {
+		predicates = append(predicates, block.TimestampGTE(*i.TimestampGTE))
+	}
+	if i.TimestampLT != nil {
+		predicates = append(predicates, block.TimestampLT(*i.TimestampLT))
+	}
+	if i.TimestampLTE != nil {
+		predicates = append(predicates, block.TimestampLTE(*i.TimestampLTE))
 	}
 
+	if i.HasTransactions != nil {
+		p := block.HasTransactions()
+		if !*i.HasTransactions {
+			p = block.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionsWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionsWith))
+		for _, w := range i.HasTransactionsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, block.HasTransactionsWith(with...))
+	}
+	if i.HasTransactionReceipts != nil {
+		p := block.HasTransactionReceipts()
+		if !*i.HasTransactionReceipts {
+			p = block.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionReceiptsWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasTransactionReceiptsWith))
+		for _, w := range i.HasTransactionReceiptsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, block.HasTransactionReceiptsWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate AccountWhereInput")
+		return nil, fmt.Errorf("empty predicate BlockWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
-		return account.And(predicates...), nil
+		return block.And(predicates...), nil
 	}
 }
 
-// SyncStateWhereInput represents a where input for filtering SyncState queries.
-type SyncStateWhereInput struct {
-	Not *SyncStateWhereInput   `json:"not,omitempty"`
-	Or  []*SyncStateWhereInput `json:"or,omitempty"`
-	And []*SyncStateWhereInput `json:"and,omitempty"`
+// TransactionWhereInput represents a where input for filtering Transaction queries.
+type TransactionWhereInput struct {
+	Not *TransactionWhereInput   `json:"not,omitempty"`
+	Or  []*TransactionWhereInput `json:"or,omitempty"`
+	And []*TransactionWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -226,19 +431,98 @@ type SyncStateWhereInput struct {
 	IDLT    *string  `json:"idLT,omitempty"`
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
-	// "start_block" field predicates.
-	StartBlock      *uint64  `json:"startBlock,omitempty"`
-	StartBlockNEQ   *uint64  `json:"startBlockNEQ,omitempty"`
-	StartBlockIn    []uint64 `json:"startBlockIn,omitempty"`
-	StartBlockNotIn []uint64 `json:"startBlockNotIn,omitempty"`
-	StartBlockGT    *uint64  `json:"startBlockGT,omitempty"`
-	StartBlockGTE   *uint64  `json:"startBlockGTE,omitempty"`
-	StartBlockLT    *uint64  `json:"startBlockLT,omitempty"`
-	StartBlockLTE   *uint64  `json:"startBlockLTE,omitempty"`
+	// "contract_address" field predicates.
+	ContractAddress             *string  `json:"contractAddress,omitempty"`
+	ContractAddressNEQ          *string  `json:"contractAddressNEQ,omitempty"`
+	ContractAddressIn           []string `json:"contractAddressIn,omitempty"`
+	ContractAddressNotIn        []string `json:"contractAddressNotIn,omitempty"`
+	ContractAddressGT           *string  `json:"contractAddressGT,omitempty"`
+	ContractAddressGTE          *string  `json:"contractAddressGTE,omitempty"`
+	ContractAddressLT           *string  `json:"contractAddressLT,omitempty"`
+	ContractAddressLTE          *string  `json:"contractAddressLTE,omitempty"`
+	ContractAddressContains     *string  `json:"contractAddressContains,omitempty"`
+	ContractAddressHasPrefix    *string  `json:"contractAddressHasPrefix,omitempty"`
+	ContractAddressHasSuffix    *string  `json:"contractAddressHasSuffix,omitempty"`
+	ContractAddressEqualFold    *string  `json:"contractAddressEqualFold,omitempty"`
+	ContractAddressContainsFold *string  `json:"contractAddressContainsFold,omitempty"`
+
+	// "entry_point_selector" field predicates.
+	EntryPointSelector             *string  `json:"entryPointSelector,omitempty"`
+	EntryPointSelectorNEQ          *string  `json:"entryPointSelectorNEQ,omitempty"`
+	EntryPointSelectorIn           []string `json:"entryPointSelectorIn,omitempty"`
+	EntryPointSelectorNotIn        []string `json:"entryPointSelectorNotIn,omitempty"`
+	EntryPointSelectorGT           *string  `json:"entryPointSelectorGT,omitempty"`
+	EntryPointSelectorGTE          *string  `json:"entryPointSelectorGTE,omitempty"`
+	EntryPointSelectorLT           *string  `json:"entryPointSelectorLT,omitempty"`
+	EntryPointSelectorLTE          *string  `json:"entryPointSelectorLTE,omitempty"`
+	EntryPointSelectorContains     *string  `json:"entryPointSelectorContains,omitempty"`
+	EntryPointSelectorHasPrefix    *string  `json:"entryPointSelectorHasPrefix,omitempty"`
+	EntryPointSelectorHasSuffix    *string  `json:"entryPointSelectorHasSuffix,omitempty"`
+	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold,omitempty"`
+	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold,omitempty"`
+
+	// "entry_point_type" field predicates.
+	EntryPointType             *string  `json:"entryPointType,omitempty"`
+	EntryPointTypeNEQ          *string  `json:"entryPointTypeNEQ,omitempty"`
+	EntryPointTypeIn           []string `json:"entryPointTypeIn,omitempty"`
+	EntryPointTypeNotIn        []string `json:"entryPointTypeNotIn,omitempty"`
+	EntryPointTypeGT           *string  `json:"entryPointTypeGT,omitempty"`
+	EntryPointTypeGTE          *string  `json:"entryPointTypeGTE,omitempty"`
+	EntryPointTypeLT           *string  `json:"entryPointTypeLT,omitempty"`
+	EntryPointTypeLTE          *string  `json:"entryPointTypeLTE,omitempty"`
+	EntryPointTypeContains     *string  `json:"entryPointTypeContains,omitempty"`
+	EntryPointTypeHasPrefix    *string  `json:"entryPointTypeHasPrefix,omitempty"`
+	EntryPointTypeHasSuffix    *string  `json:"entryPointTypeHasSuffix,omitempty"`
+	EntryPointTypeEqualFold    *string  `json:"entryPointTypeEqualFold,omitempty"`
+	EntryPointTypeContainsFold *string  `json:"entryPointTypeContainsFold,omitempty"`
+
+	// "transaction_hash" field predicates.
+	TransactionHash             *string  `json:"transactionHash,omitempty"`
+	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
+	TransactionHashIn           []string `json:"transactionHashIn,omitempty"`
+	TransactionHashNotIn        []string `json:"transactionHashNotIn,omitempty"`
+	TransactionHashGT           *string  `json:"transactionHashGT,omitempty"`
+	TransactionHashGTE          *string  `json:"transactionHashGTE,omitempty"`
+	TransactionHashLT           *string  `json:"transactionHashLT,omitempty"`
+	TransactionHashLTE          *string  `json:"transactionHashLTE,omitempty"`
+	TransactionHashContains     *string  `json:"transactionHashContains,omitempty"`
+	TransactionHashHasPrefix    *string  `json:"transactionHashHasPrefix,omitempty"`
+	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix,omitempty"`
+	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
+	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
+
+	// "type" field predicates.
+	Type      *transaction.Type  `json:"type,omitempty"`
+	TypeNEQ   *transaction.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []transaction.Type `json:"typeIn,omitempty"`
+	TypeNotIn []transaction.Type `json:"typeNotIn,omitempty"`
+
+	// "nonce" field predicates.
+	Nonce             *string  `json:"nonce,omitempty"`
+	NonceNEQ          *string  `json:"nonceNEQ,omitempty"`
+	NonceIn           []string `json:"nonceIn,omitempty"`
+	NonceNotIn        []string `json:"nonceNotIn,omitempty"`
+	NonceGT           *string  `json:"nonceGT,omitempty"`
+	NonceGTE          *string  `json:"nonceGTE,omitempty"`
+	NonceLT           *string  `json:"nonceLT,omitempty"`
+	NonceLTE          *string  `json:"nonceLTE,omitempty"`
+	NonceContains     *string  `json:"nonceContains,omitempty"`
+	NonceHasPrefix    *string  `json:"nonceHasPrefix,omitempty"`
+	NonceHasSuffix    *string  `json:"nonceHasSuffix,omitempty"`
+	NonceEqualFold    *string  `json:"nonceEqualFold,omitempty"`
+	NonceContainsFold *string  `json:"nonceContainsFold,omitempty"`
+
+	// "block" edge predicates.
+	HasBlock     *bool              `json:"hasBlock,omitempty"`
+	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "receipts" edge predicates.
+	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
+	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
 }
 
-// Filter applies the SyncStateWhereInput filter on the SyncStateQuery builder.
-func (i *SyncStateWhereInput) Filter(q *SyncStateQuery) (*SyncStateQuery, error) {
+// Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
+func (i *TransactionWhereInput) Filter(q *TransactionQuery) (*TransactionQuery, error) {
 	if i == nil {
 		return q, nil
 	}
@@ -249,16 +533,16 @@ func (i *SyncStateWhereInput) Filter(q *SyncStateQuery) (*SyncStateQuery, error)
 	return q.Where(p), nil
 }
 
-// P returns a predicate for filtering syncstates.
+// P returns a predicate for filtering transactions.
 // An error is returned if the input is empty or invalid.
-func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
-	var predicates []predicate.SyncState
+func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
+	var predicates []predicate.Transaction
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
 			return nil, err
 		}
-		predicates = append(predicates, syncstate.Not(p))
+		predicates = append(predicates, transaction.Not(p))
 	}
 	switch n := len(i.Or); {
 	case n == 1:
@@ -268,7 +552,7 @@ func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		or := make([]predicate.SyncState, 0, n)
+		or := make([]predicate.Transaction, 0, n)
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
@@ -276,7 +560,7 @@ func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
 			}
 			or = append(or, p)
 		}
-		predicates = append(predicates, syncstate.Or(or...))
+		predicates = append(predicates, transaction.Or(or...))
 	}
 	switch n := len(i.And); {
 	case n == 1:
@@ -286,7 +570,7 @@ func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		and := make([]predicate.SyncState, 0, n)
+		and := make([]predicate.Transaction, 0, n)
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
@@ -294,63 +578,525 @@ func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
 			}
 			and = append(and, p)
 		}
-		predicates = append(predicates, syncstate.And(and...))
+		predicates = append(predicates, transaction.And(and...))
 	}
 	if i.ID != nil {
-		predicates = append(predicates, syncstate.IDEQ(*i.ID))
+		predicates = append(predicates, transaction.IDEQ(*i.ID))
 	}
 	if i.IDNEQ != nil {
-		predicates = append(predicates, syncstate.IDNEQ(*i.IDNEQ))
+		predicates = append(predicates, transaction.IDNEQ(*i.IDNEQ))
 	}
 	if len(i.IDIn) > 0 {
-		predicates = append(predicates, syncstate.IDIn(i.IDIn...))
+		predicates = append(predicates, transaction.IDIn(i.IDIn...))
 	}
 	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, syncstate.IDNotIn(i.IDNotIn...))
+		predicates = append(predicates, transaction.IDNotIn(i.IDNotIn...))
 	}
 	if i.IDGT != nil {
-		predicates = append(predicates, syncstate.IDGT(*i.IDGT))
+		predicates = append(predicates, transaction.IDGT(*i.IDGT))
 	}
 	if i.IDGTE != nil {
-		predicates = append(predicates, syncstate.IDGTE(*i.IDGTE))
+		predicates = append(predicates, transaction.IDGTE(*i.IDGTE))
 	}
 	if i.IDLT != nil {
-		predicates = append(predicates, syncstate.IDLT(*i.IDLT))
+		predicates = append(predicates, transaction.IDLT(*i.IDLT))
 	}
 	if i.IDLTE != nil {
-		predicates = append(predicates, syncstate.IDLTE(*i.IDLTE))
+		predicates = append(predicates, transaction.IDLTE(*i.IDLTE))
 	}
-	if i.StartBlock != nil {
-		predicates = append(predicates, syncstate.StartBlockEQ(*i.StartBlock))
+	if i.ContractAddress != nil {
+		predicates = append(predicates, transaction.ContractAddressEQ(*i.ContractAddress))
 	}
-	if i.StartBlockNEQ != nil {
-		predicates = append(predicates, syncstate.StartBlockNEQ(*i.StartBlockNEQ))
+	if i.ContractAddressNEQ != nil {
+		predicates = append(predicates, transaction.ContractAddressNEQ(*i.ContractAddressNEQ))
 	}
-	if len(i.StartBlockIn) > 0 {
-		predicates = append(predicates, syncstate.StartBlockIn(i.StartBlockIn...))
+	if len(i.ContractAddressIn) > 0 {
+		predicates = append(predicates, transaction.ContractAddressIn(i.ContractAddressIn...))
 	}
-	if len(i.StartBlockNotIn) > 0 {
-		predicates = append(predicates, syncstate.StartBlockNotIn(i.StartBlockNotIn...))
+	if len(i.ContractAddressNotIn) > 0 {
+		predicates = append(predicates, transaction.ContractAddressNotIn(i.ContractAddressNotIn...))
 	}
-	if i.StartBlockGT != nil {
-		predicates = append(predicates, syncstate.StartBlockGT(*i.StartBlockGT))
+	if i.ContractAddressGT != nil {
+		predicates = append(predicates, transaction.ContractAddressGT(*i.ContractAddressGT))
 	}
-	if i.StartBlockGTE != nil {
-		predicates = append(predicates, syncstate.StartBlockGTE(*i.StartBlockGTE))
+	if i.ContractAddressGTE != nil {
+		predicates = append(predicates, transaction.ContractAddressGTE(*i.ContractAddressGTE))
 	}
-	if i.StartBlockLT != nil {
-		predicates = append(predicates, syncstate.StartBlockLT(*i.StartBlockLT))
+	if i.ContractAddressLT != nil {
+		predicates = append(predicates, transaction.ContractAddressLT(*i.ContractAddressLT))
 	}
-	if i.StartBlockLTE != nil {
-		predicates = append(predicates, syncstate.StartBlockLTE(*i.StartBlockLTE))
+	if i.ContractAddressLTE != nil {
+		predicates = append(predicates, transaction.ContractAddressLTE(*i.ContractAddressLTE))
+	}
+	if i.ContractAddressContains != nil {
+		predicates = append(predicates, transaction.ContractAddressContains(*i.ContractAddressContains))
+	}
+	if i.ContractAddressHasPrefix != nil {
+		predicates = append(predicates, transaction.ContractAddressHasPrefix(*i.ContractAddressHasPrefix))
+	}
+	if i.ContractAddressHasSuffix != nil {
+		predicates = append(predicates, transaction.ContractAddressHasSuffix(*i.ContractAddressHasSuffix))
+	}
+	if i.ContractAddressEqualFold != nil {
+		predicates = append(predicates, transaction.ContractAddressEqualFold(*i.ContractAddressEqualFold))
+	}
+	if i.ContractAddressContainsFold != nil {
+		predicates = append(predicates, transaction.ContractAddressContainsFold(*i.ContractAddressContainsFold))
+	}
+	if i.EntryPointSelector != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorEQ(*i.EntryPointSelector))
+	}
+	if i.EntryPointSelectorNEQ != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorNEQ(*i.EntryPointSelectorNEQ))
+	}
+	if len(i.EntryPointSelectorIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointSelectorIn(i.EntryPointSelectorIn...))
+	}
+	if len(i.EntryPointSelectorNotIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointSelectorNotIn(i.EntryPointSelectorNotIn...))
+	}
+	if i.EntryPointSelectorGT != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorGT(*i.EntryPointSelectorGT))
+	}
+	if i.EntryPointSelectorGTE != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorGTE(*i.EntryPointSelectorGTE))
+	}
+	if i.EntryPointSelectorLT != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorLT(*i.EntryPointSelectorLT))
+	}
+	if i.EntryPointSelectorLTE != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorLTE(*i.EntryPointSelectorLTE))
+	}
+	if i.EntryPointSelectorContains != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorContains(*i.EntryPointSelectorContains))
+	}
+	if i.EntryPointSelectorHasPrefix != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorHasPrefix(*i.EntryPointSelectorHasPrefix))
+	}
+	if i.EntryPointSelectorHasSuffix != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorHasSuffix(*i.EntryPointSelectorHasSuffix))
+	}
+	if i.EntryPointSelectorEqualFold != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorEqualFold(*i.EntryPointSelectorEqualFold))
+	}
+	if i.EntryPointSelectorContainsFold != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorContainsFold(*i.EntryPointSelectorContainsFold))
+	}
+	if i.EntryPointType != nil {
+		predicates = append(predicates, transaction.EntryPointTypeEQ(*i.EntryPointType))
+	}
+	if i.EntryPointTypeNEQ != nil {
+		predicates = append(predicates, transaction.EntryPointTypeNEQ(*i.EntryPointTypeNEQ))
+	}
+	if len(i.EntryPointTypeIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointTypeIn(i.EntryPointTypeIn...))
+	}
+	if len(i.EntryPointTypeNotIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointTypeNotIn(i.EntryPointTypeNotIn...))
+	}
+	if i.EntryPointTypeGT != nil {
+		predicates = append(predicates, transaction.EntryPointTypeGT(*i.EntryPointTypeGT))
+	}
+	if i.EntryPointTypeGTE != nil {
+		predicates = append(predicates, transaction.EntryPointTypeGTE(*i.EntryPointTypeGTE))
+	}
+	if i.EntryPointTypeLT != nil {
+		predicates = append(predicates, transaction.EntryPointTypeLT(*i.EntryPointTypeLT))
+	}
+	if i.EntryPointTypeLTE != nil {
+		predicates = append(predicates, transaction.EntryPointTypeLTE(*i.EntryPointTypeLTE))
+	}
+	if i.EntryPointTypeContains != nil {
+		predicates = append(predicates, transaction.EntryPointTypeContains(*i.EntryPointTypeContains))
+	}
+	if i.EntryPointTypeHasPrefix != nil {
+		predicates = append(predicates, transaction.EntryPointTypeHasPrefix(*i.EntryPointTypeHasPrefix))
+	}
+	if i.EntryPointTypeHasSuffix != nil {
+		predicates = append(predicates, transaction.EntryPointTypeHasSuffix(*i.EntryPointTypeHasSuffix))
+	}
+	if i.EntryPointTypeEqualFold != nil {
+		predicates = append(predicates, transaction.EntryPointTypeEqualFold(*i.EntryPointTypeEqualFold))
+	}
+	if i.EntryPointTypeContainsFold != nil {
+		predicates = append(predicates, transaction.EntryPointTypeContainsFold(*i.EntryPointTypeContainsFold))
+	}
+	if i.TransactionHash != nil {
+		predicates = append(predicates, transaction.TransactionHashEQ(*i.TransactionHash))
+	}
+	if i.TransactionHashNEQ != nil {
+		predicates = append(predicates, transaction.TransactionHashNEQ(*i.TransactionHashNEQ))
+	}
+	if len(i.TransactionHashIn) > 0 {
+		predicates = append(predicates, transaction.TransactionHashIn(i.TransactionHashIn...))
+	}
+	if len(i.TransactionHashNotIn) > 0 {
+		predicates = append(predicates, transaction.TransactionHashNotIn(i.TransactionHashNotIn...))
+	}
+	if i.TransactionHashGT != nil {
+		predicates = append(predicates, transaction.TransactionHashGT(*i.TransactionHashGT))
+	}
+	if i.TransactionHashGTE != nil {
+		predicates = append(predicates, transaction.TransactionHashGTE(*i.TransactionHashGTE))
+	}
+	if i.TransactionHashLT != nil {
+		predicates = append(predicates, transaction.TransactionHashLT(*i.TransactionHashLT))
+	}
+	if i.TransactionHashLTE != nil {
+		predicates = append(predicates, transaction.TransactionHashLTE(*i.TransactionHashLTE))
+	}
+	if i.TransactionHashContains != nil {
+		predicates = append(predicates, transaction.TransactionHashContains(*i.TransactionHashContains))
+	}
+	if i.TransactionHashHasPrefix != nil {
+		predicates = append(predicates, transaction.TransactionHashHasPrefix(*i.TransactionHashHasPrefix))
+	}
+	if i.TransactionHashHasSuffix != nil {
+		predicates = append(predicates, transaction.TransactionHashHasSuffix(*i.TransactionHashHasSuffix))
+	}
+	if i.TransactionHashEqualFold != nil {
+		predicates = append(predicates, transaction.TransactionHashEqualFold(*i.TransactionHashEqualFold))
+	}
+	if i.TransactionHashContainsFold != nil {
+		predicates = append(predicates, transaction.TransactionHashContainsFold(*i.TransactionHashContainsFold))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, transaction.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, transaction.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, transaction.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, transaction.TypeNotIn(i.TypeNotIn...))
+	}
+	if i.Nonce != nil {
+		predicates = append(predicates, transaction.NonceEQ(*i.Nonce))
+	}
+	if i.NonceNEQ != nil {
+		predicates = append(predicates, transaction.NonceNEQ(*i.NonceNEQ))
+	}
+	if len(i.NonceIn) > 0 {
+		predicates = append(predicates, transaction.NonceIn(i.NonceIn...))
+	}
+	if len(i.NonceNotIn) > 0 {
+		predicates = append(predicates, transaction.NonceNotIn(i.NonceNotIn...))
+	}
+	if i.NonceGT != nil {
+		predicates = append(predicates, transaction.NonceGT(*i.NonceGT))
+	}
+	if i.NonceGTE != nil {
+		predicates = append(predicates, transaction.NonceGTE(*i.NonceGTE))
+	}
+	if i.NonceLT != nil {
+		predicates = append(predicates, transaction.NonceLT(*i.NonceLT))
+	}
+	if i.NonceLTE != nil {
+		predicates = append(predicates, transaction.NonceLTE(*i.NonceLTE))
+	}
+	if i.NonceContains != nil {
+		predicates = append(predicates, transaction.NonceContains(*i.NonceContains))
+	}
+	if i.NonceHasPrefix != nil {
+		predicates = append(predicates, transaction.NonceHasPrefix(*i.NonceHasPrefix))
+	}
+	if i.NonceHasSuffix != nil {
+		predicates = append(predicates, transaction.NonceHasSuffix(*i.NonceHasSuffix))
+	}
+	if i.NonceEqualFold != nil {
+		predicates = append(predicates, transaction.NonceEqualFold(*i.NonceEqualFold))
+	}
+	if i.NonceContainsFold != nil {
+		predicates = append(predicates, transaction.NonceContainsFold(*i.NonceContainsFold))
 	}
 
+	if i.HasBlock != nil {
+		p := transaction.HasBlock()
+		if !*i.HasBlock {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasBlockWith) > 0 {
+		with := make([]predicate.Block, 0, len(i.HasBlockWith))
+		for _, w := range i.HasBlockWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasBlockWith(with...))
+	}
+	if i.HasReceipts != nil {
+		p := transaction.HasReceipts()
+		if !*i.HasReceipts {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasReceiptsWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptsWith))
+		for _, w := range i.HasReceiptsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasReceiptsWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate SyncStateWhereInput")
+		return nil, fmt.Errorf("empty predicate TransactionWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
-		return syncstate.And(predicates...), nil
+		return transaction.And(predicates...), nil
+	}
+}
+
+// TransactionReceiptWhereInput represents a where input for filtering TransactionReceipt queries.
+type TransactionReceiptWhereInput struct {
+	Not *TransactionReceiptWhereInput   `json:"not,omitempty"`
+	Or  []*TransactionReceiptWhereInput `json:"or,omitempty"`
+	And []*TransactionReceiptWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "transaction_index" field predicates.
+	TransactionIndex      *int32  `json:"transactionIndex,omitempty"`
+	TransactionIndexNEQ   *int32  `json:"transactionIndexNEQ,omitempty"`
+	TransactionIndexIn    []int32 `json:"transactionIndexIn,omitempty"`
+	TransactionIndexNotIn []int32 `json:"transactionIndexNotIn,omitempty"`
+	TransactionIndexGT    *int32  `json:"transactionIndexGT,omitempty"`
+	TransactionIndexGTE   *int32  `json:"transactionIndexGTE,omitempty"`
+	TransactionIndexLT    *int32  `json:"transactionIndexLT,omitempty"`
+	TransactionIndexLTE   *int32  `json:"transactionIndexLTE,omitempty"`
+
+	// "transaction_hash" field predicates.
+	TransactionHash             *string  `json:"transactionHash,omitempty"`
+	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
+	TransactionHashIn           []string `json:"transactionHashIn,omitempty"`
+	TransactionHashNotIn        []string `json:"transactionHashNotIn,omitempty"`
+	TransactionHashGT           *string  `json:"transactionHashGT,omitempty"`
+	TransactionHashGTE          *string  `json:"transactionHashGTE,omitempty"`
+	TransactionHashLT           *string  `json:"transactionHashLT,omitempty"`
+	TransactionHashLTE          *string  `json:"transactionHashLTE,omitempty"`
+	TransactionHashContains     *string  `json:"transactionHashContains,omitempty"`
+	TransactionHashHasPrefix    *string  `json:"transactionHashHasPrefix,omitempty"`
+	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix,omitempty"`
+	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
+	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
+
+	// "block" edge predicates.
+	HasBlock     *bool              `json:"hasBlock,omitempty"`
+	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "transaction" edge predicates.
+	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
+	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
+}
+
+// Filter applies the TransactionReceiptWhereInput filter on the TransactionReceiptQuery builder.
+func (i *TransactionReceiptWhereInput) Filter(q *TransactionReceiptQuery) (*TransactionReceiptQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering transactionreceipts.
+// An error is returned if the input is empty or invalid.
+func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error) {
+	var predicates []predicate.TransactionReceipt
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, transactionreceipt.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.TransactionReceipt, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, transactionreceipt.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.TransactionReceipt, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, transactionreceipt.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, transactionreceipt.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, transactionreceipt.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, transactionreceipt.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, transactionreceipt.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, transactionreceipt.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, transactionreceipt.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, transactionreceipt.IDLTE(*i.IDLTE))
+	}
+	if i.TransactionIndex != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexEQ(*i.TransactionIndex))
+	}
+	if i.TransactionIndexNEQ != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexNEQ(*i.TransactionIndexNEQ))
+	}
+	if len(i.TransactionIndexIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionIndexIn(i.TransactionIndexIn...))
+	}
+	if len(i.TransactionIndexNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionIndexNotIn(i.TransactionIndexNotIn...))
+	}
+	if i.TransactionIndexGT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexGT(*i.TransactionIndexGT))
+	}
+	if i.TransactionIndexGTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexGTE(*i.TransactionIndexGTE))
+	}
+	if i.TransactionIndexLT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexLT(*i.TransactionIndexLT))
+	}
+	if i.TransactionIndexLTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexLTE(*i.TransactionIndexLTE))
+	}
+	if i.TransactionHash != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashEQ(*i.TransactionHash))
+	}
+	if i.TransactionHashNEQ != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashNEQ(*i.TransactionHashNEQ))
+	}
+	if len(i.TransactionHashIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionHashIn(i.TransactionHashIn...))
+	}
+	if len(i.TransactionHashNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionHashNotIn(i.TransactionHashNotIn...))
+	}
+	if i.TransactionHashGT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashGT(*i.TransactionHashGT))
+	}
+	if i.TransactionHashGTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashGTE(*i.TransactionHashGTE))
+	}
+	if i.TransactionHashLT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashLT(*i.TransactionHashLT))
+	}
+	if i.TransactionHashLTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashLTE(*i.TransactionHashLTE))
+	}
+	if i.TransactionHashContains != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashContains(*i.TransactionHashContains))
+	}
+	if i.TransactionHashHasPrefix != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashHasPrefix(*i.TransactionHashHasPrefix))
+	}
+	if i.TransactionHashHasSuffix != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashHasSuffix(*i.TransactionHashHasSuffix))
+	}
+	if i.TransactionHashEqualFold != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashEqualFold(*i.TransactionHashEqualFold))
+	}
+	if i.TransactionHashContainsFold != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashContainsFold(*i.TransactionHashContainsFold))
+	}
+
+	if i.HasBlock != nil {
+		p := transactionreceipt.HasBlock()
+		if !*i.HasBlock {
+			p = transactionreceipt.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasBlockWith) > 0 {
+		with := make([]predicate.Block, 0, len(i.HasBlockWith))
+		for _, w := range i.HasBlockWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transactionreceipt.HasBlockWith(with...))
+	}
+	if i.HasTransaction != nil {
+		p := transactionreceipt.HasTransaction()
+		if !*i.HasTransaction {
+			p = transactionreceipt.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionWith))
+		for _, w := range i.HasTransactionWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transactionreceipt.HasTransactionWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate TransactionReceiptWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return transactionreceipt.And(predicates...), nil
 	}
 }

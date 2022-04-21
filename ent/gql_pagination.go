@@ -14,8 +14,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -242,20 +243,20 @@ func paginateLimit(first, last *int) int {
 	return limit
 }
 
-// AccountEdge is the edge representation of Account.
-type AccountEdge struct {
-	Node   *Account `json:"node"`
-	Cursor Cursor   `json:"cursor"`
+// BlockEdge is the edge representation of Block.
+type BlockEdge struct {
+	Node   *Block `json:"node"`
+	Cursor Cursor `json:"cursor"`
 }
 
-// AccountConnection is the connection containing edges to Account.
-type AccountConnection struct {
-	Edges      []*AccountEdge `json:"edges"`
-	PageInfo   PageInfo       `json:"pageInfo"`
-	TotalCount int            `json:"totalCount"`
+// BlockConnection is the connection containing edges to Block.
+type BlockConnection struct {
+	Edges      []*BlockEdge `json:"edges"`
+	PageInfo   PageInfo     `json:"pageInfo"`
+	TotalCount int          `json:"totalCount"`
 }
 
-func (c *AccountConnection) build(nodes []*Account, pager *accountPager, first, last *int) {
+func (c *BlockConnection) build(nodes []*Block, pager *blockPager, first, last *int) {
 	if first != nil && *first+1 == len(nodes) {
 		c.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -263,147 +264,149 @@ func (c *AccountConnection) build(nodes []*Account, pager *accountPager, first, 
 		c.PageInfo.HasPreviousPage = true
 		nodes = nodes[:len(nodes)-1]
 	}
-	var nodeAt func(int) *Account
+	var nodeAt func(int) *Block
 	if last != nil {
 		n := len(nodes) - 1
-		nodeAt = func(i int) *Account {
+		nodeAt = func(i int) *Block {
 			return nodes[n-i]
 		}
 	} else {
-		nodeAt = func(i int) *Account {
+		nodeAt = func(i int) *Block {
 			return nodes[i]
 		}
 	}
-	c.Edges = make([]*AccountEdge, len(nodes))
+	c.Edges = make([]*BlockEdge, len(nodes))
 	for i := range nodes {
 		node := nodeAt(i)
-		c.Edges[i] = &AccountEdge{
+		c.Edges[i] = &BlockEdge{
 			Node:   node,
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
 }
 
-// AccountPaginateOption enables pagination customization.
-type AccountPaginateOption func(*accountPager) error
+// BlockPaginateOption enables pagination customization.
+type BlockPaginateOption func(*blockPager) error
 
-// WithAccountOrder configures pagination ordering.
-func WithAccountOrder(order *AccountOrder) AccountPaginateOption {
+// WithBlockOrder configures pagination ordering.
+func WithBlockOrder(order *BlockOrder) BlockPaginateOption {
 	if order == nil {
-		order = DefaultAccountOrder
+		order = DefaultBlockOrder
 	}
 	o := *order
-	return func(pager *accountPager) error {
+	return func(pager *blockPager) error {
 		if err := o.Direction.Validate(); err != nil {
 			return err
 		}
 		if o.Field == nil {
-			o.Field = DefaultAccountOrder.Field
+			o.Field = DefaultBlockOrder.Field
 		}
 		pager.order = &o
 		return nil
 	}
 }
 
-// WithAccountFilter configures pagination filter.
-func WithAccountFilter(filter func(*AccountQuery) (*AccountQuery, error)) AccountPaginateOption {
-	return func(pager *accountPager) error {
+// WithBlockFilter configures pagination filter.
+func WithBlockFilter(filter func(*BlockQuery) (*BlockQuery, error)) BlockPaginateOption {
+	return func(pager *blockPager) error {
 		if filter == nil {
-			return errors.New("AccountQuery filter cannot be nil")
+			return errors.New("BlockQuery filter cannot be nil")
 		}
 		pager.filter = filter
 		return nil
 	}
 }
 
-type accountPager struct {
-	order  *AccountOrder
-	filter func(*AccountQuery) (*AccountQuery, error)
+type blockPager struct {
+	order  *BlockOrder
+	filter func(*BlockQuery) (*BlockQuery, error)
 }
 
-func newAccountPager(opts []AccountPaginateOption) (*accountPager, error) {
-	pager := &accountPager{}
+func newBlockPager(opts []BlockPaginateOption) (*blockPager, error) {
+	pager := &blockPager{}
 	for _, opt := range opts {
 		if err := opt(pager); err != nil {
 			return nil, err
 		}
 	}
 	if pager.order == nil {
-		pager.order = DefaultAccountOrder
+		pager.order = DefaultBlockOrder
 	}
 	return pager, nil
 }
 
-func (p *accountPager) applyFilter(query *AccountQuery) (*AccountQuery, error) {
+func (p *blockPager) applyFilter(query *BlockQuery) (*BlockQuery, error) {
 	if p.filter != nil {
 		return p.filter(query)
 	}
 	return query, nil
 }
 
-func (p *accountPager) toCursor(a *Account) Cursor {
-	return p.order.Field.toCursor(a)
+func (p *blockPager) toCursor(b *Block) Cursor {
+	return p.order.Field.toCursor(b)
 }
 
-func (p *accountPager) applyCursors(query *AccountQuery, after, before *Cursor) *AccountQuery {
+func (p *blockPager) applyCursors(query *BlockQuery, after, before *Cursor) *BlockQuery {
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
-		p.order.Field.field, DefaultAccountOrder.Field.field,
+		p.order.Field.field, DefaultBlockOrder.Field.field,
 	) {
 		query = query.Where(predicate)
 	}
 	return query
 }
 
-func (p *accountPager) applyOrder(query *AccountQuery, reverse bool) *AccountQuery {
+func (p *blockPager) applyOrder(query *BlockQuery, reverse bool) *BlockQuery {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultAccountOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultAccountOrder.Field.field))
+	if p.order.Field != DefaultBlockOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultBlockOrder.Field.field))
 	}
 	return query
 }
 
-func (p *accountPager) orderExpr(reverse bool) sql.Querier {
+func (p *blockPager) orderExpr(reverse bool) sql.Querier {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultAccountOrder.Field {
-			b.Comma().Ident(DefaultAccountOrder.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultBlockOrder.Field {
+			b.Comma().Ident(DefaultBlockOrder.Field.field).Pad().WriteString(string(direction))
 		}
 	})
 }
 
-// Paginate executes the query and returns a relay based cursor connection to Account.
-func (a *AccountQuery) Paginate(
+// Paginate executes the query and returns a relay based cursor connection to Block.
+func (b *BlockQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...AccountPaginateOption,
-) (*AccountConnection, error) {
+	before *Cursor, last *int, opts ...BlockPaginateOption,
+) (*BlockConnection, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
-	pager, err := newAccountPager(opts)
+	pager, err := newBlockPager(opts)
 	if err != nil {
 		return nil, err
 	}
-	if a, err = pager.applyFilter(a); err != nil {
+	if b, err = pager.applyFilter(b); err != nil {
 		return nil, err
 	}
-	conn := &AccountConnection{Edges: []*AccountEdge{}}
+	conn := &BlockConnection{Edges: []*BlockEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = a.Count(ctx); err != nil {
+			if conn.TotalCount, err = b.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -413,25 +416,25 @@ func (a *AccountQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := a.Clone().Count(ctx)
+		count, err := b.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	a = pager.applyCursors(a, after, before)
-	a = pager.applyOrder(a, last != nil)
+	b = pager.applyCursors(b, after, before)
+	b = pager.applyOrder(b, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		a.Limit(limit)
+		b.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := a.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := b.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := a.All(ctx)
+	nodes, err := b.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -440,96 +443,110 @@ func (a *AccountQuery) Paginate(
 }
 
 var (
-	// AccountOrderFieldCreatedAt orders Account by created_at.
-	AccountOrderFieldCreatedAt = &AccountOrderField{
-		field: account.FieldCreatedAt,
-		toCursor: func(a *Account) Cursor {
+	// BlockOrderFieldBlockNumber orders Block by block_number.
+	BlockOrderFieldBlockNumber = &BlockOrderField{
+		field: block.FieldBlockNumber,
+		toCursor: func(b *Block) Cursor {
 			return Cursor{
-				ID:    a.ID,
-				Value: a.CreatedAt,
+				ID:    b.ID,
+				Value: b.BlockNumber,
+			}
+		},
+	}
+	// BlockOrderFieldTimestamp orders Block by timestamp.
+	BlockOrderFieldTimestamp = &BlockOrderField{
+		field: block.FieldTimestamp,
+		toCursor: func(b *Block) Cursor {
+			return Cursor{
+				ID:    b.ID,
+				Value: b.Timestamp,
 			}
 		},
 	}
 )
 
 // String implement fmt.Stringer interface.
-func (f AccountOrderField) String() string {
+func (f BlockOrderField) String() string {
 	var str string
 	switch f.field {
-	case account.FieldCreatedAt:
-		str = "CREATED_AT"
+	case block.FieldBlockNumber:
+		str = "BLOCK_NUMBER"
+	case block.FieldTimestamp:
+		str = "TIMESTAMP"
 	}
 	return str
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (f AccountOrderField) MarshalGQL(w io.Writer) {
+func (f BlockOrderField) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(f.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (f *AccountOrderField) UnmarshalGQL(v interface{}) error {
+func (f *BlockOrderField) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("AccountOrderField %T must be a string", v)
+		return fmt.Errorf("BlockOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
-		*f = *AccountOrderFieldCreatedAt
+	case "BLOCK_NUMBER":
+		*f = *BlockOrderFieldBlockNumber
+	case "TIMESTAMP":
+		*f = *BlockOrderFieldTimestamp
 	default:
-		return fmt.Errorf("%s is not a valid AccountOrderField", str)
+		return fmt.Errorf("%s is not a valid BlockOrderField", str)
 	}
 	return nil
 }
 
-// AccountOrderField defines the ordering field of Account.
-type AccountOrderField struct {
+// BlockOrderField defines the ordering field of Block.
+type BlockOrderField struct {
 	field    string
-	toCursor func(*Account) Cursor
+	toCursor func(*Block) Cursor
 }
 
-// AccountOrder defines the ordering of Account.
-type AccountOrder struct {
-	Direction OrderDirection     `json:"direction"`
-	Field     *AccountOrderField `json:"field"`
+// BlockOrder defines the ordering of Block.
+type BlockOrder struct {
+	Direction OrderDirection   `json:"direction"`
+	Field     *BlockOrderField `json:"field"`
 }
 
-// DefaultAccountOrder is the default ordering of Account.
-var DefaultAccountOrder = &AccountOrder{
+// DefaultBlockOrder is the default ordering of Block.
+var DefaultBlockOrder = &BlockOrder{
 	Direction: OrderDirectionAsc,
-	Field: &AccountOrderField{
-		field: account.FieldID,
-		toCursor: func(a *Account) Cursor {
-			return Cursor{ID: a.ID}
+	Field: &BlockOrderField{
+		field: block.FieldID,
+		toCursor: func(b *Block) Cursor {
+			return Cursor{ID: b.ID}
 		},
 	},
 }
 
-// ToEdge converts Account into AccountEdge.
-func (a *Account) ToEdge(order *AccountOrder) *AccountEdge {
+// ToEdge converts Block into BlockEdge.
+func (b *Block) ToEdge(order *BlockOrder) *BlockEdge {
 	if order == nil {
-		order = DefaultAccountOrder
+		order = DefaultBlockOrder
 	}
-	return &AccountEdge{
-		Node:   a,
-		Cursor: order.Field.toCursor(a),
+	return &BlockEdge{
+		Node:   b,
+		Cursor: order.Field.toCursor(b),
 	}
 }
 
-// SyncStateEdge is the edge representation of SyncState.
-type SyncStateEdge struct {
-	Node   *SyncState `json:"node"`
-	Cursor Cursor     `json:"cursor"`
+// TransactionEdge is the edge representation of Transaction.
+type TransactionEdge struct {
+	Node   *Transaction `json:"node"`
+	Cursor Cursor       `json:"cursor"`
 }
 
-// SyncStateConnection is the connection containing edges to SyncState.
-type SyncStateConnection struct {
-	Edges      []*SyncStateEdge `json:"edges"`
-	PageInfo   PageInfo         `json:"pageInfo"`
-	TotalCount int              `json:"totalCount"`
+// TransactionConnection is the connection containing edges to Transaction.
+type TransactionConnection struct {
+	Edges      []*TransactionEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
 }
 
-func (c *SyncStateConnection) build(nodes []*SyncState, pager *syncstatePager, first, last *int) {
+func (c *TransactionConnection) build(nodes []*Transaction, pager *transactionPager, first, last *int) {
 	if first != nil && *first+1 == len(nodes) {
 		c.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -537,147 +554,149 @@ func (c *SyncStateConnection) build(nodes []*SyncState, pager *syncstatePager, f
 		c.PageInfo.HasPreviousPage = true
 		nodes = nodes[:len(nodes)-1]
 	}
-	var nodeAt func(int) *SyncState
+	var nodeAt func(int) *Transaction
 	if last != nil {
 		n := len(nodes) - 1
-		nodeAt = func(i int) *SyncState {
+		nodeAt = func(i int) *Transaction {
 			return nodes[n-i]
 		}
 	} else {
-		nodeAt = func(i int) *SyncState {
+		nodeAt = func(i int) *Transaction {
 			return nodes[i]
 		}
 	}
-	c.Edges = make([]*SyncStateEdge, len(nodes))
+	c.Edges = make([]*TransactionEdge, len(nodes))
 	for i := range nodes {
 		node := nodeAt(i)
-		c.Edges[i] = &SyncStateEdge{
+		c.Edges[i] = &TransactionEdge{
 			Node:   node,
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
 }
 
-// SyncStatePaginateOption enables pagination customization.
-type SyncStatePaginateOption func(*syncstatePager) error
+// TransactionPaginateOption enables pagination customization.
+type TransactionPaginateOption func(*transactionPager) error
 
-// WithSyncStateOrder configures pagination ordering.
-func WithSyncStateOrder(order *SyncStateOrder) SyncStatePaginateOption {
+// WithTransactionOrder configures pagination ordering.
+func WithTransactionOrder(order *TransactionOrder) TransactionPaginateOption {
 	if order == nil {
-		order = DefaultSyncStateOrder
+		order = DefaultTransactionOrder
 	}
 	o := *order
-	return func(pager *syncstatePager) error {
+	return func(pager *transactionPager) error {
 		if err := o.Direction.Validate(); err != nil {
 			return err
 		}
 		if o.Field == nil {
-			o.Field = DefaultSyncStateOrder.Field
+			o.Field = DefaultTransactionOrder.Field
 		}
 		pager.order = &o
 		return nil
 	}
 }
 
-// WithSyncStateFilter configures pagination filter.
-func WithSyncStateFilter(filter func(*SyncStateQuery) (*SyncStateQuery, error)) SyncStatePaginateOption {
-	return func(pager *syncstatePager) error {
+// WithTransactionFilter configures pagination filter.
+func WithTransactionFilter(filter func(*TransactionQuery) (*TransactionQuery, error)) TransactionPaginateOption {
+	return func(pager *transactionPager) error {
 		if filter == nil {
-			return errors.New("SyncStateQuery filter cannot be nil")
+			return errors.New("TransactionQuery filter cannot be nil")
 		}
 		pager.filter = filter
 		return nil
 	}
 }
 
-type syncstatePager struct {
-	order  *SyncStateOrder
-	filter func(*SyncStateQuery) (*SyncStateQuery, error)
+type transactionPager struct {
+	order  *TransactionOrder
+	filter func(*TransactionQuery) (*TransactionQuery, error)
 }
 
-func newSyncStatePager(opts []SyncStatePaginateOption) (*syncstatePager, error) {
-	pager := &syncstatePager{}
+func newTransactionPager(opts []TransactionPaginateOption) (*transactionPager, error) {
+	pager := &transactionPager{}
 	for _, opt := range opts {
 		if err := opt(pager); err != nil {
 			return nil, err
 		}
 	}
 	if pager.order == nil {
-		pager.order = DefaultSyncStateOrder
+		pager.order = DefaultTransactionOrder
 	}
 	return pager, nil
 }
 
-func (p *syncstatePager) applyFilter(query *SyncStateQuery) (*SyncStateQuery, error) {
+func (p *transactionPager) applyFilter(query *TransactionQuery) (*TransactionQuery, error) {
 	if p.filter != nil {
 		return p.filter(query)
 	}
 	return query, nil
 }
 
-func (p *syncstatePager) toCursor(ss *SyncState) Cursor {
-	return p.order.Field.toCursor(ss)
+func (p *transactionPager) toCursor(t *Transaction) Cursor {
+	return p.order.Field.toCursor(t)
 }
 
-func (p *syncstatePager) applyCursors(query *SyncStateQuery, after, before *Cursor) *SyncStateQuery {
+func (p *transactionPager) applyCursors(query *TransactionQuery, after, before *Cursor) *TransactionQuery {
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
-		p.order.Field.field, DefaultSyncStateOrder.Field.field,
+		p.order.Field.field, DefaultTransactionOrder.Field.field,
 	) {
 		query = query.Where(predicate)
 	}
 	return query
 }
 
-func (p *syncstatePager) applyOrder(query *SyncStateQuery, reverse bool) *SyncStateQuery {
+func (p *transactionPager) applyOrder(query *TransactionQuery, reverse bool) *TransactionQuery {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultSyncStateOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultSyncStateOrder.Field.field))
+	if p.order.Field != DefaultTransactionOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultTransactionOrder.Field.field))
 	}
 	return query
 }
 
-func (p *syncstatePager) orderExpr(reverse bool) sql.Querier {
+func (p *transactionPager) orderExpr(reverse bool) sql.Querier {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultSyncStateOrder.Field {
-			b.Comma().Ident(DefaultSyncStateOrder.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultTransactionOrder.Field {
+			b.Comma().Ident(DefaultTransactionOrder.Field.field).Pad().WriteString(string(direction))
 		}
 	})
 }
 
-// Paginate executes the query and returns a relay based cursor connection to SyncState.
-func (ss *SyncStateQuery) Paginate(
+// Paginate executes the query and returns a relay based cursor connection to Transaction.
+func (t *TransactionQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...SyncStatePaginateOption,
-) (*SyncStateConnection, error) {
+	before *Cursor, last *int, opts ...TransactionPaginateOption,
+) (*TransactionConnection, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
-	pager, err := newSyncStatePager(opts)
+	pager, err := newTransactionPager(opts)
 	if err != nil {
 		return nil, err
 	}
-	if ss, err = pager.applyFilter(ss); err != nil {
+	if t, err = pager.applyFilter(t); err != nil {
 		return nil, err
 	}
-	conn := &SyncStateConnection{Edges: []*SyncStateEdge{}}
+	conn := &TransactionConnection{Edges: []*TransactionEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = ss.Count(ctx); err != nil {
+			if conn.TotalCount, err = t.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -687,25 +706,25 @@ func (ss *SyncStateQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := ss.Clone().Count(ctx)
+		count, err := t.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	ss = pager.applyCursors(ss, after, before)
-	ss = pager.applyOrder(ss, last != nil)
+	t = pager.applyCursors(t, after, before)
+	t = pager.applyOrder(t, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		ss.Limit(limit)
+		t.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := ss.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := ss.All(ctx)
+	nodes, err := t.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -713,36 +732,355 @@ func (ss *SyncStateQuery) Paginate(
 	return conn, nil
 }
 
-// SyncStateOrderField defines the ordering field of SyncState.
-type SyncStateOrderField struct {
+var (
+	// TransactionOrderFieldNonce orders Transaction by nonce.
+	TransactionOrderFieldNonce = &TransactionOrderField{
+		field: transaction.FieldNonce,
+		toCursor: func(t *Transaction) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.Nonce,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TransactionOrderField) String() string {
+	var str string
+	switch f.field {
+	case transaction.FieldNonce:
+		str = "NONCE"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TransactionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TransactionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TransactionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "NONCE":
+		*f = *TransactionOrderFieldNonce
+	default:
+		return fmt.Errorf("%s is not a valid TransactionOrderField", str)
+	}
+	return nil
+}
+
+// TransactionOrderField defines the ordering field of Transaction.
+type TransactionOrderField struct {
 	field    string
-	toCursor func(*SyncState) Cursor
+	toCursor func(*Transaction) Cursor
 }
 
-// SyncStateOrder defines the ordering of SyncState.
-type SyncStateOrder struct {
-	Direction OrderDirection       `json:"direction"`
-	Field     *SyncStateOrderField `json:"field"`
+// TransactionOrder defines the ordering of Transaction.
+type TransactionOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *TransactionOrderField `json:"field"`
 }
 
-// DefaultSyncStateOrder is the default ordering of SyncState.
-var DefaultSyncStateOrder = &SyncStateOrder{
+// DefaultTransactionOrder is the default ordering of Transaction.
+var DefaultTransactionOrder = &TransactionOrder{
 	Direction: OrderDirectionAsc,
-	Field: &SyncStateOrderField{
-		field: syncstate.FieldID,
-		toCursor: func(ss *SyncState) Cursor {
-			return Cursor{ID: ss.ID}
+	Field: &TransactionOrderField{
+		field: transaction.FieldID,
+		toCursor: func(t *Transaction) Cursor {
+			return Cursor{ID: t.ID}
 		},
 	},
 }
 
-// ToEdge converts SyncState into SyncStateEdge.
-func (ss *SyncState) ToEdge(order *SyncStateOrder) *SyncStateEdge {
+// ToEdge converts Transaction into TransactionEdge.
+func (t *Transaction) ToEdge(order *TransactionOrder) *TransactionEdge {
 	if order == nil {
-		order = DefaultSyncStateOrder
+		order = DefaultTransactionOrder
 	}
-	return &SyncStateEdge{
-		Node:   ss,
-		Cursor: order.Field.toCursor(ss),
+	return &TransactionEdge{
+		Node:   t,
+		Cursor: order.Field.toCursor(t),
+	}
+}
+
+// TransactionReceiptEdge is the edge representation of TransactionReceipt.
+type TransactionReceiptEdge struct {
+	Node   *TransactionReceipt `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// TransactionReceiptConnection is the connection containing edges to TransactionReceipt.
+type TransactionReceiptConnection struct {
+	Edges      []*TransactionReceiptEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *TransactionReceiptConnection) build(nodes []*TransactionReceipt, pager *transactionreceiptPager, first, last *int) {
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *TransactionReceipt
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *TransactionReceipt {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *TransactionReceipt {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*TransactionReceiptEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &TransactionReceiptEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// TransactionReceiptPaginateOption enables pagination customization.
+type TransactionReceiptPaginateOption func(*transactionreceiptPager) error
+
+// WithTransactionReceiptOrder configures pagination ordering.
+func WithTransactionReceiptOrder(order *TransactionReceiptOrder) TransactionReceiptPaginateOption {
+	if order == nil {
+		order = DefaultTransactionReceiptOrder
+	}
+	o := *order
+	return func(pager *transactionreceiptPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultTransactionReceiptOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithTransactionReceiptFilter configures pagination filter.
+func WithTransactionReceiptFilter(filter func(*TransactionReceiptQuery) (*TransactionReceiptQuery, error)) TransactionReceiptPaginateOption {
+	return func(pager *transactionreceiptPager) error {
+		if filter == nil {
+			return errors.New("TransactionReceiptQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type transactionreceiptPager struct {
+	order  *TransactionReceiptOrder
+	filter func(*TransactionReceiptQuery) (*TransactionReceiptQuery, error)
+}
+
+func newTransactionReceiptPager(opts []TransactionReceiptPaginateOption) (*transactionreceiptPager, error) {
+	pager := &transactionreceiptPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultTransactionReceiptOrder
+	}
+	return pager, nil
+}
+
+func (p *transactionreceiptPager) applyFilter(query *TransactionReceiptQuery) (*TransactionReceiptQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *transactionreceiptPager) toCursor(tr *TransactionReceipt) Cursor {
+	return p.order.Field.toCursor(tr)
+}
+
+func (p *transactionreceiptPager) applyCursors(query *TransactionReceiptQuery, after, before *Cursor) *TransactionReceiptQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultTransactionReceiptOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *transactionreceiptPager) applyOrder(query *TransactionReceiptQuery, reverse bool) *TransactionReceiptQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultTransactionReceiptOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultTransactionReceiptOrder.Field.field))
+	}
+	return query
+}
+
+func (p *transactionreceiptPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultTransactionReceiptOrder.Field {
+			b.Comma().Ident(DefaultTransactionReceiptOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to TransactionReceipt.
+func (tr *TransactionReceiptQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...TransactionReceiptPaginateOption,
+) (*TransactionReceiptConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newTransactionReceiptPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if tr, err = pager.applyFilter(tr); err != nil {
+		return nil, err
+	}
+	conn := &TransactionReceiptConnection{Edges: []*TransactionReceiptEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = tr.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := tr.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	tr = pager.applyCursors(tr, after, before)
+	tr = pager.applyOrder(tr, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		tr.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := tr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := tr.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
+}
+
+var (
+	// TransactionReceiptOrderFieldTransactionIndex orders TransactionReceipt by transaction_index.
+	TransactionReceiptOrderFieldTransactionIndex = &TransactionReceiptOrderField{
+		field: transactionreceipt.FieldTransactionIndex,
+		toCursor: func(tr *TransactionReceipt) Cursor {
+			return Cursor{
+				ID:    tr.ID,
+				Value: tr.TransactionIndex,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TransactionReceiptOrderField) String() string {
+	var str string
+	switch f.field {
+	case transactionreceipt.FieldTransactionIndex:
+		str = "INDEX"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TransactionReceiptOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TransactionReceiptOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TransactionReceiptOrderField %T must be a string", v)
+	}
+	switch str {
+	case "INDEX":
+		*f = *TransactionReceiptOrderFieldTransactionIndex
+	default:
+		return fmt.Errorf("%s is not a valid TransactionReceiptOrderField", str)
+	}
+	return nil
+}
+
+// TransactionReceiptOrderField defines the ordering field of TransactionReceipt.
+type TransactionReceiptOrderField struct {
+	field    string
+	toCursor func(*TransactionReceipt) Cursor
+}
+
+// TransactionReceiptOrder defines the ordering of TransactionReceipt.
+type TransactionReceiptOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *TransactionReceiptOrderField `json:"field"`
+}
+
+// DefaultTransactionReceiptOrder is the default ordering of TransactionReceipt.
+var DefaultTransactionReceiptOrder = &TransactionReceiptOrder{
+	Direction: OrderDirectionAsc,
+	Field: &TransactionReceiptOrderField{
+		field: transactionreceipt.FieldID,
+		toCursor: func(tr *TransactionReceipt) Cursor {
+			return Cursor{ID: tr.ID}
+		},
+	},
+}
+
+// ToEdge converts TransactionReceipt into TransactionReceiptEdge.
+func (tr *TransactionReceipt) ToEdge(order *TransactionReceiptOrder) *TransactionReceiptEdge {
+	if order == nil {
+		order = DefaultTransactionReceiptOrder
+	}
+	return &TransactionReceiptEdge{
+		Node:   tr,
+		Cursor: order.Field.toCursor(tr),
 	}
 }

@@ -9,28 +9,41 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent"
 )
 
-// The AccountFunc type is an adapter to allow the use of ordinary
-// function as Account mutator.
-type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+// The BlockFunc type is an adapter to allow the use of ordinary
+// function as Block mutator.
+type BlockFunc func(context.Context, *ent.BlockMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AccountMutation)
+func (f BlockFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.BlockMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlockMutation", m)
 	}
 	return f(ctx, mv)
 }
 
-// The SyncStateFunc type is an adapter to allow the use of ordinary
-// function as SyncState mutator.
-type SyncStateFunc func(context.Context, *ent.SyncStateMutation) (ent.Value, error)
+// The TransactionFunc type is an adapter to allow the use of ordinary
+// function as Transaction mutator.
+type TransactionFunc func(context.Context, *ent.TransactionMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f SyncStateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.SyncStateMutation)
+func (f TransactionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TransactionMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SyncStateMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TransactionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TransactionReceiptFunc type is an adapter to allow the use of ordinary
+// function as TransactionReceipt mutator.
+type TransactionReceiptFunc func(context.Context, *ent.TransactionReceiptMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TransactionReceiptFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TransactionReceiptMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TransactionReceiptMutation", m)
 	}
 	return f(ctx, mv)
 }
