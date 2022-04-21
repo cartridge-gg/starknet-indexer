@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // BlockCreate is the builder for creating a Block entity.
@@ -45,8 +46,8 @@ func (bc *BlockCreate) SetStateRoot(s string) *BlockCreate {
 }
 
 // SetStatus sets the "status" field.
-func (bc *BlockCreate) SetStatus(s string) *BlockCreate {
-	bc.mutation.SetStatus(s)
+func (bc *BlockCreate) SetStatus(b block.Status) *BlockCreate {
+	bc.mutation.SetStatus(b)
 	return bc
 }
 
@@ -60,6 +61,21 @@ func (bc *BlockCreate) SetTimestamp(t time.Time) *BlockCreate {
 func (bc *BlockCreate) SetID(s string) *BlockCreate {
 	bc.mutation.SetID(s)
 	return bc
+}
+
+// AddTransactionIDs adds the "transactions" edge to the Transaction entity by IDs.
+func (bc *BlockCreate) AddTransactionIDs(ids ...string) *BlockCreate {
+	bc.mutation.AddTransactionIDs(ids...)
+	return bc
+}
+
+// AddTransactions adds the "transactions" edges to the Transaction entity.
+func (bc *BlockCreate) AddTransactions(t ...*Transaction) *BlockCreate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bc.AddTransactionIDs(ids...)
 }
 
 // Mutation returns the BlockMutation object of the builder.
@@ -147,6 +163,11 @@ func (bc *BlockCreate) check() error {
 	if _, ok := bc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Block.status"`)}
 	}
+	if v, ok := bc.mutation.Status(); ok {
+		if err := block.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Block.status": %w`, err)}
+		}
+	}
 	if _, ok := bc.mutation.Timestamp(); !ok {
 		return &ValidationError{Name: "timestamp", err: errors.New(`ent: missing required field "Block.timestamp"`)}
 	}
@@ -220,7 +241,7 @@ func (bc *BlockCreate) createSpec() (*Block, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := bc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: block.FieldStatus,
 		})
@@ -233,6 +254,25 @@ func (bc *BlockCreate) createSpec() (*Block, *sqlgraph.CreateSpec) {
 			Column: block.FieldTimestamp,
 		})
 		_node.Timestamp = value
+	}
+	if nodes := bc.mutation.TransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

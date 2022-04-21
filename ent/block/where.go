@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 )
 
@@ -117,13 +118,6 @@ func BlockNumber(v uint64) predicate.Block {
 func StateRoot(v string) predicate.Block {
 	return predicate.Block(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStateRoot), v))
-	})
-}
-
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
@@ -544,21 +538,21 @@ func StateRootContainsFold(v string) predicate.Block {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.Block {
+func StatusEQ(v Status) predicate.Block {
 	return predicate.Block(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.Block {
+func StatusNEQ(v Status) predicate.Block {
 	return predicate.Block(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.Block {
+func StatusIn(vs ...Status) predicate.Block {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -575,7 +569,7 @@ func StatusIn(vs ...string) predicate.Block {
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.Block {
+func StatusNotIn(vs ...Status) predicate.Block {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -588,69 +582,6 @@ func StatusNotIn(vs ...string) predicate.Block {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
-	})
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStatus), v))
-	})
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldStatus), v))
-	})
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldStatus), v))
-	})
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldStatus), v))
-	})
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldStatus), v))
-	})
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.Block {
-	return predicate.Block(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldStatus), v))
 	})
 }
 
@@ -727,6 +658,34 @@ func TimestampLT(v time.Time) predicate.Block {
 func TimestampLTE(v time.Time) predicate.Block {
 	return predicate.Block(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldTimestamp), v))
+	})
+}
+
+// HasTransactions applies the HasEdge predicate on the "transactions" edge.
+func HasTransactions() predicate.Block {
+	return predicate.Block(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TransactionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TransactionsTable, TransactionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTransactionsWith applies the HasEdge predicate on the "transactions" edge with a given conditions (other predicates).
+func HasTransactionsWith(preds ...predicate.Transaction) predicate.Block {
+	return predicate.Block(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TransactionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TransactionsTable, TransactionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

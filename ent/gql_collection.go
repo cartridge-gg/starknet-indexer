@@ -77,6 +77,52 @@ func newBlockPaginateArgs(rv map[string]interface{}) *blockPaginateArgs {
 	return args
 }
 
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (t *TransactionQuery) CollectFields(ctx context.Context, satisfies ...string) (*TransactionQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return t, nil
+	}
+	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func (t *TransactionQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type transactionPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []TransactionPaginateOption
+}
+
+func newTransactionPaginateArgs(rv map[string]interface{}) *transactionPaginateArgs {
+	args := &transactionPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v := rv[whereField]; v != nil && v != (*TransactionWhereInput)(nil) {
+		args.opts = append(args.opts, WithTransactionFilter(v.(*TransactionWhereInput).Filter))
+	}
+	return args
+}
+
 const (
 	afterField     = "after"
 	firstField     = "first"

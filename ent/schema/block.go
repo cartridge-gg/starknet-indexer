@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,9 +21,13 @@ func (Block) Fields() []ent.Field {
 		field.String("parent_block_hash"),
 		field.Uint64("block_number").Unique().Annotations(
 			entgql.Type("Long"),
+			entgql.OrderField("BLOCK_NUMBER"),
 		),
 		field.String("state_root"),
-		field.String("status"),
+		field.Enum("status").Values("ACCEPTED_ON_L1", "ACCEPTED_ON_L2").
+			Annotations(
+				entgql.Type("BlockStatus"),
+			),
 		field.Time("timestamp").
 			Immutable().
 			Annotations(
@@ -33,10 +38,13 @@ func (Block) Fields() []ent.Field {
 
 // Edges returns Block edges.
 func (Block) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("transactions", Transaction.Type).
+			Annotations(entgql.Unbind()),
+	}
 }
 
-// Annotations returns account annotations.
+// Annotations returns Block annotations.
 func (Block) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),

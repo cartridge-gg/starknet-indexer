@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // BlockUpdate is the builder for updating Block entities.
@@ -59,14 +60,50 @@ func (bu *BlockUpdate) SetStateRoot(s string) *BlockUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (bu *BlockUpdate) SetStatus(s string) *BlockUpdate {
-	bu.mutation.SetStatus(s)
+func (bu *BlockUpdate) SetStatus(b block.Status) *BlockUpdate {
+	bu.mutation.SetStatus(b)
 	return bu
+}
+
+// AddTransactionIDs adds the "transactions" edge to the Transaction entity by IDs.
+func (bu *BlockUpdate) AddTransactionIDs(ids ...string) *BlockUpdate {
+	bu.mutation.AddTransactionIDs(ids...)
+	return bu
+}
+
+// AddTransactions adds the "transactions" edges to the Transaction entity.
+func (bu *BlockUpdate) AddTransactions(t ...*Transaction) *BlockUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bu.AddTransactionIDs(ids...)
 }
 
 // Mutation returns the BlockMutation object of the builder.
 func (bu *BlockUpdate) Mutation() *BlockMutation {
 	return bu.mutation
+}
+
+// ClearTransactions clears all "transactions" edges to the Transaction entity.
+func (bu *BlockUpdate) ClearTransactions() *BlockUpdate {
+	bu.mutation.ClearTransactions()
+	return bu
+}
+
+// RemoveTransactionIDs removes the "transactions" edge to Transaction entities by IDs.
+func (bu *BlockUpdate) RemoveTransactionIDs(ids ...string) *BlockUpdate {
+	bu.mutation.RemoveTransactionIDs(ids...)
+	return bu
+}
+
+// RemoveTransactions removes "transactions" edges to Transaction entities.
+func (bu *BlockUpdate) RemoveTransactions(t ...*Transaction) *BlockUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bu.RemoveTransactionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -76,12 +113,18 @@ func (bu *BlockUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(bu.hooks) == 0 {
+		if err = bu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = bu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*BlockMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = bu.check(); err != nil {
+				return 0, err
 			}
 			bu.mutation = mutation
 			affected, err = bu.sqlSave(ctx)
@@ -121,6 +164,16 @@ func (bu *BlockUpdate) ExecX(ctx context.Context) {
 	if err := bu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (bu *BlockUpdate) check() error {
+	if v, ok := bu.mutation.Status(); ok {
+		if err := block.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Block.status": %w`, err)}
+		}
+	}
+	return nil
 }
 
 func (bu *BlockUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -178,10 +231,64 @@ func (bu *BlockUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := bu.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: block.FieldStatus,
 		})
+	}
+	if bu.mutation.TransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := bu.mutation.RemovedTransactionsIDs(); len(nodes) > 0 && !bu.mutation.TransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := bu.mutation.TransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, bu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -234,14 +341,50 @@ func (buo *BlockUpdateOne) SetStateRoot(s string) *BlockUpdateOne {
 }
 
 // SetStatus sets the "status" field.
-func (buo *BlockUpdateOne) SetStatus(s string) *BlockUpdateOne {
-	buo.mutation.SetStatus(s)
+func (buo *BlockUpdateOne) SetStatus(b block.Status) *BlockUpdateOne {
+	buo.mutation.SetStatus(b)
 	return buo
+}
+
+// AddTransactionIDs adds the "transactions" edge to the Transaction entity by IDs.
+func (buo *BlockUpdateOne) AddTransactionIDs(ids ...string) *BlockUpdateOne {
+	buo.mutation.AddTransactionIDs(ids...)
+	return buo
+}
+
+// AddTransactions adds the "transactions" edges to the Transaction entity.
+func (buo *BlockUpdateOne) AddTransactions(t ...*Transaction) *BlockUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return buo.AddTransactionIDs(ids...)
 }
 
 // Mutation returns the BlockMutation object of the builder.
 func (buo *BlockUpdateOne) Mutation() *BlockMutation {
 	return buo.mutation
+}
+
+// ClearTransactions clears all "transactions" edges to the Transaction entity.
+func (buo *BlockUpdateOne) ClearTransactions() *BlockUpdateOne {
+	buo.mutation.ClearTransactions()
+	return buo
+}
+
+// RemoveTransactionIDs removes the "transactions" edge to Transaction entities by IDs.
+func (buo *BlockUpdateOne) RemoveTransactionIDs(ids ...string) *BlockUpdateOne {
+	buo.mutation.RemoveTransactionIDs(ids...)
+	return buo
+}
+
+// RemoveTransactions removes "transactions" edges to Transaction entities.
+func (buo *BlockUpdateOne) RemoveTransactions(t ...*Transaction) *BlockUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return buo.RemoveTransactionIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -258,12 +401,18 @@ func (buo *BlockUpdateOne) Save(ctx context.Context) (*Block, error) {
 		node *Block
 	)
 	if len(buo.hooks) == 0 {
+		if err = buo.check(); err != nil {
+			return nil, err
+		}
 		node, err = buo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*BlockMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = buo.check(); err != nil {
+				return nil, err
 			}
 			buo.mutation = mutation
 			node, err = buo.sqlSave(ctx)
@@ -303,6 +452,16 @@ func (buo *BlockUpdateOne) ExecX(ctx context.Context) {
 	if err := buo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (buo *BlockUpdateOne) check() error {
+	if v, ok := buo.mutation.Status(); ok {
+		if err := block.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Block.status": %w`, err)}
+		}
+	}
+	return nil
 }
 
 func (buo *BlockUpdateOne) sqlSave(ctx context.Context) (_node *Block, err error) {
@@ -377,10 +536,64 @@ func (buo *BlockUpdateOne) sqlSave(ctx context.Context) (_node *Block, err error
 	}
 	if value, ok := buo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: block.FieldStatus,
 		})
+	}
+	if buo.mutation.TransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := buo.mutation.RemovedTransactionsIDs(); len(nodes) > 0 && !buo.mutation.TransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := buo.mutation.TransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionsTable,
+			Columns: []string{block.TransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Block{config: buo.config}
 	_spec.Assign = _node.assignValues

@@ -50,14 +50,15 @@ func New(addr string, config Config, opts ...IndexerOption) {
 	)
 	http.Handle("/query", srv)
 
-	log.Info().Str("address", addr).Msg("listening on")
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Err(err).Msg("http server terminated")
-	}
-
 	ctx := context.Background()
 	e := NewEngine(ctx, client, Config{
 		Interval: 1 * time.Second,
 	})
-	e.Start(ctx)
+
+	go e.Start(ctx)
+
+	log.Info().Str("address", addr).Msg("listening on")
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Err(err).Msg("http server terminated")
+	}
 }

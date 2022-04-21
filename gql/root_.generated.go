@@ -70,6 +70,27 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int, id string) int
 		Nodes  func(childComplexity int, ids []string) int
 	}
+
+	Transaction struct {
+		ContractAddress    func(childComplexity int) int
+		EntryPointSelector func(childComplexity int) int
+		EntryPointType     func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Nonce              func(childComplexity int) int
+		TransactionHash    func(childComplexity int) int
+		Type               func(childComplexity int) int
+	}
+
+	TransactionConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	TransactionEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
 }
 
 type executableSchema struct {
@@ -235,6 +256,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]string)), true
 
+	case "Transaction.contractAddress":
+		if e.complexity.Transaction.ContractAddress == nil {
+			break
+		}
+
+		return e.complexity.Transaction.ContractAddress(childComplexity), true
+
+	case "Transaction.entryPointSelector":
+		if e.complexity.Transaction.EntryPointSelector == nil {
+			break
+		}
+
+		return e.complexity.Transaction.EntryPointSelector(childComplexity), true
+
+	case "Transaction.entryPointType":
+		if e.complexity.Transaction.EntryPointType == nil {
+			break
+		}
+
+		return e.complexity.Transaction.EntryPointType(childComplexity), true
+
+	case "Transaction.id":
+		if e.complexity.Transaction.ID == nil {
+			break
+		}
+
+		return e.complexity.Transaction.ID(childComplexity), true
+
+	case "Transaction.nonce":
+		if e.complexity.Transaction.Nonce == nil {
+			break
+		}
+
+		return e.complexity.Transaction.Nonce(childComplexity), true
+
+	case "Transaction.transactionHash":
+		if e.complexity.Transaction.TransactionHash == nil {
+			break
+		}
+
+		return e.complexity.Transaction.TransactionHash(childComplexity), true
+
+	case "Transaction.type":
+		if e.complexity.Transaction.Type == nil {
+			break
+		}
+
+		return e.complexity.Transaction.Type(childComplexity), true
+
+	case "TransactionConnection.edges":
+		if e.complexity.TransactionConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.TransactionConnection.Edges(childComplexity), true
+
+	case "TransactionConnection.pageInfo":
+		if e.complexity.TransactionConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.TransactionConnection.PageInfo(childComplexity), true
+
+	case "TransactionConnection.totalCount":
+		if e.complexity.TransactionConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.TransactionConnection.TotalCount(childComplexity), true
+
+	case "TransactionEdge.cursor":
+		if e.complexity.TransactionEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.TransactionEdge.Cursor(childComplexity), true
+
+	case "TransactionEdge.node":
+		if e.complexity.TransactionEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.TransactionEdge.Node(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -293,7 +398,7 @@ type Block implements Node {
   parentBlockHash: String!
   blockNumber: Long!
   stateRoot: String!
-  status: String!
+  status: BlockStatus!
   timestamp: Time!
 }
 """A connection to a list of items."""
@@ -316,7 +421,13 @@ input BlockOrder {
   field: BlockOrderField!
 }
 enum BlockOrderField {
+  BLOCK_NUMBER
   TIMESTAMP
+}
+"""BlockStatus is enum for the field status"""
+enum BlockStatus @goModel(model: "github.com/tarrencev/starknet-indexer/ent/block.Status") {
+  ACCEPTED_ON_L1
+  ACCEPTED_ON_L2
 }
 """
 BlockWhereInput is used for filtering Block objects.
@@ -378,19 +489,10 @@ input BlockWhereInput {
   stateRootEqualFold: String
   stateRootContainsFold: String
   """status field predicates"""
-  status: String
-  statusNEQ: String
-  statusIn: [String!]
-  statusNotIn: [String!]
-  statusGT: String
-  statusGTE: String
-  statusLT: String
-  statusLTE: String
-  statusContains: String
-  statusHasPrefix: String
-  statusHasSuffix: String
-  statusEqualFold: String
-  statusContainsFold: String
+  status: BlockStatus
+  statusNEQ: BlockStatus
+  statusIn: [BlockStatus!]
+  statusNotIn: [BlockStatus!]
   """timestamp field predicates"""
   timestamp: Time
   timestampNEQ: Time
@@ -409,6 +511,9 @@ input BlockWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """transactions edge predicates"""
+  hasTransactions: Boolean
+  hasTransactionsWith: [TransactionWhereInput!]
 }
 """
 Define a Relay Cursor type:
@@ -440,6 +545,131 @@ type PageInfo {
   startCursor: Cursor
   """When paginating forwards, the cursor to continue."""
   endCursor: Cursor
+}
+type Transaction implements Node {
+  id: ID!
+  contractAddress: String!
+  entryPointSelector: String!
+  entryPointType: String!
+  transactionHash: String!
+  type: Type!
+  nonce: String!
+}
+"""A connection to a list of items."""
+type TransactionConnection {
+  """A list of edges."""
+  edges: [TransactionEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type TransactionEdge {
+  """The item at the end of the edge."""
+  node: Transaction
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
+TransactionWhereInput is used for filtering Transaction objects.
+Input was generated by ent.
+"""
+input TransactionWhereInput {
+  not: TransactionWhereInput
+  and: [TransactionWhereInput!]
+  or: [TransactionWhereInput!]
+  """contract_address field predicates"""
+  contractAddress: String
+  contractAddressNEQ: String
+  contractAddressIn: [String!]
+  contractAddressNotIn: [String!]
+  contractAddressGT: String
+  contractAddressGTE: String
+  contractAddressLT: String
+  contractAddressLTE: String
+  contractAddressContains: String
+  contractAddressHasPrefix: String
+  contractAddressHasSuffix: String
+  contractAddressEqualFold: String
+  contractAddressContainsFold: String
+  """entry_point_selector field predicates"""
+  entryPointSelector: String
+  entryPointSelectorNEQ: String
+  entryPointSelectorIn: [String!]
+  entryPointSelectorNotIn: [String!]
+  entryPointSelectorGT: String
+  entryPointSelectorGTE: String
+  entryPointSelectorLT: String
+  entryPointSelectorLTE: String
+  entryPointSelectorContains: String
+  entryPointSelectorHasPrefix: String
+  entryPointSelectorHasSuffix: String
+  entryPointSelectorEqualFold: String
+  entryPointSelectorContainsFold: String
+  """entry_point_type field predicates"""
+  entryPointType: String
+  entryPointTypeNEQ: String
+  entryPointTypeIn: [String!]
+  entryPointTypeNotIn: [String!]
+  entryPointTypeGT: String
+  entryPointTypeGTE: String
+  entryPointTypeLT: String
+  entryPointTypeLTE: String
+  entryPointTypeContains: String
+  entryPointTypeHasPrefix: String
+  entryPointTypeHasSuffix: String
+  entryPointTypeEqualFold: String
+  entryPointTypeContainsFold: String
+  """transaction_hash field predicates"""
+  transactionHash: String
+  transactionHashNEQ: String
+  transactionHashIn: [String!]
+  transactionHashNotIn: [String!]
+  transactionHashGT: String
+  transactionHashGTE: String
+  transactionHashLT: String
+  transactionHashLTE: String
+  transactionHashContains: String
+  transactionHashHasPrefix: String
+  transactionHashHasSuffix: String
+  transactionHashEqualFold: String
+  transactionHashContainsFold: String
+  """type field predicates"""
+  type: Type
+  typeNEQ: Type
+  typeIn: [Type!]
+  typeNotIn: [Type!]
+  """nonce field predicates"""
+  nonce: String
+  nonceNEQ: String
+  nonceIn: [String!]
+  nonceNotIn: [String!]
+  nonceGT: String
+  nonceGTE: String
+  nonceLT: String
+  nonceLTE: String
+  nonceContains: String
+  nonceHasPrefix: String
+  nonceHasSuffix: String
+  nonceEqualFold: String
+  nonceContainsFold: String
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """block edge predicates"""
+  hasBlock: Boolean
+  hasBlockWith: [BlockWhereInput!]
+}
+"""Type is enum for the field type"""
+enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transaction.Type") {
+  INVOKE_FUNCTION
+  DEPLOY
 }
 `, BuiltIn: false},
 	{Name: "schema.graphql", Input: `scalar Time

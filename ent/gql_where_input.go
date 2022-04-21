@@ -8,6 +8,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // BlockWhereInput represents a where input for filtering Block queries.
@@ -82,19 +83,10 @@ type BlockWhereInput struct {
 	StateRootContainsFold *string  `json:"stateRootContainsFold,omitempty"`
 
 	// "status" field predicates.
-	Status             *string  `json:"status,omitempty"`
-	StatusNEQ          *string  `json:"statusNEQ,omitempty"`
-	StatusIn           []string `json:"statusIn,omitempty"`
-	StatusNotIn        []string `json:"statusNotIn,omitempty"`
-	StatusGT           *string  `json:"statusGT,omitempty"`
-	StatusGTE          *string  `json:"statusGTE,omitempty"`
-	StatusLT           *string  `json:"statusLT,omitempty"`
-	StatusLTE          *string  `json:"statusLTE,omitempty"`
-	StatusContains     *string  `json:"statusContains,omitempty"`
-	StatusHasPrefix    *string  `json:"statusHasPrefix,omitempty"`
-	StatusHasSuffix    *string  `json:"statusHasSuffix,omitempty"`
-	StatusEqualFold    *string  `json:"statusEqualFold,omitempty"`
-	StatusContainsFold *string  `json:"statusContainsFold,omitempty"`
+	Status      *block.Status  `json:"status,omitempty"`
+	StatusNEQ   *block.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []block.Status `json:"statusIn,omitempty"`
+	StatusNotIn []block.Status `json:"statusNotIn,omitempty"`
 
 	// "timestamp" field predicates.
 	Timestamp      *time.Time  `json:"timestamp,omitempty"`
@@ -105,6 +97,10 @@ type BlockWhereInput struct {
 	TimestampGTE   *time.Time  `json:"timestampGTE,omitempty"`
 	TimestampLT    *time.Time  `json:"timestampLT,omitempty"`
 	TimestampLTE   *time.Time  `json:"timestampLTE,omitempty"`
+
+	// "transactions" edge predicates.
+	HasTransactions     *bool                    `json:"hasTransactions,omitempty"`
+	HasTransactionsWith []*TransactionWhereInput `json:"hasTransactionsWith,omitempty"`
 }
 
 // Filter applies the BlockWhereInput filter on the BlockQuery builder.
@@ -343,33 +339,6 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 	if len(i.StatusNotIn) > 0 {
 		predicates = append(predicates, block.StatusNotIn(i.StatusNotIn...))
 	}
-	if i.StatusGT != nil {
-		predicates = append(predicates, block.StatusGT(*i.StatusGT))
-	}
-	if i.StatusGTE != nil {
-		predicates = append(predicates, block.StatusGTE(*i.StatusGTE))
-	}
-	if i.StatusLT != nil {
-		predicates = append(predicates, block.StatusLT(*i.StatusLT))
-	}
-	if i.StatusLTE != nil {
-		predicates = append(predicates, block.StatusLTE(*i.StatusLTE))
-	}
-	if i.StatusContains != nil {
-		predicates = append(predicates, block.StatusContains(*i.StatusContains))
-	}
-	if i.StatusHasPrefix != nil {
-		predicates = append(predicates, block.StatusHasPrefix(*i.StatusHasPrefix))
-	}
-	if i.StatusHasSuffix != nil {
-		predicates = append(predicates, block.StatusHasSuffix(*i.StatusHasSuffix))
-	}
-	if i.StatusEqualFold != nil {
-		predicates = append(predicates, block.StatusEqualFold(*i.StatusEqualFold))
-	}
-	if i.StatusContainsFold != nil {
-		predicates = append(predicates, block.StatusContainsFold(*i.StatusContainsFold))
-	}
 	if i.Timestamp != nil {
 		predicates = append(predicates, block.TimestampEQ(*i.Timestamp))
 	}
@@ -395,6 +364,24 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 		predicates = append(predicates, block.TimestampLTE(*i.TimestampLTE))
 	}
 
+	if i.HasTransactions != nil {
+		p := block.HasTransactions()
+		if !*i.HasTransactions {
+			p = block.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionsWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionsWith))
+		for _, w := range i.HasTransactionsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, block.HasTransactionsWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, fmt.Errorf("empty predicate BlockWhereInput")
@@ -402,5 +389,426 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 		return predicates[0], nil
 	default:
 		return block.And(predicates...), nil
+	}
+}
+
+// TransactionWhereInput represents a where input for filtering Transaction queries.
+type TransactionWhereInput struct {
+	Not *TransactionWhereInput   `json:"not,omitempty"`
+	Or  []*TransactionWhereInput `json:"or,omitempty"`
+	And []*TransactionWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "contract_address" field predicates.
+	ContractAddress             *string  `json:"contractAddress,omitempty"`
+	ContractAddressNEQ          *string  `json:"contractAddressNEQ,omitempty"`
+	ContractAddressIn           []string `json:"contractAddressIn,omitempty"`
+	ContractAddressNotIn        []string `json:"contractAddressNotIn,omitempty"`
+	ContractAddressGT           *string  `json:"contractAddressGT,omitempty"`
+	ContractAddressGTE          *string  `json:"contractAddressGTE,omitempty"`
+	ContractAddressLT           *string  `json:"contractAddressLT,omitempty"`
+	ContractAddressLTE          *string  `json:"contractAddressLTE,omitempty"`
+	ContractAddressContains     *string  `json:"contractAddressContains,omitempty"`
+	ContractAddressHasPrefix    *string  `json:"contractAddressHasPrefix,omitempty"`
+	ContractAddressHasSuffix    *string  `json:"contractAddressHasSuffix,omitempty"`
+	ContractAddressEqualFold    *string  `json:"contractAddressEqualFold,omitempty"`
+	ContractAddressContainsFold *string  `json:"contractAddressContainsFold,omitempty"`
+
+	// "entry_point_selector" field predicates.
+	EntryPointSelector             *string  `json:"entryPointSelector,omitempty"`
+	EntryPointSelectorNEQ          *string  `json:"entryPointSelectorNEQ,omitempty"`
+	EntryPointSelectorIn           []string `json:"entryPointSelectorIn,omitempty"`
+	EntryPointSelectorNotIn        []string `json:"entryPointSelectorNotIn,omitempty"`
+	EntryPointSelectorGT           *string  `json:"entryPointSelectorGT,omitempty"`
+	EntryPointSelectorGTE          *string  `json:"entryPointSelectorGTE,omitempty"`
+	EntryPointSelectorLT           *string  `json:"entryPointSelectorLT,omitempty"`
+	EntryPointSelectorLTE          *string  `json:"entryPointSelectorLTE,omitempty"`
+	EntryPointSelectorContains     *string  `json:"entryPointSelectorContains,omitempty"`
+	EntryPointSelectorHasPrefix    *string  `json:"entryPointSelectorHasPrefix,omitempty"`
+	EntryPointSelectorHasSuffix    *string  `json:"entryPointSelectorHasSuffix,omitempty"`
+	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold,omitempty"`
+	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold,omitempty"`
+
+	// "entry_point_type" field predicates.
+	EntryPointType             *string  `json:"entryPointType,omitempty"`
+	EntryPointTypeNEQ          *string  `json:"entryPointTypeNEQ,omitempty"`
+	EntryPointTypeIn           []string `json:"entryPointTypeIn,omitempty"`
+	EntryPointTypeNotIn        []string `json:"entryPointTypeNotIn,omitempty"`
+	EntryPointTypeGT           *string  `json:"entryPointTypeGT,omitempty"`
+	EntryPointTypeGTE          *string  `json:"entryPointTypeGTE,omitempty"`
+	EntryPointTypeLT           *string  `json:"entryPointTypeLT,omitempty"`
+	EntryPointTypeLTE          *string  `json:"entryPointTypeLTE,omitempty"`
+	EntryPointTypeContains     *string  `json:"entryPointTypeContains,omitempty"`
+	EntryPointTypeHasPrefix    *string  `json:"entryPointTypeHasPrefix,omitempty"`
+	EntryPointTypeHasSuffix    *string  `json:"entryPointTypeHasSuffix,omitempty"`
+	EntryPointTypeEqualFold    *string  `json:"entryPointTypeEqualFold,omitempty"`
+	EntryPointTypeContainsFold *string  `json:"entryPointTypeContainsFold,omitempty"`
+
+	// "transaction_hash" field predicates.
+	TransactionHash             *string  `json:"transactionHash,omitempty"`
+	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
+	TransactionHashIn           []string `json:"transactionHashIn,omitempty"`
+	TransactionHashNotIn        []string `json:"transactionHashNotIn,omitempty"`
+	TransactionHashGT           *string  `json:"transactionHashGT,omitempty"`
+	TransactionHashGTE          *string  `json:"transactionHashGTE,omitempty"`
+	TransactionHashLT           *string  `json:"transactionHashLT,omitempty"`
+	TransactionHashLTE          *string  `json:"transactionHashLTE,omitempty"`
+	TransactionHashContains     *string  `json:"transactionHashContains,omitempty"`
+	TransactionHashHasPrefix    *string  `json:"transactionHashHasPrefix,omitempty"`
+	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix,omitempty"`
+	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
+	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
+
+	// "type" field predicates.
+	Type      *transaction.Type  `json:"type,omitempty"`
+	TypeNEQ   *transaction.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []transaction.Type `json:"typeIn,omitempty"`
+	TypeNotIn []transaction.Type `json:"typeNotIn,omitempty"`
+
+	// "nonce" field predicates.
+	Nonce             *string  `json:"nonce,omitempty"`
+	NonceNEQ          *string  `json:"nonceNEQ,omitempty"`
+	NonceIn           []string `json:"nonceIn,omitempty"`
+	NonceNotIn        []string `json:"nonceNotIn,omitempty"`
+	NonceGT           *string  `json:"nonceGT,omitempty"`
+	NonceGTE          *string  `json:"nonceGTE,omitempty"`
+	NonceLT           *string  `json:"nonceLT,omitempty"`
+	NonceLTE          *string  `json:"nonceLTE,omitempty"`
+	NonceContains     *string  `json:"nonceContains,omitempty"`
+	NonceHasPrefix    *string  `json:"nonceHasPrefix,omitempty"`
+	NonceHasSuffix    *string  `json:"nonceHasSuffix,omitempty"`
+	NonceEqualFold    *string  `json:"nonceEqualFold,omitempty"`
+	NonceContainsFold *string  `json:"nonceContainsFold,omitempty"`
+
+	// "block" edge predicates.
+	HasBlock     *bool              `json:"hasBlock,omitempty"`
+	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+}
+
+// Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
+func (i *TransactionWhereInput) Filter(q *TransactionQuery) (*TransactionQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering transactions.
+// An error is returned if the input is empty or invalid.
+func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
+	var predicates []predicate.Transaction
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, transaction.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Transaction, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, transaction.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Transaction, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, transaction.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, transaction.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, transaction.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, transaction.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, transaction.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, transaction.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, transaction.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, transaction.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, transaction.IDLTE(*i.IDLTE))
+	}
+	if i.ContractAddress != nil {
+		predicates = append(predicates, transaction.ContractAddressEQ(*i.ContractAddress))
+	}
+	if i.ContractAddressNEQ != nil {
+		predicates = append(predicates, transaction.ContractAddressNEQ(*i.ContractAddressNEQ))
+	}
+	if len(i.ContractAddressIn) > 0 {
+		predicates = append(predicates, transaction.ContractAddressIn(i.ContractAddressIn...))
+	}
+	if len(i.ContractAddressNotIn) > 0 {
+		predicates = append(predicates, transaction.ContractAddressNotIn(i.ContractAddressNotIn...))
+	}
+	if i.ContractAddressGT != nil {
+		predicates = append(predicates, transaction.ContractAddressGT(*i.ContractAddressGT))
+	}
+	if i.ContractAddressGTE != nil {
+		predicates = append(predicates, transaction.ContractAddressGTE(*i.ContractAddressGTE))
+	}
+	if i.ContractAddressLT != nil {
+		predicates = append(predicates, transaction.ContractAddressLT(*i.ContractAddressLT))
+	}
+	if i.ContractAddressLTE != nil {
+		predicates = append(predicates, transaction.ContractAddressLTE(*i.ContractAddressLTE))
+	}
+	if i.ContractAddressContains != nil {
+		predicates = append(predicates, transaction.ContractAddressContains(*i.ContractAddressContains))
+	}
+	if i.ContractAddressHasPrefix != nil {
+		predicates = append(predicates, transaction.ContractAddressHasPrefix(*i.ContractAddressHasPrefix))
+	}
+	if i.ContractAddressHasSuffix != nil {
+		predicates = append(predicates, transaction.ContractAddressHasSuffix(*i.ContractAddressHasSuffix))
+	}
+	if i.ContractAddressEqualFold != nil {
+		predicates = append(predicates, transaction.ContractAddressEqualFold(*i.ContractAddressEqualFold))
+	}
+	if i.ContractAddressContainsFold != nil {
+		predicates = append(predicates, transaction.ContractAddressContainsFold(*i.ContractAddressContainsFold))
+	}
+	if i.EntryPointSelector != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorEQ(*i.EntryPointSelector))
+	}
+	if i.EntryPointSelectorNEQ != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorNEQ(*i.EntryPointSelectorNEQ))
+	}
+	if len(i.EntryPointSelectorIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointSelectorIn(i.EntryPointSelectorIn...))
+	}
+	if len(i.EntryPointSelectorNotIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointSelectorNotIn(i.EntryPointSelectorNotIn...))
+	}
+	if i.EntryPointSelectorGT != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorGT(*i.EntryPointSelectorGT))
+	}
+	if i.EntryPointSelectorGTE != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorGTE(*i.EntryPointSelectorGTE))
+	}
+	if i.EntryPointSelectorLT != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorLT(*i.EntryPointSelectorLT))
+	}
+	if i.EntryPointSelectorLTE != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorLTE(*i.EntryPointSelectorLTE))
+	}
+	if i.EntryPointSelectorContains != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorContains(*i.EntryPointSelectorContains))
+	}
+	if i.EntryPointSelectorHasPrefix != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorHasPrefix(*i.EntryPointSelectorHasPrefix))
+	}
+	if i.EntryPointSelectorHasSuffix != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorHasSuffix(*i.EntryPointSelectorHasSuffix))
+	}
+	if i.EntryPointSelectorEqualFold != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorEqualFold(*i.EntryPointSelectorEqualFold))
+	}
+	if i.EntryPointSelectorContainsFold != nil {
+		predicates = append(predicates, transaction.EntryPointSelectorContainsFold(*i.EntryPointSelectorContainsFold))
+	}
+	if i.EntryPointType != nil {
+		predicates = append(predicates, transaction.EntryPointTypeEQ(*i.EntryPointType))
+	}
+	if i.EntryPointTypeNEQ != nil {
+		predicates = append(predicates, transaction.EntryPointTypeNEQ(*i.EntryPointTypeNEQ))
+	}
+	if len(i.EntryPointTypeIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointTypeIn(i.EntryPointTypeIn...))
+	}
+	if len(i.EntryPointTypeNotIn) > 0 {
+		predicates = append(predicates, transaction.EntryPointTypeNotIn(i.EntryPointTypeNotIn...))
+	}
+	if i.EntryPointTypeGT != nil {
+		predicates = append(predicates, transaction.EntryPointTypeGT(*i.EntryPointTypeGT))
+	}
+	if i.EntryPointTypeGTE != nil {
+		predicates = append(predicates, transaction.EntryPointTypeGTE(*i.EntryPointTypeGTE))
+	}
+	if i.EntryPointTypeLT != nil {
+		predicates = append(predicates, transaction.EntryPointTypeLT(*i.EntryPointTypeLT))
+	}
+	if i.EntryPointTypeLTE != nil {
+		predicates = append(predicates, transaction.EntryPointTypeLTE(*i.EntryPointTypeLTE))
+	}
+	if i.EntryPointTypeContains != nil {
+		predicates = append(predicates, transaction.EntryPointTypeContains(*i.EntryPointTypeContains))
+	}
+	if i.EntryPointTypeHasPrefix != nil {
+		predicates = append(predicates, transaction.EntryPointTypeHasPrefix(*i.EntryPointTypeHasPrefix))
+	}
+	if i.EntryPointTypeHasSuffix != nil {
+		predicates = append(predicates, transaction.EntryPointTypeHasSuffix(*i.EntryPointTypeHasSuffix))
+	}
+	if i.EntryPointTypeEqualFold != nil {
+		predicates = append(predicates, transaction.EntryPointTypeEqualFold(*i.EntryPointTypeEqualFold))
+	}
+	if i.EntryPointTypeContainsFold != nil {
+		predicates = append(predicates, transaction.EntryPointTypeContainsFold(*i.EntryPointTypeContainsFold))
+	}
+	if i.TransactionHash != nil {
+		predicates = append(predicates, transaction.TransactionHashEQ(*i.TransactionHash))
+	}
+	if i.TransactionHashNEQ != nil {
+		predicates = append(predicates, transaction.TransactionHashNEQ(*i.TransactionHashNEQ))
+	}
+	if len(i.TransactionHashIn) > 0 {
+		predicates = append(predicates, transaction.TransactionHashIn(i.TransactionHashIn...))
+	}
+	if len(i.TransactionHashNotIn) > 0 {
+		predicates = append(predicates, transaction.TransactionHashNotIn(i.TransactionHashNotIn...))
+	}
+	if i.TransactionHashGT != nil {
+		predicates = append(predicates, transaction.TransactionHashGT(*i.TransactionHashGT))
+	}
+	if i.TransactionHashGTE != nil {
+		predicates = append(predicates, transaction.TransactionHashGTE(*i.TransactionHashGTE))
+	}
+	if i.TransactionHashLT != nil {
+		predicates = append(predicates, transaction.TransactionHashLT(*i.TransactionHashLT))
+	}
+	if i.TransactionHashLTE != nil {
+		predicates = append(predicates, transaction.TransactionHashLTE(*i.TransactionHashLTE))
+	}
+	if i.TransactionHashContains != nil {
+		predicates = append(predicates, transaction.TransactionHashContains(*i.TransactionHashContains))
+	}
+	if i.TransactionHashHasPrefix != nil {
+		predicates = append(predicates, transaction.TransactionHashHasPrefix(*i.TransactionHashHasPrefix))
+	}
+	if i.TransactionHashHasSuffix != nil {
+		predicates = append(predicates, transaction.TransactionHashHasSuffix(*i.TransactionHashHasSuffix))
+	}
+	if i.TransactionHashEqualFold != nil {
+		predicates = append(predicates, transaction.TransactionHashEqualFold(*i.TransactionHashEqualFold))
+	}
+	if i.TransactionHashContainsFold != nil {
+		predicates = append(predicates, transaction.TransactionHashContainsFold(*i.TransactionHashContainsFold))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, transaction.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, transaction.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, transaction.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, transaction.TypeNotIn(i.TypeNotIn...))
+	}
+	if i.Nonce != nil {
+		predicates = append(predicates, transaction.NonceEQ(*i.Nonce))
+	}
+	if i.NonceNEQ != nil {
+		predicates = append(predicates, transaction.NonceNEQ(*i.NonceNEQ))
+	}
+	if len(i.NonceIn) > 0 {
+		predicates = append(predicates, transaction.NonceIn(i.NonceIn...))
+	}
+	if len(i.NonceNotIn) > 0 {
+		predicates = append(predicates, transaction.NonceNotIn(i.NonceNotIn...))
+	}
+	if i.NonceGT != nil {
+		predicates = append(predicates, transaction.NonceGT(*i.NonceGT))
+	}
+	if i.NonceGTE != nil {
+		predicates = append(predicates, transaction.NonceGTE(*i.NonceGTE))
+	}
+	if i.NonceLT != nil {
+		predicates = append(predicates, transaction.NonceLT(*i.NonceLT))
+	}
+	if i.NonceLTE != nil {
+		predicates = append(predicates, transaction.NonceLTE(*i.NonceLTE))
+	}
+	if i.NonceContains != nil {
+		predicates = append(predicates, transaction.NonceContains(*i.NonceContains))
+	}
+	if i.NonceHasPrefix != nil {
+		predicates = append(predicates, transaction.NonceHasPrefix(*i.NonceHasPrefix))
+	}
+	if i.NonceHasSuffix != nil {
+		predicates = append(predicates, transaction.NonceHasSuffix(*i.NonceHasSuffix))
+	}
+	if i.NonceEqualFold != nil {
+		predicates = append(predicates, transaction.NonceEqualFold(*i.NonceEqualFold))
+	}
+	if i.NonceContainsFold != nil {
+		predicates = append(predicates, transaction.NonceContainsFold(*i.NonceContainsFold))
+	}
+
+	if i.HasBlock != nil {
+		p := transaction.HasBlock()
+		if !*i.HasBlock {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasBlockWith) > 0 {
+		with := make([]predicate.Block, 0, len(i.HasBlockWith))
+		for _, w := range i.HasBlockWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasBlockWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate TransactionWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return transaction.And(predicates...), nil
 	}
 }

@@ -25,9 +25,32 @@ type Block struct {
 	// StateRoot holds the value of the "state_root" field.
 	StateRoot string `json:"state_root,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
+	Status block.Status `json:"status,omitempty"`
 	// Timestamp holds the value of the "timestamp" field.
 	Timestamp time.Time `json:"timestamp,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the BlockQuery when eager-loading is set.
+	Edges BlockEdges `json:"edges"`
+}
+
+// BlockEdges holds the relations/edges for other nodes in the graph.
+type BlockEdges struct {
+	// Transactions holds the value of the transactions edge.
+	Transactions []*Transaction `json:"transactions,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]*int
+}
+
+// TransactionsOrErr returns the Transactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e BlockEdges) TransactionsOrErr() ([]*Transaction, error) {
+	if e.loadedTypes[0] {
+		return e.Transactions, nil
+	}
+	return nil, &NotLoadedError{edge: "transactions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -90,7 +113,7 @@ func (b *Block) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				b.Status = value.String
+				b.Status = block.Status(value.String)
 			}
 		case block.FieldTimestamp:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -101,6 +124,11 @@ func (b *Block) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryTransactions queries the "transactions" edge of the Block entity.
+func (b *Block) QueryTransactions() *TransactionQuery {
+	return (&BlockClient{config: b.config}).QueryTransactions(b)
 }
 
 // Update returns a builder for updating this Block.
@@ -135,7 +163,7 @@ func (b *Block) String() string {
 	builder.WriteString(", state_root=")
 	builder.WriteString(b.StateRoot)
 	builder.WriteString(", status=")
-	builder.WriteString(b.Status)
+	builder.WriteString(fmt.Sprintf("%v", b.Status))
 	builder.WriteString(", timestamp=")
 	builder.WriteString(b.Timestamp.Format(time.ANSIC))
 	builder.WriteByte(')')

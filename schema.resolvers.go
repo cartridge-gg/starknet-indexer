@@ -5,22 +5,24 @@ package indexer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/gql"
 )
 
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.Noder(ctx, id)
 }
 
 func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.Noders(ctx, ids)
 }
 
 func (r *queryResolver) Blocks(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.BlockOrder, where *gql.BlockWhereInput) (*ent.BlockConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.Block.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithBlockOrder(orderBy),
+		)
 }
 
 // Query returns gql.QueryResolver implementation.

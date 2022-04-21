@@ -2,6 +2,12 @@
 
 package block
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 const (
 	// Label holds the string label denoting the block type in the database.
 	Label = "block"
@@ -19,8 +25,17 @@ const (
 	FieldStatus = "status"
 	// FieldTimestamp holds the string denoting the timestamp field in the database.
 	FieldTimestamp = "timestamp"
+	// EdgeTransactions holds the string denoting the transactions edge name in mutations.
+	EdgeTransactions = "transactions"
 	// Table holds the table name of the block in the database.
 	Table = "blocks"
+	// TransactionsTable is the table that holds the transactions relation/edge.
+	TransactionsTable = "transactions"
+	// TransactionsInverseTable is the table name for the Transaction entity.
+	// It exists in this package in order to avoid circular dependency with the "transaction" package.
+	TransactionsInverseTable = "transactions"
+	// TransactionsColumn is the table column denoting the transactions relation/edge.
+	TransactionsColumn = "block_transactions"
 )
 
 // Columns holds all SQL columns for block fields.
@@ -42,4 +57,45 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// Status values.
+const (
+	StatusACCEPTED_ON_L1 Status = "ACCEPTED_ON_L1"
+	StatusACCEPTED_ON_L2 Status = "ACCEPTED_ON_L2"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusACCEPTED_ON_L1, StatusACCEPTED_ON_L2:
+		return nil
+	default:
+		return fmt.Errorf("block: invalid enum value for status field: %q", s)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Status) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Status) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Status(str)
+	if err := StatusValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
 }

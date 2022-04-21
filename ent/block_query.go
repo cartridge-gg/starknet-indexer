@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // BlockQuery is the builder for querying Block entities.
@@ -23,8 +25,10 @@ type BlockQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Block
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Block) error
+	// eager-loading edges.
+	withTransactions *TransactionQuery
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*Block) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (bq *BlockQuery) Unique(unique bool) *BlockQuery {
 func (bq *BlockQuery) Order(o ...OrderFunc) *BlockQuery {
 	bq.order = append(bq.order, o...)
 	return bq
+}
+
+// QueryTransactions chains the current query on the "transactions" edge.
+func (bq *BlockQuery) QueryTransactions() *TransactionQuery {
+	query := &TransactionQuery{config: bq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := bq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := bq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(block.Table, block.FieldID, selector),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionsTable, block.TransactionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(bq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Block entity from the query.
@@ -237,16 +263,28 @@ func (bq *BlockQuery) Clone() *BlockQuery {
 		return nil
 	}
 	return &BlockQuery{
-		config:     bq.config,
-		limit:      bq.limit,
-		offset:     bq.offset,
-		order:      append([]OrderFunc{}, bq.order...),
-		predicates: append([]predicate.Block{}, bq.predicates...),
+		config:           bq.config,
+		limit:            bq.limit,
+		offset:           bq.offset,
+		order:            append([]OrderFunc{}, bq.order...),
+		predicates:       append([]predicate.Block{}, bq.predicates...),
+		withTransactions: bq.withTransactions.Clone(),
 		// clone intermediate query.
 		sql:    bq.sql.Clone(),
 		path:   bq.path,
 		unique: bq.unique,
 	}
+}
+
+// WithTransactions tells the query-builder to eager-load the nodes that are connected to
+// the "transactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (bq *BlockQuery) WithTransactions(opts ...func(*TransactionQuery)) *BlockQuery {
+	query := &TransactionQuery{config: bq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	bq.withTransactions = query
+	return bq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -317,8 +355,11 @@ func (bq *BlockQuery) prepareQuery(ctx context.Context) error {
 
 func (bq *BlockQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Block, error) {
 	var (
-		nodes = []*Block{}
-		_spec = bq.querySpec()
+		nodes       = []*Block{}
+		_spec       = bq.querySpec()
+		loadedTypes = [1]bool{
+			bq.withTransactions != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		return (*Block).scanValues(nil, columns)
@@ -326,6 +367,7 @@ func (bq *BlockQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Block,
 	_spec.Assign = func(columns []string, values []interface{}) error {
 		node := &Block{config: bq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(bq.modifiers) > 0 {
@@ -340,6 +382,36 @@ func (bq *BlockQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Block,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := bq.withTransactions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Block)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Transactions = []*Transaction{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Transaction(func(s *sql.Selector) {
+			s.Where(sql.InValues(block.TransactionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.block_transactions
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "block_transactions" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "block_transactions" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Transactions = append(node.Edges.Transactions, n)
+		}
+	}
+
 	for i := range bq.loadTotal {
 		if err := bq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
