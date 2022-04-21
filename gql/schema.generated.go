@@ -4,6 +4,7 @@ package gql
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -13,6 +14,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/tarrencev/starknet-indexer/ent"
+	"github.com/tarrencev/starknet-indexer/ent/schema"
+	rawmessage "github.com/tarrencev/starknet-indexer/ent/schema/json"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -22,6 +25,7 @@ type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []string) ([]ent.Noder, error)
 	Blocks(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.BlockOrder, where *BlockWhereInput) (*ent.BlockConnection, error)
+	Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *TransactionWhereInput) (*ent.TransactionConnection, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -133,6 +137,57 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_transactions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *TransactionWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOTransactionWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
+	return args, nil
+}
+
 // endregion ***************************** args.gotpl *****************************
 
 // region    ************************** directives.gotpl **************************
@@ -140,6 +195,562 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _BuiltinInstanceCounter_pedersenBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PedersenBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuiltinInstanceCounter_rangeCheckBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RangeCheckBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuiltinInstanceCounter_bitwiseBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BitwiseBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuiltinInstanceCounter_outputBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OutputBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuiltinInstanceCounter_ecdsaBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcdsaBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BuiltinInstanceCounter_ecOpBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcOpBuiltin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BuiltinInstanceCounter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExecutionResources_nSteps(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExecutionResources_nSteps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NSteps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExecutionResources_nSteps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExecutionResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExecutionResources_builtinInstanceCounter(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExecutionResources_builtinInstanceCounter(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BuiltinInstanceCounter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(schema.BuiltinInstanceCounter)
+	fc.Result = res
+	return ec.marshalOBuiltinInstanceCounter2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐBuiltinInstanceCounter(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExecutionResources_builtinInstanceCounter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExecutionResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pedersenBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx, field)
+			case "rangeCheckBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field)
+			case "bitwiseBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx, field)
+			case "outputBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx, field)
+			case "ecdsaBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx, field)
+			case "ecOpBuiltin":
+				return ec.fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BuiltinInstanceCounter", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExecutionResources_nMemoryHoles(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExecutionResources_nMemoryHoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NMemoryHoles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalOLong2uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExecutionResources_nMemoryHoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExecutionResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Long does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L1ToL2ConsumedMessage_fromAddress(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_fromAddress(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FromAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_fromAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L1ToL2ConsumedMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L1ToL2ConsumedMessage_toAddress(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_toAddress(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ToAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_toAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L1ToL2ConsumedMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L1ToL2ConsumedMessage_selector(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_selector(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Selector, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_selector(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L1ToL2ConsumedMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L1ToL2ConsumedMessage_payload(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_payload(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payload, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L1ToL2ConsumedMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_node(ctx, field)
@@ -308,6 +919,66 @@ func (ec *executionContext) fieldContext_Query_blocks(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_transactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_transactions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Transactions(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*TransactionWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.TransactionConnection)
+	fc.Result = res
+	return ec.marshalOTransactionConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_TransactionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TransactionConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TransactionConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TransactionConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_transactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -449,6 +1120,169 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 
 // region    **************************** object.gotpl ****************************
 
+var builtinInstanceCounterImplementors = []string{"BuiltinInstanceCounter"}
+
+func (ec *executionContext) _BuiltinInstanceCounter(ctx context.Context, sel ast.SelectionSet, obj *schema.BuiltinInstanceCounter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, builtinInstanceCounterImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BuiltinInstanceCounter")
+		case "pedersenBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_pedersenBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "rangeCheckBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "bitwiseBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_bitwiseBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "outputBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_outputBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "ecdsaBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_ecdsaBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "ecOpBuiltin":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BuiltinInstanceCounter_ecOpBuiltin(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var executionResourcesImplementors = []string{"ExecutionResources"}
+
+func (ec *executionContext) _ExecutionResources(ctx context.Context, sel ast.SelectionSet, obj *schema.ExecutionResources) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, executionResourcesImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExecutionResources")
+		case "nSteps":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ExecutionResources_nSteps(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "builtinInstanceCounter":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ExecutionResources_builtinInstanceCounter(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "nMemoryHoles":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ExecutionResources_nMemoryHoles(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var l1ToL2ConsumedMessageImplementors = []string{"L1ToL2ConsumedMessage"}
+
+func (ec *executionContext) _L1ToL2ConsumedMessage(ctx context.Context, sel ast.SelectionSet, obj *schema.L1ToL2ConsumedMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, l1ToL2ConsumedMessageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("L1ToL2ConsumedMessage")
+		case "fromAddress":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L1ToL2ConsumedMessage_fromAddress(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "toAddress":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L1ToL2ConsumedMessage_toAddress(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "selector":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L1ToL2ConsumedMessage_selector(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "payload":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L1ToL2ConsumedMessage_payload(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -531,6 +1365,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "transactions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_transactions(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -559,6 +1413,35 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNExecutionResources2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐExecutionResources(ctx context.Context, sel ast.SelectionSet, v schema.ExecutionResources) graphql.Marshaler {
+	return ec._ExecutionResources(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx context.Context, v interface{}) (json.RawMessage, error) {
+	res, err := rawmessage.UnmarshalRawMessage(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNJSON2encodingᚋjsonᚐRawMessage(ctx context.Context, sel ast.SelectionSet, v json.RawMessage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := rawmessage.MarshalRawMessage(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNL1ToL2ConsumedMessage2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐL1ToL2ConsumedMessage(ctx context.Context, sel ast.SelectionSet, v schema.L1ToL2ConsumedMessage) graphql.Marshaler {
+	return ec._L1ToL2ConsumedMessage(ctx, sel, &v)
+}
 
 func (ec *executionContext) unmarshalNLong2uint64(ctx context.Context, v interface{}) (uint64, error) {
 	res, err := graphql.UnmarshalUint64(v)
@@ -608,6 +1491,20 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 			ec.Errorf(ctx, "must not be null")
 		}
 	}
+	return res
+}
+
+func (ec *executionContext) marshalOBuiltinInstanceCounter2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐBuiltinInstanceCounter(ctx context.Context, sel ast.SelectionSet, v schema.BuiltinInstanceCounter) graphql.Marshaler {
+	return ec._BuiltinInstanceCounter(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOLong2uint64(ctx context.Context, v interface{}) (uint64, error) {
+	res, err := graphql.UnmarshalUint64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLong2uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	res := graphql.MarshalUint64(v)
 	return res
 }
 

@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -282,8 +283,10 @@ func (c *BlockConnection) build(nodes []*Block, pager *blockPager, first, last *
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -570,8 +573,10 @@ func (c *TransactionConnection) build(nodes []*Transaction, pager *transactionPa
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -727,6 +732,49 @@ func (t *TransactionQuery) Paginate(
 	return conn, nil
 }
 
+var (
+	// TransactionOrderFieldNonce orders Transaction by nonce.
+	TransactionOrderFieldNonce = &TransactionOrderField{
+		field: transaction.FieldNonce,
+		toCursor: func(t *Transaction) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.Nonce,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TransactionOrderField) String() string {
+	var str string
+	switch f.field {
+	case transaction.FieldNonce:
+		str = "NONCE"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TransactionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TransactionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TransactionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "NONCE":
+		*f = *TransactionOrderFieldNonce
+	default:
+		return fmt.Errorf("%s is not a valid TransactionOrderField", str)
+	}
+	return nil
+}
+
 // TransactionOrderField defines the ordering field of Transaction.
 type TransactionOrderField struct {
 	field    string
@@ -758,5 +806,281 @@ func (t *Transaction) ToEdge(order *TransactionOrder) *TransactionEdge {
 	return &TransactionEdge{
 		Node:   t,
 		Cursor: order.Field.toCursor(t),
+	}
+}
+
+// TransactionReceiptEdge is the edge representation of TransactionReceipt.
+type TransactionReceiptEdge struct {
+	Node   *TransactionReceipt `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// TransactionReceiptConnection is the connection containing edges to TransactionReceipt.
+type TransactionReceiptConnection struct {
+	Edges      []*TransactionReceiptEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *TransactionReceiptConnection) build(nodes []*TransactionReceipt, pager *transactionreceiptPager, first, last *int) {
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *TransactionReceipt
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *TransactionReceipt {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *TransactionReceipt {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*TransactionReceiptEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &TransactionReceiptEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// TransactionReceiptPaginateOption enables pagination customization.
+type TransactionReceiptPaginateOption func(*transactionreceiptPager) error
+
+// WithTransactionReceiptOrder configures pagination ordering.
+func WithTransactionReceiptOrder(order *TransactionReceiptOrder) TransactionReceiptPaginateOption {
+	if order == nil {
+		order = DefaultTransactionReceiptOrder
+	}
+	o := *order
+	return func(pager *transactionreceiptPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultTransactionReceiptOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithTransactionReceiptFilter configures pagination filter.
+func WithTransactionReceiptFilter(filter func(*TransactionReceiptQuery) (*TransactionReceiptQuery, error)) TransactionReceiptPaginateOption {
+	return func(pager *transactionreceiptPager) error {
+		if filter == nil {
+			return errors.New("TransactionReceiptQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type transactionreceiptPager struct {
+	order  *TransactionReceiptOrder
+	filter func(*TransactionReceiptQuery) (*TransactionReceiptQuery, error)
+}
+
+func newTransactionReceiptPager(opts []TransactionReceiptPaginateOption) (*transactionreceiptPager, error) {
+	pager := &transactionreceiptPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultTransactionReceiptOrder
+	}
+	return pager, nil
+}
+
+func (p *transactionreceiptPager) applyFilter(query *TransactionReceiptQuery) (*TransactionReceiptQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *transactionreceiptPager) toCursor(tr *TransactionReceipt) Cursor {
+	return p.order.Field.toCursor(tr)
+}
+
+func (p *transactionreceiptPager) applyCursors(query *TransactionReceiptQuery, after, before *Cursor) *TransactionReceiptQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultTransactionReceiptOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *transactionreceiptPager) applyOrder(query *TransactionReceiptQuery, reverse bool) *TransactionReceiptQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultTransactionReceiptOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultTransactionReceiptOrder.Field.field))
+	}
+	return query
+}
+
+func (p *transactionreceiptPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultTransactionReceiptOrder.Field {
+			b.Comma().Ident(DefaultTransactionReceiptOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to TransactionReceipt.
+func (tr *TransactionReceiptQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...TransactionReceiptPaginateOption,
+) (*TransactionReceiptConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newTransactionReceiptPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if tr, err = pager.applyFilter(tr); err != nil {
+		return nil, err
+	}
+	conn := &TransactionReceiptConnection{Edges: []*TransactionReceiptEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = tr.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := tr.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	tr = pager.applyCursors(tr, after, before)
+	tr = pager.applyOrder(tr, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		tr.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := tr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := tr.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
+}
+
+var (
+	// TransactionReceiptOrderFieldTransactionIndex orders TransactionReceipt by transaction_index.
+	TransactionReceiptOrderFieldTransactionIndex = &TransactionReceiptOrderField{
+		field: transactionreceipt.FieldTransactionIndex,
+		toCursor: func(tr *TransactionReceipt) Cursor {
+			return Cursor{
+				ID:    tr.ID,
+				Value: tr.TransactionIndex,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TransactionReceiptOrderField) String() string {
+	var str string
+	switch f.field {
+	case transactionreceipt.FieldTransactionIndex:
+		str = "INDEX"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TransactionReceiptOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TransactionReceiptOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TransactionReceiptOrderField %T must be a string", v)
+	}
+	switch str {
+	case "INDEX":
+		*f = *TransactionReceiptOrderFieldTransactionIndex
+	default:
+		return fmt.Errorf("%s is not a valid TransactionReceiptOrderField", str)
+	}
+	return nil
+}
+
+// TransactionReceiptOrderField defines the ordering field of TransactionReceipt.
+type TransactionReceiptOrderField struct {
+	field    string
+	toCursor func(*TransactionReceipt) Cursor
+}
+
+// TransactionReceiptOrder defines the ordering of TransactionReceipt.
+type TransactionReceiptOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *TransactionReceiptOrderField `json:"field"`
+}
+
+// DefaultTransactionReceiptOrder is the default ordering of TransactionReceipt.
+var DefaultTransactionReceiptOrder = &TransactionReceiptOrder{
+	Direction: OrderDirectionAsc,
+	Field: &TransactionReceiptOrderField{
+		field: transactionreceipt.FieldID,
+		toCursor: func(tr *TransactionReceipt) Cursor {
+			return Cursor{ID: tr.ID}
+		},
+	},
+}
+
+// ToEdge converts TransactionReceipt into TransactionReceiptEdge.
+func (tr *TransactionReceipt) ToEdge(order *TransactionReceiptOrder) *TransactionReceiptEdge {
+	if order == nil {
+		order = DefaultTransactionReceiptOrder
+	}
+	return &TransactionReceiptEdge{
+		Node:   tr,
+		Cursor: order.Field.toCursor(tr),
 	}
 }

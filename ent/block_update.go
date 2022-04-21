@@ -13,6 +13,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockUpdate is the builder for updating Block entities.
@@ -80,6 +81,21 @@ func (bu *BlockUpdate) AddTransactions(t ...*Transaction) *BlockUpdate {
 	return bu.AddTransactionIDs(ids...)
 }
 
+// AddTransactionReceiptIDs adds the "transaction_receipts" edge to the TransactionReceipt entity by IDs.
+func (bu *BlockUpdate) AddTransactionReceiptIDs(ids ...string) *BlockUpdate {
+	bu.mutation.AddTransactionReceiptIDs(ids...)
+	return bu
+}
+
+// AddTransactionReceipts adds the "transaction_receipts" edges to the TransactionReceipt entity.
+func (bu *BlockUpdate) AddTransactionReceipts(t ...*TransactionReceipt) *BlockUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bu.AddTransactionReceiptIDs(ids...)
+}
+
 // Mutation returns the BlockMutation object of the builder.
 func (bu *BlockUpdate) Mutation() *BlockMutation {
 	return bu.mutation
@@ -104,6 +120,27 @@ func (bu *BlockUpdate) RemoveTransactions(t ...*Transaction) *BlockUpdate {
 		ids[i] = t[i].ID
 	}
 	return bu.RemoveTransactionIDs(ids...)
+}
+
+// ClearTransactionReceipts clears all "transaction_receipts" edges to the TransactionReceipt entity.
+func (bu *BlockUpdate) ClearTransactionReceipts() *BlockUpdate {
+	bu.mutation.ClearTransactionReceipts()
+	return bu
+}
+
+// RemoveTransactionReceiptIDs removes the "transaction_receipts" edge to TransactionReceipt entities by IDs.
+func (bu *BlockUpdate) RemoveTransactionReceiptIDs(ids ...string) *BlockUpdate {
+	bu.mutation.RemoveTransactionReceiptIDs(ids...)
+	return bu
+}
+
+// RemoveTransactionReceipts removes "transaction_receipts" edges to TransactionReceipt entities.
+func (bu *BlockUpdate) RemoveTransactionReceipts(t ...*TransactionReceipt) *BlockUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bu.RemoveTransactionReceiptIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -290,6 +327,60 @@ func (bu *BlockUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if bu.mutation.TransactionReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := bu.mutation.RemovedTransactionReceiptsIDs(); len(nodes) > 0 && !bu.mutation.TransactionReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := bu.mutation.TransactionReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, bu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{block.Label}
@@ -361,6 +452,21 @@ func (buo *BlockUpdateOne) AddTransactions(t ...*Transaction) *BlockUpdateOne {
 	return buo.AddTransactionIDs(ids...)
 }
 
+// AddTransactionReceiptIDs adds the "transaction_receipts" edge to the TransactionReceipt entity by IDs.
+func (buo *BlockUpdateOne) AddTransactionReceiptIDs(ids ...string) *BlockUpdateOne {
+	buo.mutation.AddTransactionReceiptIDs(ids...)
+	return buo
+}
+
+// AddTransactionReceipts adds the "transaction_receipts" edges to the TransactionReceipt entity.
+func (buo *BlockUpdateOne) AddTransactionReceipts(t ...*TransactionReceipt) *BlockUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return buo.AddTransactionReceiptIDs(ids...)
+}
+
 // Mutation returns the BlockMutation object of the builder.
 func (buo *BlockUpdateOne) Mutation() *BlockMutation {
 	return buo.mutation
@@ -385,6 +491,27 @@ func (buo *BlockUpdateOne) RemoveTransactions(t ...*Transaction) *BlockUpdateOne
 		ids[i] = t[i].ID
 	}
 	return buo.RemoveTransactionIDs(ids...)
+}
+
+// ClearTransactionReceipts clears all "transaction_receipts" edges to the TransactionReceipt entity.
+func (buo *BlockUpdateOne) ClearTransactionReceipts() *BlockUpdateOne {
+	buo.mutation.ClearTransactionReceipts()
+	return buo
+}
+
+// RemoveTransactionReceiptIDs removes the "transaction_receipts" edge to TransactionReceipt entities by IDs.
+func (buo *BlockUpdateOne) RemoveTransactionReceiptIDs(ids ...string) *BlockUpdateOne {
+	buo.mutation.RemoveTransactionReceiptIDs(ids...)
+	return buo
+}
+
+// RemoveTransactionReceipts removes "transaction_receipts" edges to TransactionReceipt entities.
+func (buo *BlockUpdateOne) RemoveTransactionReceipts(t ...*TransactionReceipt) *BlockUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return buo.RemoveTransactionReceiptIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -587,6 +714,60 @@ func (buo *BlockUpdateOne) sqlSave(ctx context.Context) (_node *Block, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if buo.mutation.TransactionReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := buo.mutation.RemovedTransactionReceiptsIDs(); len(nodes) > 0 && !buo.mutation.TransactionReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := buo.mutation.TransactionReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
 				},
 			},
 		}

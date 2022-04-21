@@ -11,6 +11,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -26,6 +27,8 @@ type Client struct {
 	Block *BlockClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
+	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
+	TransactionReceipt *TransactionReceiptClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -41,6 +44,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Block = NewBlockClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
+	c.TransactionReceipt = NewTransactionReceiptClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -72,10 +76,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		Block:       NewBlockClient(cfg),
-		Transaction: NewTransactionClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		Block:              NewBlockClient(cfg),
+		Transaction:        NewTransactionClient(cfg),
+		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
 }
 
@@ -93,10 +98,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		Block:       NewBlockClient(cfg),
-		Transaction: NewTransactionClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		Block:              NewBlockClient(cfg),
+		Transaction:        NewTransactionClient(cfg),
+		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
 }
 
@@ -128,6 +134,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Block.Use(hooks...)
 	c.Transaction.Use(hooks...)
+	c.TransactionReceipt.Use(hooks...)
 }
 
 // BlockClient is a client for the Block schema.
@@ -224,6 +231,22 @@ func (c *BlockClient) QueryTransactions(b *Block) *TransactionQuery {
 			sqlgraph.From(block.Table, block.FieldID, id),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionsTable, block.TransactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransactionReceipts queries the transaction_receipts edge of a Block.
+func (c *BlockClient) QueryTransactionReceipts(b *Block) *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(block.Table, block.FieldID, id),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionReceiptsTable, block.TransactionReceiptsColumn),
 		)
 		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
 		return fromV, nil
@@ -337,7 +360,145 @@ func (c *TransactionClient) QueryBlock(t *Transaction) *BlockQuery {
 	return query
 }
 
+// QueryReceipts queries the receipts edge of a Transaction.
+func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, id),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TransactionClient) Hooks() []Hook {
 	return c.hooks.Transaction
+}
+
+// TransactionReceiptClient is a client for the TransactionReceipt schema.
+type TransactionReceiptClient struct {
+	config
+}
+
+// NewTransactionReceiptClient returns a client for the TransactionReceipt from the given config.
+func NewTransactionReceiptClient(c config) *TransactionReceiptClient {
+	return &TransactionReceiptClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `transactionreceipt.Hooks(f(g(h())))`.
+func (c *TransactionReceiptClient) Use(hooks ...Hook) {
+	c.hooks.TransactionReceipt = append(c.hooks.TransactionReceipt, hooks...)
+}
+
+// Create returns a create builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Create() *TransactionReceiptCreate {
+	mutation := newTransactionReceiptMutation(c.config, OpCreate)
+	return &TransactionReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TransactionReceipt entities.
+func (c *TransactionReceiptClient) CreateBulk(builders ...*TransactionReceiptCreate) *TransactionReceiptCreateBulk {
+	return &TransactionReceiptCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Update() *TransactionReceiptUpdate {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdate)
+	return &TransactionReceiptUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TransactionReceiptClient) UpdateOne(tr *TransactionReceipt) *TransactionReceiptUpdateOne {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdateOne, withTransactionReceipt(tr))
+	return &TransactionReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TransactionReceiptClient) UpdateOneID(id string) *TransactionReceiptUpdateOne {
+	mutation := newTransactionReceiptMutation(c.config, OpUpdateOne, withTransactionReceiptID(id))
+	return &TransactionReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Delete() *TransactionReceiptDelete {
+	mutation := newTransactionReceiptMutation(c.config, OpDelete)
+	return &TransactionReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TransactionReceiptClient) DeleteOne(tr *TransactionReceipt) *TransactionReceiptDeleteOne {
+	return c.DeleteOneID(tr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TransactionReceiptClient) DeleteOneID(id string) *TransactionReceiptDeleteOne {
+	builder := c.Delete().Where(transactionreceipt.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TransactionReceiptDeleteOne{builder}
+}
+
+// Query returns a query builder for TransactionReceipt.
+func (c *TransactionReceiptClient) Query() *TransactionReceiptQuery {
+	return &TransactionReceiptQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TransactionReceipt entity by its id.
+func (c *TransactionReceiptClient) Get(ctx context.Context, id string) (*TransactionReceipt, error) {
+	return c.Query().Where(transactionreceipt.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TransactionReceiptClient) GetX(ctx context.Context, id string) *TransactionReceipt {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBlock queries the block edge of a TransactionReceipt.
+func (c *TransactionReceiptClient) QueryBlock(tr *TransactionReceipt) *BlockQuery {
+	query := &BlockQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
+			sqlgraph.To(block.Table, block.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransaction queries the transaction edge of a TransactionReceipt.
+func (c *TransactionReceiptClient) QueryTransaction(tr *TransactionReceipt) *TransactionQuery {
+	query := &TransactionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TransactionReceiptClient) Hooks() []Hook {
+	return c.hooks.TransactionReceipt
 }

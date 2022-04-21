@@ -9,6 +9,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockWhereInput represents a where input for filtering Block queries.
@@ -101,6 +102,10 @@ type BlockWhereInput struct {
 	// "transactions" edge predicates.
 	HasTransactions     *bool                    `json:"hasTransactions,omitempty"`
 	HasTransactionsWith []*TransactionWhereInput `json:"hasTransactionsWith,omitempty"`
+
+	// "transaction_receipts" edge predicates.
+	HasTransactionReceipts     *bool                           `json:"hasTransactionReceipts,omitempty"`
+	HasTransactionReceiptsWith []*TransactionReceiptWhereInput `json:"hasTransactionReceiptsWith,omitempty"`
 }
 
 // Filter applies the BlockWhereInput filter on the BlockQuery builder.
@@ -382,6 +387,24 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 		}
 		predicates = append(predicates, block.HasTransactionsWith(with...))
 	}
+	if i.HasTransactionReceipts != nil {
+		p := block.HasTransactionReceipts()
+		if !*i.HasTransactionReceipts {
+			p = block.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionReceiptsWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasTransactionReceiptsWith))
+		for _, w := range i.HasTransactionReceiptsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, block.HasTransactionReceiptsWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, fmt.Errorf("empty predicate BlockWhereInput")
@@ -492,6 +515,10 @@ type TransactionWhereInput struct {
 	// "block" edge predicates.
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "receipts" edge predicates.
+	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
+	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
 }
 
 // Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
@@ -803,6 +830,24 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 		}
 		predicates = append(predicates, transaction.HasBlockWith(with...))
 	}
+	if i.HasReceipts != nil {
+		p := transaction.HasReceipts()
+		if !*i.HasReceipts {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasReceiptsWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptsWith))
+		for _, w := range i.HasReceiptsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasReceiptsWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, fmt.Errorf("empty predicate TransactionWhereInput")
@@ -810,5 +855,248 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 		return predicates[0], nil
 	default:
 		return transaction.And(predicates...), nil
+	}
+}
+
+// TransactionReceiptWhereInput represents a where input for filtering TransactionReceipt queries.
+type TransactionReceiptWhereInput struct {
+	Not *TransactionReceiptWhereInput   `json:"not,omitempty"`
+	Or  []*TransactionReceiptWhereInput `json:"or,omitempty"`
+	And []*TransactionReceiptWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "transaction_index" field predicates.
+	TransactionIndex      *int32  `json:"transactionIndex,omitempty"`
+	TransactionIndexNEQ   *int32  `json:"transactionIndexNEQ,omitempty"`
+	TransactionIndexIn    []int32 `json:"transactionIndexIn,omitempty"`
+	TransactionIndexNotIn []int32 `json:"transactionIndexNotIn,omitempty"`
+	TransactionIndexGT    *int32  `json:"transactionIndexGT,omitempty"`
+	TransactionIndexGTE   *int32  `json:"transactionIndexGTE,omitempty"`
+	TransactionIndexLT    *int32  `json:"transactionIndexLT,omitempty"`
+	TransactionIndexLTE   *int32  `json:"transactionIndexLTE,omitempty"`
+
+	// "transaction_hash" field predicates.
+	TransactionHash             *string  `json:"transactionHash,omitempty"`
+	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
+	TransactionHashIn           []string `json:"transactionHashIn,omitempty"`
+	TransactionHashNotIn        []string `json:"transactionHashNotIn,omitempty"`
+	TransactionHashGT           *string  `json:"transactionHashGT,omitempty"`
+	TransactionHashGTE          *string  `json:"transactionHashGTE,omitempty"`
+	TransactionHashLT           *string  `json:"transactionHashLT,omitempty"`
+	TransactionHashLTE          *string  `json:"transactionHashLTE,omitempty"`
+	TransactionHashContains     *string  `json:"transactionHashContains,omitempty"`
+	TransactionHashHasPrefix    *string  `json:"transactionHashHasPrefix,omitempty"`
+	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix,omitempty"`
+	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
+	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
+
+	// "block" edge predicates.
+	HasBlock     *bool              `json:"hasBlock,omitempty"`
+	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "transaction" edge predicates.
+	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
+	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
+}
+
+// Filter applies the TransactionReceiptWhereInput filter on the TransactionReceiptQuery builder.
+func (i *TransactionReceiptWhereInput) Filter(q *TransactionReceiptQuery) (*TransactionReceiptQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering transactionreceipts.
+// An error is returned if the input is empty or invalid.
+func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error) {
+	var predicates []predicate.TransactionReceipt
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, transactionreceipt.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.TransactionReceipt, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, transactionreceipt.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.TransactionReceipt, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, transactionreceipt.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, transactionreceipt.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, transactionreceipt.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, transactionreceipt.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, transactionreceipt.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, transactionreceipt.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, transactionreceipt.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, transactionreceipt.IDLTE(*i.IDLTE))
+	}
+	if i.TransactionIndex != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexEQ(*i.TransactionIndex))
+	}
+	if i.TransactionIndexNEQ != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexNEQ(*i.TransactionIndexNEQ))
+	}
+	if len(i.TransactionIndexIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionIndexIn(i.TransactionIndexIn...))
+	}
+	if len(i.TransactionIndexNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionIndexNotIn(i.TransactionIndexNotIn...))
+	}
+	if i.TransactionIndexGT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexGT(*i.TransactionIndexGT))
+	}
+	if i.TransactionIndexGTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexGTE(*i.TransactionIndexGTE))
+	}
+	if i.TransactionIndexLT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexLT(*i.TransactionIndexLT))
+	}
+	if i.TransactionIndexLTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionIndexLTE(*i.TransactionIndexLTE))
+	}
+	if i.TransactionHash != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashEQ(*i.TransactionHash))
+	}
+	if i.TransactionHashNEQ != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashNEQ(*i.TransactionHashNEQ))
+	}
+	if len(i.TransactionHashIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionHashIn(i.TransactionHashIn...))
+	}
+	if len(i.TransactionHashNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.TransactionHashNotIn(i.TransactionHashNotIn...))
+	}
+	if i.TransactionHashGT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashGT(*i.TransactionHashGT))
+	}
+	if i.TransactionHashGTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashGTE(*i.TransactionHashGTE))
+	}
+	if i.TransactionHashLT != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashLT(*i.TransactionHashLT))
+	}
+	if i.TransactionHashLTE != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashLTE(*i.TransactionHashLTE))
+	}
+	if i.TransactionHashContains != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashContains(*i.TransactionHashContains))
+	}
+	if i.TransactionHashHasPrefix != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashHasPrefix(*i.TransactionHashHasPrefix))
+	}
+	if i.TransactionHashHasSuffix != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashHasSuffix(*i.TransactionHashHasSuffix))
+	}
+	if i.TransactionHashEqualFold != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashEqualFold(*i.TransactionHashEqualFold))
+	}
+	if i.TransactionHashContainsFold != nil {
+		predicates = append(predicates, transactionreceipt.TransactionHashContainsFold(*i.TransactionHashContainsFold))
+	}
+
+	if i.HasBlock != nil {
+		p := transactionreceipt.HasBlock()
+		if !*i.HasBlock {
+			p = transactionreceipt.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasBlockWith) > 0 {
+		with := make([]predicate.Block, 0, len(i.HasBlockWith))
+		for _, w := range i.HasBlockWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transactionreceipt.HasBlockWith(with...))
+	}
+	if i.HasTransaction != nil {
+		p := transactionreceipt.HasTransaction()
+		if !*i.HasTransaction {
+			p = transactionreceipt.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionWith))
+		for _, w := range i.HasTransactionWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transactionreceipt.HasTransactionWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate TransactionReceiptWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return transactionreceipt.And(predicates...), nil
 	}
 }

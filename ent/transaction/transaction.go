@@ -21,12 +21,18 @@ const (
 	FieldEntryPointType = "entry_point_type"
 	// FieldTransactionHash holds the string denoting the transaction_hash field in the database.
 	FieldTransactionHash = "transaction_hash"
+	// FieldCalldata holds the string denoting the calldata field in the database.
+	FieldCalldata = "calldata"
+	// FieldSignature holds the string denoting the signature field in the database.
+	FieldSignature = "signature"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldNonce holds the string denoting the nonce field in the database.
 	FieldNonce = "nonce"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
+	// EdgeReceipts holds the string denoting the receipts edge name in mutations.
+	EdgeReceipts = "receipts"
 	// Table holds the table name of the transaction in the database.
 	Table = "transactions"
 	// BlockTable is the table that holds the block relation/edge.
@@ -36,6 +42,13 @@ const (
 	BlockInverseTable = "blocks"
 	// BlockColumn is the table column denoting the block relation/edge.
 	BlockColumn = "block_transactions"
+	// ReceiptsTable is the table that holds the receipts relation/edge.
+	ReceiptsTable = "transaction_receipts"
+	// ReceiptsInverseTable is the table name for the TransactionReceipt entity.
+	// It exists in this package in order to avoid circular dependency with the "transactionreceipt" package.
+	ReceiptsInverseTable = "transaction_receipts"
+	// ReceiptsColumn is the table column denoting the receipts relation/edge.
+	ReceiptsColumn = "transaction_receipts"
 )
 
 // Columns holds all SQL columns for transaction fields.
@@ -45,6 +58,8 @@ var Columns = []string{
 	FieldEntryPointSelector,
 	FieldEntryPointType,
 	FieldTransactionHash,
+	FieldCalldata,
+	FieldSignature,
 	FieldType,
 	FieldNonce,
 }

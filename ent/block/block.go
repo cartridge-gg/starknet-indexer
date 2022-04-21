@@ -27,6 +27,8 @@ const (
 	FieldTimestamp = "timestamp"
 	// EdgeTransactions holds the string denoting the transactions edge name in mutations.
 	EdgeTransactions = "transactions"
+	// EdgeTransactionReceipts holds the string denoting the transaction_receipts edge name in mutations.
+	EdgeTransactionReceipts = "transaction_receipts"
 	// Table holds the table name of the block in the database.
 	Table = "blocks"
 	// TransactionsTable is the table that holds the transactions relation/edge.
@@ -36,6 +38,13 @@ const (
 	TransactionsInverseTable = "transactions"
 	// TransactionsColumn is the table column denoting the transactions relation/edge.
 	TransactionsColumn = "block_transactions"
+	// TransactionReceiptsTable is the table that holds the transaction_receipts relation/edge.
+	TransactionReceiptsTable = "transaction_receipts"
+	// TransactionReceiptsInverseTable is the table name for the TransactionReceipt entity.
+	// It exists in this package in order to avoid circular dependency with the "transactionreceipt" package.
+	TransactionReceiptsInverseTable = "transaction_receipts"
+	// TransactionReceiptsColumn is the table column denoting the transaction_receipts relation/edge.
+	TransactionReceiptsColumn = "block_transaction_receipts"
 )
 
 // Columns holds all SQL columns for block fields.

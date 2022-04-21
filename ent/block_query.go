@@ -14,6 +14,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockQuery is the builder for querying Block entities.
@@ -26,9 +27,10 @@ type BlockQuery struct {
 	fields     []string
 	predicates []predicate.Block
 	// eager-loading edges.
-	withTransactions *TransactionQuery
-	modifiers        []func(*sql.Selector)
-	loadTotal        []func(context.Context, []*Block) error
+	withTransactions        *TransactionQuery
+	withTransactionReceipts *TransactionReceiptQuery
+	modifiers               []func(*sql.Selector)
+	loadTotal               []func(context.Context, []*Block) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +82,28 @@ func (bq *BlockQuery) QueryTransactions() *TransactionQuery {
 			sqlgraph.From(block.Table, block.FieldID, selector),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionsTable, block.TransactionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(bq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTransactionReceipts chains the current query on the "transaction_receipts" edge.
+func (bq *BlockQuery) QueryTransactionReceipts() *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: bq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := bq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := bq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(block.Table, block.FieldID, selector),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, block.TransactionReceiptsTable, block.TransactionReceiptsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(bq.driver.Dialect(), step)
 		return fromU, nil
@@ -263,12 +287,13 @@ func (bq *BlockQuery) Clone() *BlockQuery {
 		return nil
 	}
 	return &BlockQuery{
-		config:           bq.config,
-		limit:            bq.limit,
-		offset:           bq.offset,
-		order:            append([]OrderFunc{}, bq.order...),
-		predicates:       append([]predicate.Block{}, bq.predicates...),
-		withTransactions: bq.withTransactions.Clone(),
+		config:                  bq.config,
+		limit:                   bq.limit,
+		offset:                  bq.offset,
+		order:                   append([]OrderFunc{}, bq.order...),
+		predicates:              append([]predicate.Block{}, bq.predicates...),
+		withTransactions:        bq.withTransactions.Clone(),
+		withTransactionReceipts: bq.withTransactionReceipts.Clone(),
 		// clone intermediate query.
 		sql:    bq.sql.Clone(),
 		path:   bq.path,
@@ -284,6 +309,17 @@ func (bq *BlockQuery) WithTransactions(opts ...func(*TransactionQuery)) *BlockQu
 		opt(query)
 	}
 	bq.withTransactions = query
+	return bq
+}
+
+// WithTransactionReceipts tells the query-builder to eager-load the nodes that are connected to
+// the "transaction_receipts" edge. The optional arguments are used to configure the query builder of the edge.
+func (bq *BlockQuery) WithTransactionReceipts(opts ...func(*TransactionReceiptQuery)) *BlockQuery {
+	query := &TransactionReceiptQuery{config: bq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	bq.withTransactionReceipts = query
 	return bq
 }
 
@@ -357,8 +393,9 @@ func (bq *BlockQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Block,
 	var (
 		nodes       = []*Block{}
 		_spec       = bq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			bq.withTransactions != nil,
+			bq.withTransactionReceipts != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -409,6 +446,35 @@ func (bq *BlockQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Block,
 				return nil, fmt.Errorf(`unexpected foreign-key "block_transactions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Transactions = append(node.Edges.Transactions, n)
+		}
+	}
+
+	if query := bq.withTransactionReceipts; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Block)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.TransactionReceipts = []*TransactionReceipt{}
+		}
+		query.withFKs = true
+		query.Where(predicate.TransactionReceipt(func(s *sql.Selector) {
+			s.Where(sql.InValues(block.TransactionReceiptsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.block_transaction_receipts
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "block_transaction_receipts" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "block_transaction_receipts" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.TransactionReceipts = append(node.Edges.TransactionReceipts, n)
 		}
 	}
 

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -32,8 +33,9 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		block.Table:       block.ValidColumn,
-		transaction.Table: transaction.ValidColumn,
+		block.Table:              block.ValidColumn,
+		transaction.Table:        transaction.ValidColumn,
+		transactionreceipt.Table: transactionreceipt.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/schema"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
@@ -110,6 +112,47 @@ func (e *Engine) parse(ctx context.Context, b *caigo.Block) error {
 				SetEntryPointType(t.EntryPointType).
 				SetNonce(t.Nonce).
 				SetType(transaction.Type(t.Type)).
+				SetCalldata(t.Calldata).
+				SetSignature(t.Signature).
+				Exec(ctx); err != nil {
+				return err
+			}
+		}
+
+		for _, t := range b.TransactionReceipts {
+			events, err := json.Marshal(t.Events)
+			if err != nil {
+				return err
+			}
+
+			l2ToL1Messages, err := json.Marshal(t.L2ToL1Messages)
+			if err != nil {
+				return err
+			}
+
+			executionResources := schema.ExecutionResources{
+				NSteps:       uint64(t.ExecutionResources.NSteps),
+				NMemoryHoles: uint64(t.ExecutionResources.NMemoryHoles),
+				BuiltinInstanceCounter: schema.BuiltinInstanceCounter{
+					PedersenBuiltin:   uint64(t.ExecutionResources.BuiltinInstanceCounter.PedersenBuiltin),
+					RangeCheckBuiltin: uint64(t.ExecutionResources.BuiltinInstanceCounter.RangeCheckBuiltin),
+					BitwiseBuiltin:    uint64(t.ExecutionResources.BuiltinInstanceCounter.BitwiseBuiltin),
+					OutputBuiltin:     uint64(t.ExecutionResources.BuiltinInstanceCounter.OutputBuiltin),
+					EcdsaBuiltin:      uint64(t.ExecutionResources.BuiltinInstanceCounter.EcdsaBuiltin),
+					EcOpBuiltin:       uint64(t.ExecutionResources.BuiltinInstanceCounter.EcOpBuiltin),
+				},
+			}
+
+			if err := tx.TransactionReceipt.Create().
+				SetID(t.TransactionHash).
+				SetTransactionHash(t.TransactionHash).
+				SetBlockID(b.BlockHash).
+				SetTransactionID(t.TransactionHash).
+				SetTransactionIndex(int32(t.TransactionIndex)).
+				SetL1ToL2ConsumedMessage(t.L1ToL2ConsumedMessage).
+				SetExecutionResources(executionResources).
+				SetEvents(events).
+				SetL2ToL1Messages(l2ToL1Messages).
 				Exec(ctx); err != nil {
 				return err
 			}

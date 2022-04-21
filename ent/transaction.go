@@ -3,12 +3,14 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Transaction is the model entity for the Transaction schema.
@@ -24,6 +26,10 @@ type Transaction struct {
 	EntryPointType string `json:"entry_point_type,omitempty"`
 	// TransactionHash holds the value of the "transaction_hash" field.
 	TransactionHash string `json:"transaction_hash,omitempty"`
+	// Calldata holds the value of the "calldata" field.
+	Calldata []string `json:"calldata,omitempty"`
+	// Signature holds the value of the "signature" field.
+	Signature []string `json:"signature,omitempty"`
 	// Type holds the value of the "type" field.
 	Type transaction.Type `json:"type,omitempty"`
 	// Nonce holds the value of the "nonce" field.
@@ -38,11 +44,13 @@ type Transaction struct {
 type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
+	// Receipts holds the value of the receipts edge.
+	Receipts *TransactionReceipt `json:"receipts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]*int
+	totalCount [2]*int
 }
 
 // BlockOrErr returns the Block value or an error if the edge
@@ -59,11 +67,27 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 	return nil, &NotLoadedError{edge: "block"}
 }
 
+// ReceiptsOrErr returns the Receipts value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
+	if e.loadedTypes[1] {
+		if e.Receipts == nil {
+			// The edge receipts was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: transactionreceipt.Label}
+		}
+		return e.Receipts, nil
+	}
+	return nil, &NotLoadedError{edge: "receipts"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Transaction) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case transaction.FieldCalldata, transaction.FieldSignature:
+			values[i] = new([]byte)
 		case transaction.FieldID, transaction.FieldContractAddress, transaction.FieldEntryPointSelector, transaction.FieldEntryPointType, transaction.FieldTransactionHash, transaction.FieldType, transaction.FieldNonce:
 			values[i] = new(sql.NullString)
 		case transaction.ForeignKeys[0]: // block_transactions
@@ -113,6 +137,22 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				t.TransactionHash = value.String
 			}
+		case transaction.FieldCalldata:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field calldata", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Calldata); err != nil {
+					return fmt.Errorf("unmarshal field calldata: %w", err)
+				}
+			}
+		case transaction.FieldSignature:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field signature", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Signature); err != nil {
+					return fmt.Errorf("unmarshal field signature: %w", err)
+				}
+			}
 		case transaction.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
@@ -140,6 +180,11 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 // QueryBlock queries the "block" edge of the Transaction entity.
 func (t *Transaction) QueryBlock() *BlockQuery {
 	return (&TransactionClient{config: t.config}).QueryBlock(t)
+}
+
+// QueryReceipts queries the "receipts" edge of the Transaction entity.
+func (t *Transaction) QueryReceipts() *TransactionReceiptQuery {
+	return (&TransactionClient{config: t.config}).QueryReceipts(t)
 }
 
 // Update returns a builder for updating this Transaction.
@@ -173,6 +218,10 @@ func (t *Transaction) String() string {
 	builder.WriteString(t.EntryPointType)
 	builder.WriteString(", transaction_hash=")
 	builder.WriteString(t.TransactionHash)
+	builder.WriteString(", calldata=")
+	builder.WriteString(fmt.Sprintf("%v", t.Calldata))
+	builder.WriteString(", signature=")
+	builder.WriteString(fmt.Sprintf("%v", t.Signature))
 	builder.WriteString(", type=")
 	builder.WriteString(fmt.Sprintf("%v", t.Type))
 	builder.WriteString(", nonce=")

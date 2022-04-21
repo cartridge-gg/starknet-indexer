@@ -37,11 +37,13 @@ type Block struct {
 type BlockEdges struct {
 	// Transactions holds the value of the transactions edge.
 	Transactions []*Transaction `json:"transactions,omitempty"`
+	// TransactionReceipts holds the value of the transaction_receipts edge.
+	TransactionReceipts []*TransactionReceipt `json:"transaction_receipts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]*int
+	totalCount [2]*int
 }
 
 // TransactionsOrErr returns the Transactions value or an error if the edge
@@ -51,6 +53,15 @@ func (e BlockEdges) TransactionsOrErr() ([]*Transaction, error) {
 		return e.Transactions, nil
 	}
 	return nil, &NotLoadedError{edge: "transactions"}
+}
+
+// TransactionReceiptsOrErr returns the TransactionReceipts value or an error if the edge
+// was not loaded in eager-loading.
+func (e BlockEdges) TransactionReceiptsOrErr() ([]*TransactionReceipt, error) {
+	if e.loadedTypes[1] {
+		return e.TransactionReceipts, nil
+	}
+	return nil, &NotLoadedError{edge: "transaction_receipts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -129,6 +140,11 @@ func (b *Block) assignValues(columns []string, values []interface{}) error {
 // QueryTransactions queries the "transactions" edge of the Block entity.
 func (b *Block) QueryTransactions() *TransactionQuery {
 	return (&BlockClient{config: b.config}).QueryTransactions(b)
+}
+
+// QueryTransactionReceipts queries the "transaction_receipts" edge of the Block entity.
+func (b *Block) QueryTransactionReceipts() *TransactionReceiptQuery {
+	return (&BlockClient{config: b.config}).QueryTransactionReceipts(b)
 }
 
 // Update returns a builder for updating this Block.

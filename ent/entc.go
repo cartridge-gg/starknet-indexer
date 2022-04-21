@@ -18,9 +18,6 @@ func main() {
 		entgql.WithConfigPath("../gqlgen.yml"),
 		entgql.WithWhereFilters(true),
 		entgql.WithSchemaGenerator(),
-		// entgql.WithSchemaHook(func(g *gen.Graph, s *ast.Schema) error {
-		// 	return nil
-		// }),
 		entgql.WithSchemaPath("../entgql.graphql"),
 	)
 	if err != nil {

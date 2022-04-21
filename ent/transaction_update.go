@@ -13,6 +13,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionUpdate is the builder for updating Transaction entities.
@@ -52,6 +53,18 @@ func (tu *TransactionUpdate) SetTransactionHash(s string) *TransactionUpdate {
 	return tu
 }
 
+// SetCalldata sets the "calldata" field.
+func (tu *TransactionUpdate) SetCalldata(s []string) *TransactionUpdate {
+	tu.mutation.SetCalldata(s)
+	return tu
+}
+
+// SetSignature sets the "signature" field.
+func (tu *TransactionUpdate) SetSignature(s []string) *TransactionUpdate {
+	tu.mutation.SetSignature(s)
+	return tu
+}
+
 // SetType sets the "type" field.
 func (tu *TransactionUpdate) SetType(t transaction.Type) *TransactionUpdate {
 	tu.mutation.SetType(t)
@@ -83,6 +96,25 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
+// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
+func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
+	tu.mutation.SetReceiptsID(id)
+	return tu
+}
+
+// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tu *TransactionUpdate) SetNillableReceiptsID(id *string) *TransactionUpdate {
+	if id != nil {
+		tu = tu.SetReceiptsID(*id)
+	}
+	return tu
+}
+
+// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
+func (tu *TransactionUpdate) SetReceipts(t *TransactionReceipt) *TransactionUpdate {
+	return tu.SetReceiptsID(t.ID)
+}
+
 // Mutation returns the TransactionMutation object of the builder.
 func (tu *TransactionUpdate) Mutation() *TransactionMutation {
 	return tu.mutation
@@ -91,6 +123,12 @@ func (tu *TransactionUpdate) Mutation() *TransactionMutation {
 // ClearBlock clears the "block" edge to the Block entity.
 func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	tu.mutation.ClearBlock()
+	return tu
+}
+
+// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
+func (tu *TransactionUpdate) ClearReceipts() *TransactionUpdate {
+	tu.mutation.ClearReceipts()
 	return tu
 }
 
@@ -210,6 +248,20 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: transaction.FieldTransactionHash,
 		})
 	}
+	if value, ok := tu.mutation.Calldata(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transaction.FieldCalldata,
+		})
+	}
+	if value, ok := tu.mutation.Signature(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transaction.FieldSignature,
+		})
+	}
 	if value, ok := tu.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -251,6 +303,41 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tu.mutation.ReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
 				},
 			},
 		}
@@ -302,6 +389,18 @@ func (tuo *TransactionUpdateOne) SetTransactionHash(s string) *TransactionUpdate
 	return tuo
 }
 
+// SetCalldata sets the "calldata" field.
+func (tuo *TransactionUpdateOne) SetCalldata(s []string) *TransactionUpdateOne {
+	tuo.mutation.SetCalldata(s)
+	return tuo
+}
+
+// SetSignature sets the "signature" field.
+func (tuo *TransactionUpdateOne) SetSignature(s []string) *TransactionUpdateOne {
+	tuo.mutation.SetSignature(s)
+	return tuo
+}
+
 // SetType sets the "type" field.
 func (tuo *TransactionUpdateOne) SetType(t transaction.Type) *TransactionUpdateOne {
 	tuo.mutation.SetType(t)
@@ -333,6 +432,25 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
+// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
+func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
+	tuo.mutation.SetReceiptsID(id)
+	return tuo
+}
+
+// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tuo *TransactionUpdateOne) SetNillableReceiptsID(id *string) *TransactionUpdateOne {
+	if id != nil {
+		tuo = tuo.SetReceiptsID(*id)
+	}
+	return tuo
+}
+
+// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) SetReceipts(t *TransactionReceipt) *TransactionUpdateOne {
+	return tuo.SetReceiptsID(t.ID)
+}
+
 // Mutation returns the TransactionMutation object of the builder.
 func (tuo *TransactionUpdateOne) Mutation() *TransactionMutation {
 	return tuo.mutation
@@ -341,6 +459,12 @@ func (tuo *TransactionUpdateOne) Mutation() *TransactionMutation {
 // ClearBlock clears the "block" edge to the Block entity.
 func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	tuo.mutation.ClearBlock()
+	return tuo
+}
+
+// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) ClearReceipts() *TransactionUpdateOne {
+	tuo.mutation.ClearReceipts()
 	return tuo
 }
 
@@ -484,6 +608,20 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 			Column: transaction.FieldTransactionHash,
 		})
 	}
+	if value, ok := tuo.mutation.Calldata(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transaction.FieldCalldata,
+		})
+	}
+	if value, ok := tuo.mutation.Signature(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transaction.FieldSignature,
+		})
+	}
 	if value, ok := tuo.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -525,6 +663,41 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.ReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
 				},
 			},
 		}

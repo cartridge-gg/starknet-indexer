@@ -3,7 +3,7 @@ module github.com/tarrencev/starknet-indexer
 go 1.17
 
 require (
-	entgo.io/contrib v0.2.1-0.20220405093919-945c677d460d
+	entgo.io/contrib v0.2.1-0.20220421093944-3186275bff87
 	entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd
 	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
 	github.com/alecthomas/kong v0.2.11
@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
-	github.com/vektah/gqlparser/v2 v2.4.2-0.20220326183557-14b8f033df3d
+	github.com/vektah/gqlparser/v2 v2.4.2-0.20220410124439-db38a01a2e29
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 )
 

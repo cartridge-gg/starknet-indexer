@@ -25,6 +25,13 @@ func (r *queryResolver) Blocks(ctx context.Context, after *ent.Cursor, first *in
 		)
 }
 
+func (r *queryResolver) Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *gql.TransactionWhereInput) (*ent.TransactionConnection, error) {
+	return r.client.Transaction.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithTransactionOrder(nil),
+		)
+}
+
 // Query returns gql.QueryResolver implementation.
 func (r *Resolver) Query() gql.QueryResolver { return &queryResolver{r} }
 

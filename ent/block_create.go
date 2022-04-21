@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockCreate is the builder for creating a Block entity.
@@ -76,6 +77,21 @@ func (bc *BlockCreate) AddTransactions(t ...*Transaction) *BlockCreate {
 		ids[i] = t[i].ID
 	}
 	return bc.AddTransactionIDs(ids...)
+}
+
+// AddTransactionReceiptIDs adds the "transaction_receipts" edge to the TransactionReceipt entity by IDs.
+func (bc *BlockCreate) AddTransactionReceiptIDs(ids ...string) *BlockCreate {
+	bc.mutation.AddTransactionReceiptIDs(ids...)
+	return bc
+}
+
+// AddTransactionReceipts adds the "transaction_receipts" edges to the TransactionReceipt entity.
+func (bc *BlockCreate) AddTransactionReceipts(t ...*TransactionReceipt) *BlockCreate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return bc.AddTransactionReceiptIDs(ids...)
 }
 
 // Mutation returns the BlockMutation object of the builder.
@@ -266,6 +282,25 @@ func (bc *BlockCreate) createSpec() (*Block, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := bc.mutation.TransactionReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   block.TransactionReceiptsTable,
+			Columns: []string{block.TransactionReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
 				},
 			},
 		}

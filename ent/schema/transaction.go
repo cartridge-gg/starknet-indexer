@@ -21,8 +21,13 @@ func (Transaction) Fields() []ent.Field {
 		field.String("entry_point_selector"),
 		field.String("entry_point_type"),
 		field.String("transaction_hash"),
+		field.Strings("calldata"),
+		field.Strings("signature"),
 		field.Enum("type").Values("INVOKE_FUNCTION", "DEPLOY"),
-		field.String("nonce"),
+		field.String("nonce").
+			Annotations(
+				entgql.OrderField("NONCE"),
+			),
 	}
 }
 
@@ -30,7 +35,8 @@ func (Transaction) Fields() []ent.Field {
 func (Transaction) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("block", Block.Type).Ref("transactions").
-			Annotations(entgql.Unbind()).
+			Unique(),
+		edge.To("receipts", TransactionReceipt.Type).
 			Unique(),
 	}
 }

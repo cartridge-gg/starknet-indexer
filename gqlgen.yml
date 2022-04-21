@@ -23,3 +23,15 @@ models:
   Long:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64
+  JSON:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema/json.RawMessage
+  L1ToL2ConsumedMessage:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.L1ToL2ConsumedMessage
+  BuiltinInstanceCounter:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.BuiltinInstanceCounter
+  ExecutionResources:
+    model:
+      - github.com/tarrencev/starknet-indexer/ent/schema.ExecutionResources

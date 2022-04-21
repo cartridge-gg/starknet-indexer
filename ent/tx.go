@@ -16,6 +16,8 @@ type Tx struct {
 	Block *BlockClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
+	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
+	TransactionReceipt *TransactionReceiptClient
 
 	// lazily loaded.
 	client     *Client
@@ -153,6 +155,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Block = NewBlockClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)
+	tx.TransactionReceipt = NewTransactionReceiptClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

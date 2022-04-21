@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Noder wraps the basic Node method.
@@ -46,7 +47,7 @@ func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 		ID:     b.ID,
 		Type:   "Block",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(b.BlockHash); err != nil {
@@ -107,6 +108,16 @@ func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Edges[1] = &Edge{
+		Type: "TransactionReceipt",
+		Name: "transaction_receipts",
+	}
+	err = b.QueryTransactionReceipts().
+		Select(transactionreceipt.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -114,8 +125,8 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Transaction",
-		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.ContractAddress); err != nil {
@@ -150,10 +161,26 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "transaction_hash",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Type); err != nil {
+	if buf, err = json.Marshal(t.Calldata); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
+		Type:  "[]string",
+		Name:  "calldata",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Signature); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]string",
+		Name:  "signature",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Type); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
 		Type:  "transaction.Type",
 		Name:  "type",
 		Value: string(buf),
@@ -161,7 +188,7 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.Nonce); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "string",
 		Name:  "nonce",
 		Value: string(buf),
@@ -173,6 +200,95 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	err = t.QueryBlock().
 		Select(block.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "TransactionReceipt",
+		Name: "receipts",
+	}
+	err = t.QueryReceipts().
+		Select(transactionreceipt.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     tr.ID,
+		Type:   "TransactionReceipt",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(tr.TransactionIndex); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int32",
+		Name:  "transaction_index",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.TransactionHash); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "transaction_hash",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.L1ToL2ConsumedMessage); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "schema.L1ToL2ConsumedMessage",
+		Name:  "l1_to_l2_consumed_message",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.ExecutionResources); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "schema.ExecutionResources",
+		Name:  "execution_resources",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.Events); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "json.RawMessage",
+		Name:  "events",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.L2ToL1Messages); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "json.RawMessage",
+		Name:  "l2_to_l1_messages",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Block",
+		Name: "block",
+	}
+	err = tr.QueryBlock().
+		Select(block.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Transaction",
+		Name: "transaction",
+	}
+	err = tr.QueryTransaction().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -262,6 +378,18 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		query := c.Transaction.Query().
 			Where(transaction.ID(id))
 		query, err := query.CollectFields(ctx, "Transaction")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case transactionreceipt.Table:
+		query := c.TransactionReceipt.Query().
+			Where(transactionreceipt.ID(id))
+		query, err := query.CollectFields(ctx, "TransactionReceipt")
 		if err != nil {
 			return nil, err
 		}
@@ -363,6 +491,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		query := c.Transaction.Query().
 			Where(transaction.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Transaction")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case transactionreceipt.Table:
+		query := c.TransactionReceipt.Query().
+			Where(transactionreceipt.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "TransactionReceipt")
 		if err != nil {
 			return nil, err
 		}
