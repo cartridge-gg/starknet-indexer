@@ -10,30 +10,30 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (a *AccountQuery) CollectFields(ctx context.Context, satisfies ...string) (*AccountQuery, error) {
+func (b *BlockQuery) CollectFields(ctx context.Context, satisfies ...string) (*BlockQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return a, nil
+		return b, nil
 	}
-	if err := a.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := b.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return b, nil
 }
 
-func (a *AccountQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (b *BlockQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	return nil
 }
 
-type accountPaginateArgs struct {
+type blockPaginateArgs struct {
 	first, last   *int
 	after, before *Cursor
-	opts          []AccountPaginateOption
+	opts          []BlockPaginateOption
 }
 
-func newAccountPaginateArgs(rv map[string]interface{}) *accountPaginateArgs {
-	args := &accountPaginateArgs{}
+func newBlockPaginateArgs(rv map[string]interface{}) *blockPaginateArgs {
+	args := &blockPaginateArgs{}
 	if rv == nil {
 		return args
 	}
@@ -54,7 +54,7 @@ func newAccountPaginateArgs(rv map[string]interface{}) *accountPaginateArgs {
 		case map[string]interface{}:
 			var (
 				err1, err2 error
-				order      = &AccountOrder{Field: &AccountOrderField{}}
+				order      = &BlockOrder{Field: &BlockOrderField{}}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)
@@ -63,62 +63,16 @@ func newAccountPaginateArgs(rv map[string]interface{}) *accountPaginateArgs {
 				err2 = order.Field.UnmarshalGQL(f)
 			}
 			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithAccountOrder(order))
+				args.opts = append(args.opts, WithBlockOrder(order))
 			}
-		case *AccountOrder:
+		case *BlockOrder:
 			if v != nil {
-				args.opts = append(args.opts, WithAccountOrder(v))
+				args.opts = append(args.opts, WithBlockOrder(v))
 			}
 		}
 	}
-	if v := rv[whereField]; v != nil && v != (*AccountWhereInput)(nil) {
-		args.opts = append(args.opts, WithAccountFilter(v.(*AccountWhereInput).Filter))
-	}
-	return args
-}
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (ss *SyncStateQuery) CollectFields(ctx context.Context, satisfies ...string) (*SyncStateQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
-		return ss, nil
-	}
-	if err := ss.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
-		return nil, err
-	}
-	return ss, nil
-}
-
-func (ss *SyncStateQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	path = append([]string(nil), path...)
-	return nil
-}
-
-type syncstatePaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
-	opts          []SyncStatePaginateOption
-}
-
-func newSyncStatePaginateArgs(rv map[string]interface{}) *syncstatePaginateArgs {
-	args := &syncstatePaginateArgs{}
-	if rv == nil {
-		return args
-	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
-	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
-	}
-	if v := rv[whereField]; v != nil && v != (*SyncStateWhereInput)(nil) {
-		args.opts = append(args.opts, WithSyncStateFilter(v.(*SyncStateWhereInput).Filter))
+	if v := rv[whereField]; v != nil && v != (*BlockWhereInput)(nil) {
+		args.opts = append(args.opts, WithBlockFilter(v.(*BlockWhereInput).Filter))
 	}
 	return args
 }

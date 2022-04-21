@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tarrencev/starknet-indexer/ent/account"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
 )
 
-// AccountWhereInput represents a where input for filtering Account queries.
-type AccountWhereInput struct {
-	Not *AccountWhereInput   `json:"not,omitempty"`
-	Or  []*AccountWhereInput `json:"or,omitempty"`
-	And []*AccountWhereInput `json:"and,omitempty"`
+// BlockWhereInput represents a where input for filtering Block queries.
+type BlockWhereInput struct {
+	Not *BlockWhereInput   `json:"not,omitempty"`
+	Or  []*BlockWhereInput `json:"or,omitempty"`
+	And []*BlockWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -27,34 +26,89 @@ type AccountWhereInput struct {
 	IDLT    *string  `json:"idLT,omitempty"`
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
-	// "address" field predicates.
-	Address             *string  `json:"address,omitempty"`
-	AddressNEQ          *string  `json:"addressNEQ,omitempty"`
-	AddressIn           []string `json:"addressIn,omitempty"`
-	AddressNotIn        []string `json:"addressNotIn,omitempty"`
-	AddressGT           *string  `json:"addressGT,omitempty"`
-	AddressGTE          *string  `json:"addressGTE,omitempty"`
-	AddressLT           *string  `json:"addressLT,omitempty"`
-	AddressLTE          *string  `json:"addressLTE,omitempty"`
-	AddressContains     *string  `json:"addressContains,omitempty"`
-	AddressHasPrefix    *string  `json:"addressHasPrefix,omitempty"`
-	AddressHasSuffix    *string  `json:"addressHasSuffix,omitempty"`
-	AddressEqualFold    *string  `json:"addressEqualFold,omitempty"`
-	AddressContainsFold *string  `json:"addressContainsFold,omitempty"`
+	// "block_hash" field predicates.
+	BlockHash             *string  `json:"blockHash,omitempty"`
+	BlockHashNEQ          *string  `json:"blockHashNEQ,omitempty"`
+	BlockHashIn           []string `json:"blockHashIn,omitempty"`
+	BlockHashNotIn        []string `json:"blockHashNotIn,omitempty"`
+	BlockHashGT           *string  `json:"blockHashGT,omitempty"`
+	BlockHashGTE          *string  `json:"blockHashGTE,omitempty"`
+	BlockHashLT           *string  `json:"blockHashLT,omitempty"`
+	BlockHashLTE          *string  `json:"blockHashLTE,omitempty"`
+	BlockHashContains     *string  `json:"blockHashContains,omitempty"`
+	BlockHashHasPrefix    *string  `json:"blockHashHasPrefix,omitempty"`
+	BlockHashHasSuffix    *string  `json:"blockHashHasSuffix,omitempty"`
+	BlockHashEqualFold    *string  `json:"blockHashEqualFold,omitempty"`
+	BlockHashContainsFold *string  `json:"blockHashContainsFold,omitempty"`
 
-	// "created_at" field predicates.
-	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
-	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
-	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
-	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
-	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
-	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
-	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
-	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+	// "parent_block_hash" field predicates.
+	ParentBlockHash             *string  `json:"parentBlockHash,omitempty"`
+	ParentBlockHashNEQ          *string  `json:"parentBlockHashNEQ,omitempty"`
+	ParentBlockHashIn           []string `json:"parentBlockHashIn,omitempty"`
+	ParentBlockHashNotIn        []string `json:"parentBlockHashNotIn,omitempty"`
+	ParentBlockHashGT           *string  `json:"parentBlockHashGT,omitempty"`
+	ParentBlockHashGTE          *string  `json:"parentBlockHashGTE,omitempty"`
+	ParentBlockHashLT           *string  `json:"parentBlockHashLT,omitempty"`
+	ParentBlockHashLTE          *string  `json:"parentBlockHashLTE,omitempty"`
+	ParentBlockHashContains     *string  `json:"parentBlockHashContains,omitempty"`
+	ParentBlockHashHasPrefix    *string  `json:"parentBlockHashHasPrefix,omitempty"`
+	ParentBlockHashHasSuffix    *string  `json:"parentBlockHashHasSuffix,omitempty"`
+	ParentBlockHashEqualFold    *string  `json:"parentBlockHashEqualFold,omitempty"`
+	ParentBlockHashContainsFold *string  `json:"parentBlockHashContainsFold,omitempty"`
+
+	// "block_number" field predicates.
+	BlockNumber      *uint64  `json:"blockNumber,omitempty"`
+	BlockNumberNEQ   *uint64  `json:"blockNumberNEQ,omitempty"`
+	BlockNumberIn    []uint64 `json:"blockNumberIn,omitempty"`
+	BlockNumberNotIn []uint64 `json:"blockNumberNotIn,omitempty"`
+	BlockNumberGT    *uint64  `json:"blockNumberGT,omitempty"`
+	BlockNumberGTE   *uint64  `json:"blockNumberGTE,omitempty"`
+	BlockNumberLT    *uint64  `json:"blockNumberLT,omitempty"`
+	BlockNumberLTE   *uint64  `json:"blockNumberLTE,omitempty"`
+
+	// "state_root" field predicates.
+	StateRoot             *string  `json:"stateRoot,omitempty"`
+	StateRootNEQ          *string  `json:"stateRootNEQ,omitempty"`
+	StateRootIn           []string `json:"stateRootIn,omitempty"`
+	StateRootNotIn        []string `json:"stateRootNotIn,omitempty"`
+	StateRootGT           *string  `json:"stateRootGT,omitempty"`
+	StateRootGTE          *string  `json:"stateRootGTE,omitempty"`
+	StateRootLT           *string  `json:"stateRootLT,omitempty"`
+	StateRootLTE          *string  `json:"stateRootLTE,omitempty"`
+	StateRootContains     *string  `json:"stateRootContains,omitempty"`
+	StateRootHasPrefix    *string  `json:"stateRootHasPrefix,omitempty"`
+	StateRootHasSuffix    *string  `json:"stateRootHasSuffix,omitempty"`
+	StateRootEqualFold    *string  `json:"stateRootEqualFold,omitempty"`
+	StateRootContainsFold *string  `json:"stateRootContainsFold,omitempty"`
+
+	// "status" field predicates.
+	Status             *string  `json:"status,omitempty"`
+	StatusNEQ          *string  `json:"statusNEQ,omitempty"`
+	StatusIn           []string `json:"statusIn,omitempty"`
+	StatusNotIn        []string `json:"statusNotIn,omitempty"`
+	StatusGT           *string  `json:"statusGT,omitempty"`
+	StatusGTE          *string  `json:"statusGTE,omitempty"`
+	StatusLT           *string  `json:"statusLT,omitempty"`
+	StatusLTE          *string  `json:"statusLTE,omitempty"`
+	StatusContains     *string  `json:"statusContains,omitempty"`
+	StatusHasPrefix    *string  `json:"statusHasPrefix,omitempty"`
+	StatusHasSuffix    *string  `json:"statusHasSuffix,omitempty"`
+	StatusEqualFold    *string  `json:"statusEqualFold,omitempty"`
+	StatusContainsFold *string  `json:"statusContainsFold,omitempty"`
+
+	// "timestamp" field predicates.
+	Timestamp      *time.Time  `json:"timestamp,omitempty"`
+	TimestampNEQ   *time.Time  `json:"timestampNEQ,omitempty"`
+	TimestampIn    []time.Time `json:"timestampIn,omitempty"`
+	TimestampNotIn []time.Time `json:"timestampNotIn,omitempty"`
+	TimestampGT    *time.Time  `json:"timestampGT,omitempty"`
+	TimestampGTE   *time.Time  `json:"timestampGTE,omitempty"`
+	TimestampLT    *time.Time  `json:"timestampLT,omitempty"`
+	TimestampLTE   *time.Time  `json:"timestampLTE,omitempty"`
 }
 
-// Filter applies the AccountWhereInput filter on the AccountQuery builder.
-func (i *AccountWhereInput) Filter(q *AccountQuery) (*AccountQuery, error) {
+// Filter applies the BlockWhereInput filter on the BlockQuery builder.
+func (i *BlockWhereInput) Filter(q *BlockQuery) (*BlockQuery, error) {
 	if i == nil {
 		return q, nil
 	}
@@ -65,16 +119,16 @@ func (i *AccountWhereInput) Filter(q *AccountQuery) (*AccountQuery, error) {
 	return q.Where(p), nil
 }
 
-// P returns a predicate for filtering accounts.
+// P returns a predicate for filtering blocks.
 // An error is returned if the input is empty or invalid.
-func (i *AccountWhereInput) P() (predicate.Account, error) {
-	var predicates []predicate.Account
+func (i *BlockWhereInput) P() (predicate.Block, error) {
+	var predicates []predicate.Block
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
 			return nil, err
 		}
-		predicates = append(predicates, account.Not(p))
+		predicates = append(predicates, block.Not(p))
 	}
 	switch n := len(i.Or); {
 	case n == 1:
@@ -84,7 +138,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		or := make([]predicate.Account, 0, n)
+		or := make([]predicate.Block, 0, n)
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
@@ -92,7 +146,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 			}
 			or = append(or, p)
 		}
-		predicates = append(predicates, account.Or(or...))
+		predicates = append(predicates, block.Or(or...))
 	}
 	switch n := len(i.And); {
 	case n == 1:
@@ -102,7 +156,7 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 		}
 		predicates = append(predicates, p)
 	case n > 1:
-		and := make([]predicate.Account, 0, n)
+		and := make([]predicate.Block, 0, n)
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
@@ -110,247 +164,243 @@ func (i *AccountWhereInput) P() (predicate.Account, error) {
 			}
 			and = append(and, p)
 		}
-		predicates = append(predicates, account.And(and...))
+		predicates = append(predicates, block.And(and...))
 	}
 	if i.ID != nil {
-		predicates = append(predicates, account.IDEQ(*i.ID))
+		predicates = append(predicates, block.IDEQ(*i.ID))
 	}
 	if i.IDNEQ != nil {
-		predicates = append(predicates, account.IDNEQ(*i.IDNEQ))
+		predicates = append(predicates, block.IDNEQ(*i.IDNEQ))
 	}
 	if len(i.IDIn) > 0 {
-		predicates = append(predicates, account.IDIn(i.IDIn...))
+		predicates = append(predicates, block.IDIn(i.IDIn...))
 	}
 	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, account.IDNotIn(i.IDNotIn...))
+		predicates = append(predicates, block.IDNotIn(i.IDNotIn...))
 	}
 	if i.IDGT != nil {
-		predicates = append(predicates, account.IDGT(*i.IDGT))
+		predicates = append(predicates, block.IDGT(*i.IDGT))
 	}
 	if i.IDGTE != nil {
-		predicates = append(predicates, account.IDGTE(*i.IDGTE))
+		predicates = append(predicates, block.IDGTE(*i.IDGTE))
 	}
 	if i.IDLT != nil {
-		predicates = append(predicates, account.IDLT(*i.IDLT))
+		predicates = append(predicates, block.IDLT(*i.IDLT))
 	}
 	if i.IDLTE != nil {
-		predicates = append(predicates, account.IDLTE(*i.IDLTE))
+		predicates = append(predicates, block.IDLTE(*i.IDLTE))
 	}
-	if i.Address != nil {
-		predicates = append(predicates, account.AddressEQ(*i.Address))
+	if i.BlockHash != nil {
+		predicates = append(predicates, block.BlockHashEQ(*i.BlockHash))
 	}
-	if i.AddressNEQ != nil {
-		predicates = append(predicates, account.AddressNEQ(*i.AddressNEQ))
+	if i.BlockHashNEQ != nil {
+		predicates = append(predicates, block.BlockHashNEQ(*i.BlockHashNEQ))
 	}
-	if len(i.AddressIn) > 0 {
-		predicates = append(predicates, account.AddressIn(i.AddressIn...))
+	if len(i.BlockHashIn) > 0 {
+		predicates = append(predicates, block.BlockHashIn(i.BlockHashIn...))
 	}
-	if len(i.AddressNotIn) > 0 {
-		predicates = append(predicates, account.AddressNotIn(i.AddressNotIn...))
+	if len(i.BlockHashNotIn) > 0 {
+		predicates = append(predicates, block.BlockHashNotIn(i.BlockHashNotIn...))
 	}
-	if i.AddressGT != nil {
-		predicates = append(predicates, account.AddressGT(*i.AddressGT))
+	if i.BlockHashGT != nil {
+		predicates = append(predicates, block.BlockHashGT(*i.BlockHashGT))
 	}
-	if i.AddressGTE != nil {
-		predicates = append(predicates, account.AddressGTE(*i.AddressGTE))
+	if i.BlockHashGTE != nil {
+		predicates = append(predicates, block.BlockHashGTE(*i.BlockHashGTE))
 	}
-	if i.AddressLT != nil {
-		predicates = append(predicates, account.AddressLT(*i.AddressLT))
+	if i.BlockHashLT != nil {
+		predicates = append(predicates, block.BlockHashLT(*i.BlockHashLT))
 	}
-	if i.AddressLTE != nil {
-		predicates = append(predicates, account.AddressLTE(*i.AddressLTE))
+	if i.BlockHashLTE != nil {
+		predicates = append(predicates, block.BlockHashLTE(*i.BlockHashLTE))
 	}
-	if i.AddressContains != nil {
-		predicates = append(predicates, account.AddressContains(*i.AddressContains))
+	if i.BlockHashContains != nil {
+		predicates = append(predicates, block.BlockHashContains(*i.BlockHashContains))
 	}
-	if i.AddressHasPrefix != nil {
-		predicates = append(predicates, account.AddressHasPrefix(*i.AddressHasPrefix))
+	if i.BlockHashHasPrefix != nil {
+		predicates = append(predicates, block.BlockHashHasPrefix(*i.BlockHashHasPrefix))
 	}
-	if i.AddressHasSuffix != nil {
-		predicates = append(predicates, account.AddressHasSuffix(*i.AddressHasSuffix))
+	if i.BlockHashHasSuffix != nil {
+		predicates = append(predicates, block.BlockHashHasSuffix(*i.BlockHashHasSuffix))
 	}
-	if i.AddressEqualFold != nil {
-		predicates = append(predicates, account.AddressEqualFold(*i.AddressEqualFold))
+	if i.BlockHashEqualFold != nil {
+		predicates = append(predicates, block.BlockHashEqualFold(*i.BlockHashEqualFold))
 	}
-	if i.AddressContainsFold != nil {
-		predicates = append(predicates, account.AddressContainsFold(*i.AddressContainsFold))
+	if i.BlockHashContainsFold != nil {
+		predicates = append(predicates, block.BlockHashContainsFold(*i.BlockHashContainsFold))
 	}
-	if i.CreatedAt != nil {
-		predicates = append(predicates, account.CreatedAtEQ(*i.CreatedAt))
+	if i.ParentBlockHash != nil {
+		predicates = append(predicates, block.ParentBlockHashEQ(*i.ParentBlockHash))
 	}
-	if i.CreatedAtNEQ != nil {
-		predicates = append(predicates, account.CreatedAtNEQ(*i.CreatedAtNEQ))
+	if i.ParentBlockHashNEQ != nil {
+		predicates = append(predicates, block.ParentBlockHashNEQ(*i.ParentBlockHashNEQ))
 	}
-	if len(i.CreatedAtIn) > 0 {
-		predicates = append(predicates, account.CreatedAtIn(i.CreatedAtIn...))
+	if len(i.ParentBlockHashIn) > 0 {
+		predicates = append(predicates, block.ParentBlockHashIn(i.ParentBlockHashIn...))
 	}
-	if len(i.CreatedAtNotIn) > 0 {
-		predicates = append(predicates, account.CreatedAtNotIn(i.CreatedAtNotIn...))
+	if len(i.ParentBlockHashNotIn) > 0 {
+		predicates = append(predicates, block.ParentBlockHashNotIn(i.ParentBlockHashNotIn...))
 	}
-	if i.CreatedAtGT != nil {
-		predicates = append(predicates, account.CreatedAtGT(*i.CreatedAtGT))
+	if i.ParentBlockHashGT != nil {
+		predicates = append(predicates, block.ParentBlockHashGT(*i.ParentBlockHashGT))
 	}
-	if i.CreatedAtGTE != nil {
-		predicates = append(predicates, account.CreatedAtGTE(*i.CreatedAtGTE))
+	if i.ParentBlockHashGTE != nil {
+		predicates = append(predicates, block.ParentBlockHashGTE(*i.ParentBlockHashGTE))
 	}
-	if i.CreatedAtLT != nil {
-		predicates = append(predicates, account.CreatedAtLT(*i.CreatedAtLT))
+	if i.ParentBlockHashLT != nil {
+		predicates = append(predicates, block.ParentBlockHashLT(*i.ParentBlockHashLT))
 	}
-	if i.CreatedAtLTE != nil {
-		predicates = append(predicates, account.CreatedAtLTE(*i.CreatedAtLTE))
+	if i.ParentBlockHashLTE != nil {
+		predicates = append(predicates, block.ParentBlockHashLTE(*i.ParentBlockHashLTE))
+	}
+	if i.ParentBlockHashContains != nil {
+		predicates = append(predicates, block.ParentBlockHashContains(*i.ParentBlockHashContains))
+	}
+	if i.ParentBlockHashHasPrefix != nil {
+		predicates = append(predicates, block.ParentBlockHashHasPrefix(*i.ParentBlockHashHasPrefix))
+	}
+	if i.ParentBlockHashHasSuffix != nil {
+		predicates = append(predicates, block.ParentBlockHashHasSuffix(*i.ParentBlockHashHasSuffix))
+	}
+	if i.ParentBlockHashEqualFold != nil {
+		predicates = append(predicates, block.ParentBlockHashEqualFold(*i.ParentBlockHashEqualFold))
+	}
+	if i.ParentBlockHashContainsFold != nil {
+		predicates = append(predicates, block.ParentBlockHashContainsFold(*i.ParentBlockHashContainsFold))
+	}
+	if i.BlockNumber != nil {
+		predicates = append(predicates, block.BlockNumberEQ(*i.BlockNumber))
+	}
+	if i.BlockNumberNEQ != nil {
+		predicates = append(predicates, block.BlockNumberNEQ(*i.BlockNumberNEQ))
+	}
+	if len(i.BlockNumberIn) > 0 {
+		predicates = append(predicates, block.BlockNumberIn(i.BlockNumberIn...))
+	}
+	if len(i.BlockNumberNotIn) > 0 {
+		predicates = append(predicates, block.BlockNumberNotIn(i.BlockNumberNotIn...))
+	}
+	if i.BlockNumberGT != nil {
+		predicates = append(predicates, block.BlockNumberGT(*i.BlockNumberGT))
+	}
+	if i.BlockNumberGTE != nil {
+		predicates = append(predicates, block.BlockNumberGTE(*i.BlockNumberGTE))
+	}
+	if i.BlockNumberLT != nil {
+		predicates = append(predicates, block.BlockNumberLT(*i.BlockNumberLT))
+	}
+	if i.BlockNumberLTE != nil {
+		predicates = append(predicates, block.BlockNumberLTE(*i.BlockNumberLTE))
+	}
+	if i.StateRoot != nil {
+		predicates = append(predicates, block.StateRootEQ(*i.StateRoot))
+	}
+	if i.StateRootNEQ != nil {
+		predicates = append(predicates, block.StateRootNEQ(*i.StateRootNEQ))
+	}
+	if len(i.StateRootIn) > 0 {
+		predicates = append(predicates, block.StateRootIn(i.StateRootIn...))
+	}
+	if len(i.StateRootNotIn) > 0 {
+		predicates = append(predicates, block.StateRootNotIn(i.StateRootNotIn...))
+	}
+	if i.StateRootGT != nil {
+		predicates = append(predicates, block.StateRootGT(*i.StateRootGT))
+	}
+	if i.StateRootGTE != nil {
+		predicates = append(predicates, block.StateRootGTE(*i.StateRootGTE))
+	}
+	if i.StateRootLT != nil {
+		predicates = append(predicates, block.StateRootLT(*i.StateRootLT))
+	}
+	if i.StateRootLTE != nil {
+		predicates = append(predicates, block.StateRootLTE(*i.StateRootLTE))
+	}
+	if i.StateRootContains != nil {
+		predicates = append(predicates, block.StateRootContains(*i.StateRootContains))
+	}
+	if i.StateRootHasPrefix != nil {
+		predicates = append(predicates, block.StateRootHasPrefix(*i.StateRootHasPrefix))
+	}
+	if i.StateRootHasSuffix != nil {
+		predicates = append(predicates, block.StateRootHasSuffix(*i.StateRootHasSuffix))
+	}
+	if i.StateRootEqualFold != nil {
+		predicates = append(predicates, block.StateRootEqualFold(*i.StateRootEqualFold))
+	}
+	if i.StateRootContainsFold != nil {
+		predicates = append(predicates, block.StateRootContainsFold(*i.StateRootContainsFold))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, block.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, block.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, block.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, block.StatusNotIn(i.StatusNotIn...))
+	}
+	if i.StatusGT != nil {
+		predicates = append(predicates, block.StatusGT(*i.StatusGT))
+	}
+	if i.StatusGTE != nil {
+		predicates = append(predicates, block.StatusGTE(*i.StatusGTE))
+	}
+	if i.StatusLT != nil {
+		predicates = append(predicates, block.StatusLT(*i.StatusLT))
+	}
+	if i.StatusLTE != nil {
+		predicates = append(predicates, block.StatusLTE(*i.StatusLTE))
+	}
+	if i.StatusContains != nil {
+		predicates = append(predicates, block.StatusContains(*i.StatusContains))
+	}
+	if i.StatusHasPrefix != nil {
+		predicates = append(predicates, block.StatusHasPrefix(*i.StatusHasPrefix))
+	}
+	if i.StatusHasSuffix != nil {
+		predicates = append(predicates, block.StatusHasSuffix(*i.StatusHasSuffix))
+	}
+	if i.StatusEqualFold != nil {
+		predicates = append(predicates, block.StatusEqualFold(*i.StatusEqualFold))
+	}
+	if i.StatusContainsFold != nil {
+		predicates = append(predicates, block.StatusContainsFold(*i.StatusContainsFold))
+	}
+	if i.Timestamp != nil {
+		predicates = append(predicates, block.TimestampEQ(*i.Timestamp))
+	}
+	if i.TimestampNEQ != nil {
+		predicates = append(predicates, block.TimestampNEQ(*i.TimestampNEQ))
+	}
+	if len(i.TimestampIn) > 0 {
+		predicates = append(predicates, block.TimestampIn(i.TimestampIn...))
+	}
+	if len(i.TimestampNotIn) > 0 {
+		predicates = append(predicates, block.TimestampNotIn(i.TimestampNotIn...))
+	}
+	if i.TimestampGT != nil {
+		predicates = append(predicates, block.TimestampGT(*i.TimestampGT))
+	}
+	if i.TimestampGTE != nil {
+		predicates = append(predicates, block.TimestampGTE(*i.TimestampGTE))
+	}
+	if i.TimestampLT != nil {
+		predicates = append(predicates, block.TimestampLT(*i.TimestampLT))
+	}
+	if i.TimestampLTE != nil {
+		predicates = append(predicates, block.TimestampLTE(*i.TimestampLTE))
 	}
 
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate AccountWhereInput")
+		return nil, fmt.Errorf("empty predicate BlockWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
-		return account.And(predicates...), nil
-	}
-}
-
-// SyncStateWhereInput represents a where input for filtering SyncState queries.
-type SyncStateWhereInput struct {
-	Not *SyncStateWhereInput   `json:"not,omitempty"`
-	Or  []*SyncStateWhereInput `json:"or,omitempty"`
-	And []*SyncStateWhereInput `json:"and,omitempty"`
-
-	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
-
-	// "start_block" field predicates.
-	StartBlock      *uint64  `json:"startBlock,omitempty"`
-	StartBlockNEQ   *uint64  `json:"startBlockNEQ,omitempty"`
-	StartBlockIn    []uint64 `json:"startBlockIn,omitempty"`
-	StartBlockNotIn []uint64 `json:"startBlockNotIn,omitempty"`
-	StartBlockGT    *uint64  `json:"startBlockGT,omitempty"`
-	StartBlockGTE   *uint64  `json:"startBlockGTE,omitempty"`
-	StartBlockLT    *uint64  `json:"startBlockLT,omitempty"`
-	StartBlockLTE   *uint64  `json:"startBlockLTE,omitempty"`
-}
-
-// Filter applies the SyncStateWhereInput filter on the SyncStateQuery builder.
-func (i *SyncStateWhereInput) Filter(q *SyncStateQuery) (*SyncStateQuery, error) {
-	if i == nil {
-		return q, nil
-	}
-	p, err := i.P()
-	if err != nil {
-		return nil, err
-	}
-	return q.Where(p), nil
-}
-
-// P returns a predicate for filtering syncstates.
-// An error is returned if the input is empty or invalid.
-func (i *SyncStateWhereInput) P() (predicate.SyncState, error) {
-	var predicates []predicate.SyncState
-	if i.Not != nil {
-		p, err := i.Not.P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, syncstate.Not(p))
-	}
-	switch n := len(i.Or); {
-	case n == 1:
-		p, err := i.Or[0].P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		or := make([]predicate.SyncState, 0, n)
-		for _, w := range i.Or {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			or = append(or, p)
-		}
-		predicates = append(predicates, syncstate.Or(or...))
-	}
-	switch n := len(i.And); {
-	case n == 1:
-		p, err := i.And[0].P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		and := make([]predicate.SyncState, 0, n)
-		for _, w := range i.And {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			and = append(and, p)
-		}
-		predicates = append(predicates, syncstate.And(and...))
-	}
-	if i.ID != nil {
-		predicates = append(predicates, syncstate.IDEQ(*i.ID))
-	}
-	if i.IDNEQ != nil {
-		predicates = append(predicates, syncstate.IDNEQ(*i.IDNEQ))
-	}
-	if len(i.IDIn) > 0 {
-		predicates = append(predicates, syncstate.IDIn(i.IDIn...))
-	}
-	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, syncstate.IDNotIn(i.IDNotIn...))
-	}
-	if i.IDGT != nil {
-		predicates = append(predicates, syncstate.IDGT(*i.IDGT))
-	}
-	if i.IDGTE != nil {
-		predicates = append(predicates, syncstate.IDGTE(*i.IDGTE))
-	}
-	if i.IDLT != nil {
-		predicates = append(predicates, syncstate.IDLT(*i.IDLT))
-	}
-	if i.IDLTE != nil {
-		predicates = append(predicates, syncstate.IDLTE(*i.IDLTE))
-	}
-	if i.StartBlock != nil {
-		predicates = append(predicates, syncstate.StartBlockEQ(*i.StartBlock))
-	}
-	if i.StartBlockNEQ != nil {
-		predicates = append(predicates, syncstate.StartBlockNEQ(*i.StartBlockNEQ))
-	}
-	if len(i.StartBlockIn) > 0 {
-		predicates = append(predicates, syncstate.StartBlockIn(i.StartBlockIn...))
-	}
-	if len(i.StartBlockNotIn) > 0 {
-		predicates = append(predicates, syncstate.StartBlockNotIn(i.StartBlockNotIn...))
-	}
-	if i.StartBlockGT != nil {
-		predicates = append(predicates, syncstate.StartBlockGT(*i.StartBlockGT))
-	}
-	if i.StartBlockGTE != nil {
-		predicates = append(predicates, syncstate.StartBlockGTE(*i.StartBlockGTE))
-	}
-	if i.StartBlockLT != nil {
-		predicates = append(predicates, syncstate.StartBlockLT(*i.StartBlockLT))
-	}
-	if i.StartBlockLTE != nil {
-		predicates = append(predicates, syncstate.StartBlockLTE(*i.StartBlockLTE))
-	}
-
-	switch len(predicates) {
-	case 0:
-		return nil, fmt.Errorf("empty predicate SyncStateWhereInput")
-	case 1:
-		return predicates[0], nil
-	default:
-		return syncstate.And(predicates...), nil
+		return block.And(predicates...), nil
 	}
 }

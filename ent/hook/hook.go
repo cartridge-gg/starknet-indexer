@@ -9,28 +9,15 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent"
 )
 
-// The AccountFunc type is an adapter to allow the use of ordinary
-// function as Account mutator.
-type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+// The BlockFunc type is an adapter to allow the use of ordinary
+// function as Block mutator.
+type BlockFunc func(context.Context, *ent.BlockMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AccountMutation)
+func (f BlockFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.BlockMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
-	}
-	return f(ctx, mv)
-}
-
-// The SyncStateFunc type is an adapter to allow the use of ordinary
-// function as SyncState mutator.
-type SyncStateFunc func(context.Context, *ent.SyncStateMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SyncStateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.SyncStateMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SyncStateMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlockMutation", m)
 	}
 	return f(ctx, mv)
 }

@@ -9,8 +9,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -21,10 +20,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Account is the client for interacting with the Account builders.
-	Account *AccountClient
-	// SyncState is the client for interacting with the SyncState builders.
-	SyncState *SyncStateClient
+	// Block is the client for interacting with the Block builders.
+	Block *BlockClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -38,8 +35,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Account = NewAccountClient(c.config)
-	c.SyncState = NewSyncStateClient(c.config)
+	c.Block = NewBlockClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -71,10 +67,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		SyncState: NewSyncStateClient(cfg),
+		ctx:    ctx,
+		config: cfg,
+		Block:  NewBlockClient(cfg),
 	}, nil
 }
 
@@ -92,17 +87,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		SyncState: NewSyncStateClient(cfg),
+		ctx:    ctx,
+		config: cfg,
+		Block:  NewBlockClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Account.
+//		Block.
 //		Query().
 //		Count(ctx)
 //
@@ -125,88 +119,87 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Account.Use(hooks...)
-	c.SyncState.Use(hooks...)
+	c.Block.Use(hooks...)
 }
 
-// AccountClient is a client for the Account schema.
-type AccountClient struct {
+// BlockClient is a client for the Block schema.
+type BlockClient struct {
 	config
 }
 
-// NewAccountClient returns a client for the Account from the given config.
-func NewAccountClient(c config) *AccountClient {
-	return &AccountClient{config: c}
+// NewBlockClient returns a client for the Block from the given config.
+func NewBlockClient(c config) *BlockClient {
+	return &BlockClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `account.Hooks(f(g(h())))`.
-func (c *AccountClient) Use(hooks ...Hook) {
-	c.hooks.Account = append(c.hooks.Account, hooks...)
+// A call to `Use(f, g, h)` equals to `block.Hooks(f(g(h())))`.
+func (c *BlockClient) Use(hooks ...Hook) {
+	c.hooks.Block = append(c.hooks.Block, hooks...)
 }
 
-// Create returns a create builder for Account.
-func (c *AccountClient) Create() *AccountCreate {
-	mutation := newAccountMutation(c.config, OpCreate)
-	return &AccountCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for Block.
+func (c *BlockClient) Create() *BlockCreate {
+	mutation := newBlockMutation(c.config, OpCreate)
+	return &BlockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Account entities.
-func (c *AccountClient) CreateBulk(builders ...*AccountCreate) *AccountCreateBulk {
-	return &AccountCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Block entities.
+func (c *BlockClient) CreateBulk(builders ...*BlockCreate) *BlockCreateBulk {
+	return &BlockCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Account.
-func (c *AccountClient) Update() *AccountUpdate {
-	mutation := newAccountMutation(c.config, OpUpdate)
-	return &AccountUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Block.
+func (c *BlockClient) Update() *BlockUpdate {
+	mutation := newBlockMutation(c.config, OpUpdate)
+	return &BlockUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *AccountClient) UpdateOne(a *Account) *AccountUpdateOne {
-	mutation := newAccountMutation(c.config, OpUpdateOne, withAccount(a))
-	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *BlockClient) UpdateOne(b *Block) *BlockUpdateOne {
+	mutation := newBlockMutation(c.config, OpUpdateOne, withBlock(b))
+	return &BlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AccountClient) UpdateOneID(id string) *AccountUpdateOne {
-	mutation := newAccountMutation(c.config, OpUpdateOne, withAccountID(id))
-	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *BlockClient) UpdateOneID(id string) *BlockUpdateOne {
+	mutation := newBlockMutation(c.config, OpUpdateOne, withBlockID(id))
+	return &BlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Account.
-func (c *AccountClient) Delete() *AccountDelete {
-	mutation := newAccountMutation(c.config, OpDelete)
-	return &AccountDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Block.
+func (c *BlockClient) Delete() *BlockDelete {
+	mutation := newBlockMutation(c.config, OpDelete)
+	return &BlockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *AccountClient) DeleteOne(a *Account) *AccountDeleteOne {
-	return c.DeleteOneID(a.ID)
+func (c *BlockClient) DeleteOne(b *Block) *BlockDeleteOne {
+	return c.DeleteOneID(b.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *AccountClient) DeleteOneID(id string) *AccountDeleteOne {
-	builder := c.Delete().Where(account.ID(id))
+func (c *BlockClient) DeleteOneID(id string) *BlockDeleteOne {
+	builder := c.Delete().Where(block.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &AccountDeleteOne{builder}
+	return &BlockDeleteOne{builder}
 }
 
-// Query returns a query builder for Account.
-func (c *AccountClient) Query() *AccountQuery {
-	return &AccountQuery{
+// Query returns a query builder for Block.
+func (c *BlockClient) Query() *BlockQuery {
+	return &BlockQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a Account entity by its id.
-func (c *AccountClient) Get(ctx context.Context, id string) (*Account, error) {
-	return c.Query().Where(account.ID(id)).Only(ctx)
+// Get returns a Block entity by its id.
+func (c *BlockClient) Get(ctx context.Context, id string) (*Block, error) {
+	return c.Query().Where(block.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AccountClient) GetX(ctx context.Context, id string) *Account {
+func (c *BlockClient) GetX(ctx context.Context, id string) *Block {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -215,96 +208,6 @@ func (c *AccountClient) GetX(ctx context.Context, id string) *Account {
 }
 
 // Hooks returns the client hooks.
-func (c *AccountClient) Hooks() []Hook {
-	return c.hooks.Account
-}
-
-// SyncStateClient is a client for the SyncState schema.
-type SyncStateClient struct {
-	config
-}
-
-// NewSyncStateClient returns a client for the SyncState from the given config.
-func NewSyncStateClient(c config) *SyncStateClient {
-	return &SyncStateClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `syncstate.Hooks(f(g(h())))`.
-func (c *SyncStateClient) Use(hooks ...Hook) {
-	c.hooks.SyncState = append(c.hooks.SyncState, hooks...)
-}
-
-// Create returns a create builder for SyncState.
-func (c *SyncStateClient) Create() *SyncStateCreate {
-	mutation := newSyncStateMutation(c.config, OpCreate)
-	return &SyncStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of SyncState entities.
-func (c *SyncStateClient) CreateBulk(builders ...*SyncStateCreate) *SyncStateCreateBulk {
-	return &SyncStateCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for SyncState.
-func (c *SyncStateClient) Update() *SyncStateUpdate {
-	mutation := newSyncStateMutation(c.config, OpUpdate)
-	return &SyncStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SyncStateClient) UpdateOne(ss *SyncState) *SyncStateUpdateOne {
-	mutation := newSyncStateMutation(c.config, OpUpdateOne, withSyncState(ss))
-	return &SyncStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SyncStateClient) UpdateOneID(id string) *SyncStateUpdateOne {
-	mutation := newSyncStateMutation(c.config, OpUpdateOne, withSyncStateID(id))
-	return &SyncStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for SyncState.
-func (c *SyncStateClient) Delete() *SyncStateDelete {
-	mutation := newSyncStateMutation(c.config, OpDelete)
-	return &SyncStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *SyncStateClient) DeleteOne(ss *SyncState) *SyncStateDeleteOne {
-	return c.DeleteOneID(ss.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *SyncStateClient) DeleteOneID(id string) *SyncStateDeleteOne {
-	builder := c.Delete().Where(syncstate.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SyncStateDeleteOne{builder}
-}
-
-// Query returns a query builder for SyncState.
-func (c *SyncStateClient) Query() *SyncStateQuery {
-	return &SyncStateQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a SyncState entity by its id.
-func (c *SyncStateClient) Get(ctx context.Context, id string) (*SyncState, error) {
-	return c.Query().Where(syncstate.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SyncStateClient) GetX(ctx context.Context, id string) *SyncState {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *SyncStateClient) Hooks() []Hook {
-	return c.hooks.SyncState
+func (c *BlockClient) Hooks() []Hook {
+	return c.hooks.Block
 }

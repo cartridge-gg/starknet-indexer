@@ -9,7 +9,6 @@ require (
 	github.com/alecthomas/kong v0.2.11
 	github.com/dontpanicdao/caigo v0.2.1-0.20220420142156-b05c26eb481e
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
 	github.com/vektah/gqlparser/v2 v2.4.2-0.20220326183557-14b8f033df3d

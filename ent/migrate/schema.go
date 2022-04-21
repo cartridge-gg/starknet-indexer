@@ -8,33 +8,25 @@ import (
 )
 
 var (
-	// AccountsColumns holds the columns for the "accounts" table.
-	AccountsColumns = []*schema.Column{
+	// BlocksColumns holds the columns for the "blocks" table.
+	BlocksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "address", Type: field.TypeString},
-		{Name: "created_at", Type: field.TypeTime},
+		{Name: "block_hash", Type: field.TypeString, Unique: true},
+		{Name: "parent_block_hash", Type: field.TypeString},
+		{Name: "block_number", Type: field.TypeUint64, Unique: true},
+		{Name: "state_root", Type: field.TypeString},
+		{Name: "status", Type: field.TypeString},
+		{Name: "timestamp", Type: field.TypeTime},
 	}
-	// AccountsTable holds the schema information for the "accounts" table.
-	AccountsTable = &schema.Table{
-		Name:       "accounts",
-		Columns:    AccountsColumns,
-		PrimaryKey: []*schema.Column{AccountsColumns[0]},
-	}
-	// SyncStatesColumns holds the columns for the "sync_states" table.
-	SyncStatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString},
-		{Name: "start_block", Type: field.TypeUint64},
-	}
-	// SyncStatesTable holds the schema information for the "sync_states" table.
-	SyncStatesTable = &schema.Table{
-		Name:       "sync_states",
-		Columns:    SyncStatesColumns,
-		PrimaryKey: []*schema.Column{SyncStatesColumns[0]},
+	// BlocksTable holds the schema information for the "blocks" table.
+	BlocksTable = &schema.Table{
+		Name:       "blocks",
+		Columns:    BlocksColumns,
+		PrimaryKey: []*schema.Column{BlocksColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AccountsTable,
-		SyncStatesTable,
+		BlocksTable,
 	}
 )
 

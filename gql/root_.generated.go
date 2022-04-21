@@ -37,19 +37,23 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Account struct {
-		Address   func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
+	Block struct {
+		BlockHash       func(childComplexity int) int
+		BlockNumber     func(childComplexity int) int
+		ID              func(childComplexity int) int
+		ParentBlockHash func(childComplexity int) int
+		StateRoot       func(childComplexity int) int
+		Status          func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
 	}
 
-	AccountConnection struct {
+	BlockConnection struct {
 		Edges      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
 
-	AccountEdge struct {
+	BlockEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
@@ -62,9 +66,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Accounts func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.AccountOrder, where *ent.AccountWhereInput) int
-		Node     func(childComplexity int, id string) int
-		Nodes    func(childComplexity int, ids []string) int
+		Blocks func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.BlockOrder, where *BlockWhereInput) int
+		Node   func(childComplexity int, id string) int
+		Nodes  func(childComplexity int, ids []string) int
 	}
 }
 
@@ -83,61 +87,89 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Account.address":
-		if e.complexity.Account.Address == nil {
+	case "Block.blockHash":
+		if e.complexity.Block.BlockHash == nil {
 			break
 		}
 
-		return e.complexity.Account.Address(childComplexity), true
+		return e.complexity.Block.BlockHash(childComplexity), true
 
-	case "Account.createdAt":
-		if e.complexity.Account.CreatedAt == nil {
+	case "Block.blockNumber":
+		if e.complexity.Block.BlockNumber == nil {
 			break
 		}
 
-		return e.complexity.Account.CreatedAt(childComplexity), true
+		return e.complexity.Block.BlockNumber(childComplexity), true
 
-	case "Account.id":
-		if e.complexity.Account.ID == nil {
+	case "Block.id":
+		if e.complexity.Block.ID == nil {
 			break
 		}
 
-		return e.complexity.Account.ID(childComplexity), true
+		return e.complexity.Block.ID(childComplexity), true
 
-	case "AccountConnection.edges":
-		if e.complexity.AccountConnection.Edges == nil {
+	case "Block.parentBlockHash":
+		if e.complexity.Block.ParentBlockHash == nil {
 			break
 		}
 
-		return e.complexity.AccountConnection.Edges(childComplexity), true
+		return e.complexity.Block.ParentBlockHash(childComplexity), true
 
-	case "AccountConnection.pageInfo":
-		if e.complexity.AccountConnection.PageInfo == nil {
+	case "Block.stateRoot":
+		if e.complexity.Block.StateRoot == nil {
 			break
 		}
 
-		return e.complexity.AccountConnection.PageInfo(childComplexity), true
+		return e.complexity.Block.StateRoot(childComplexity), true
 
-	case "AccountConnection.totalCount":
-		if e.complexity.AccountConnection.TotalCount == nil {
+	case "Block.status":
+		if e.complexity.Block.Status == nil {
 			break
 		}
 
-		return e.complexity.AccountConnection.TotalCount(childComplexity), true
+		return e.complexity.Block.Status(childComplexity), true
 
-	case "AccountEdge.cursor":
-		if e.complexity.AccountEdge.Cursor == nil {
+	case "Block.timestamp":
+		if e.complexity.Block.Timestamp == nil {
 			break
 		}
 
-		return e.complexity.AccountEdge.Cursor(childComplexity), true
+		return e.complexity.Block.Timestamp(childComplexity), true
 
-	case "AccountEdge.node":
-		if e.complexity.AccountEdge.Node == nil {
+	case "BlockConnection.edges":
+		if e.complexity.BlockConnection.Edges == nil {
 			break
 		}
 
-		return e.complexity.AccountEdge.Node(childComplexity), true
+		return e.complexity.BlockConnection.Edges(childComplexity), true
+
+	case "BlockConnection.pageInfo":
+		if e.complexity.BlockConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.BlockConnection.PageInfo(childComplexity), true
+
+	case "BlockConnection.totalCount":
+		if e.complexity.BlockConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.BlockConnection.TotalCount(childComplexity), true
+
+	case "BlockEdge.cursor":
+		if e.complexity.BlockEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.BlockEdge.Cursor(childComplexity), true
+
+	case "BlockEdge.node":
+		if e.complexity.BlockEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.BlockEdge.Node(childComplexity), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -167,17 +199,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
-	case "Query.accounts":
-		if e.complexity.Query.Accounts == nil {
+	case "Query.blocks":
+		if e.complexity.Query.Blocks == nil {
 			break
 		}
 
-		args, err := ec.field_Query_accounts_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_blocks_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Accounts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.AccountOrder), args["where"].(*ent.AccountWhereInput)), true
+		return e.complexity.Query.Blocks(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.BlockOrder), args["where"].(*BlockWhereInput)), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -253,74 +285,121 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "account.graphql", Input: `type Account implements Node {
+	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+type Block implements Node {
   id: ID!
-  address: String!
-  createdAt: Time!
+  blockHash: String!
+  parentBlockHash: String!
+  blockNumber: Long!
+  stateRoot: String!
+  status: String!
+  timestamp: Time!
 }
-
-type AccountConnection {
-  totalCount: Int!
+"""A connection to a list of items."""
+type BlockConnection {
+  """A list of edges."""
+  edges: [BlockEdge]
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
-  edges: [AccountEdge]
+  totalCount: Int!
 }
-
-type AccountEdge {
-  node: Account
+"""An edge in a connection."""
+type BlockEdge {
+  """The item at the end of the edge."""
+  node: Block
+  """A cursor for use in pagination."""
   cursor: Cursor!
 }
-
-enum AccountOrderField {
-  CREATED_AT
+input BlockOrder {
+  direction: OrderDirection! = ASC
+  field: BlockOrderField!
 }
-
-input AccountOrder {
-  direction: OrderDirection!
-  field: AccountOrderField
+enum BlockOrderField {
+  TIMESTAMP
 }
-
-extend type Query {
-  accounts(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    orderBy: AccountOrder
-    where: AccountWhereInput
-  ): AccountConnection
-}
-`, BuiltIn: false},
-	{Name: "ent.graphql", Input: `"""
-AccountWhereInput is used for filtering Account objects.
+"""
+BlockWhereInput is used for filtering Block objects.
 Input was generated by ent.
 """
-input AccountWhereInput {
-  not: AccountWhereInput
-  and: [AccountWhereInput!]
-  or: [AccountWhereInput!]
-  """address field predicates"""
-  address: String
-  addressNEQ: String
-  addressIn: [String!]
-  addressNotIn: [String!]
-  addressGT: String
-  addressGTE: String
-  addressLT: String
-  addressLTE: String
-  addressContains: String
-  addressHasPrefix: String
-  addressHasSuffix: String
-  addressEqualFold: String
-  addressContainsFold: String
-  """created_at field predicates"""
-  createdAt: Time
-  createdAtNEQ: Time
-  createdAtIn: [Time!]
-  createdAtNotIn: [Time!]
-  createdAtGT: Time
-  createdAtGTE: Time
-  createdAtLT: Time
-  createdAtLTE: Time
+input BlockWhereInput {
+  not: BlockWhereInput
+  and: [BlockWhereInput!]
+  or: [BlockWhereInput!]
+  """block_hash field predicates"""
+  blockHash: String
+  blockHashNEQ: String
+  blockHashIn: [String!]
+  blockHashNotIn: [String!]
+  blockHashGT: String
+  blockHashGTE: String
+  blockHashLT: String
+  blockHashLTE: String
+  blockHashContains: String
+  blockHashHasPrefix: String
+  blockHashHasSuffix: String
+  blockHashEqualFold: String
+  blockHashContainsFold: String
+  """parent_block_hash field predicates"""
+  parentBlockHash: String
+  parentBlockHashNEQ: String
+  parentBlockHashIn: [String!]
+  parentBlockHashNotIn: [String!]
+  parentBlockHashGT: String
+  parentBlockHashGTE: String
+  parentBlockHashLT: String
+  parentBlockHashLTE: String
+  parentBlockHashContains: String
+  parentBlockHashHasPrefix: String
+  parentBlockHashHasSuffix: String
+  parentBlockHashEqualFold: String
+  parentBlockHashContainsFold: String
+  """block_number field predicates"""
+  blockNumber: Long
+  blockNumberNEQ: Long
+  blockNumberIn: [Long!]
+  blockNumberNotIn: [Long!]
+  blockNumberGT: Long
+  blockNumberGTE: Long
+  blockNumberLT: Long
+  blockNumberLTE: Long
+  """state_root field predicates"""
+  stateRoot: String
+  stateRootNEQ: String
+  stateRootIn: [String!]
+  stateRootNotIn: [String!]
+  stateRootGT: String
+  stateRootGTE: String
+  stateRootLT: String
+  stateRootLTE: String
+  stateRootContains: String
+  stateRootHasPrefix: String
+  stateRootHasSuffix: String
+  stateRootEqualFold: String
+  stateRootContainsFold: String
+  """status field predicates"""
+  status: String
+  statusNEQ: String
+  statusIn: [String!]
+  statusNotIn: [String!]
+  statusGT: String
+  statusGTE: String
+  statusLT: String
+  statusLTE: String
+  statusContains: String
+  statusHasPrefix: String
+  statusHasSuffix: String
+  statusEqualFold: String
+  statusContainsFold: String
+  """timestamp field predicates"""
+  timestamp: Time
+  timestampNEQ: Time
+  timestampIn: [Time!]
+  timestampNotIn: [Time!]
+  timestampGT: Time
+  timestampGTE: Time
+  timestampLT: Time
+  timestampLTE: Time
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -332,60 +411,51 @@ input AccountWhereInput {
   idLTE: ID
 }
 """
-SyncStateWhereInput is used for filtering SyncState objects.
-Input was generated by ent.
+Define a Relay Cursor type:
+https://relay.dev/graphql/connections.htm#sec-Cursor
 """
-input SyncStateWhereInput {
-  not: SyncStateWhereInput
-  and: [SyncStateWhereInput!]
-  or: [SyncStateWhereInput!]
-  """start_block field predicates"""
-  startBlock: Long
-  startBlockNEQ: Long
-  startBlockIn: [Long!]
-  startBlockNotIn: [Long!]
-  startBlockGT: Long
-  startBlockGTE: Long
-  startBlockLT: Long
-  startBlockLTE: Long
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
-}
-`, BuiltIn: false},
-	{Name: "node.graphql", Input: `"""
-Maps a Time GraphQL scalar to a Go time.Time struct.
-"""
-scalar Time
-scalar Uint64
 scalar Cursor
-scalar Long
-
+"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
 interface Node {
+  """The id of the object."""
   id: ID!
 }
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: Cursor
-  endCursor: Cursor
-}
-
 enum OrderDirection {
   ASC
   DESC
 }
+"""
+Information about pagination in a connection.
+https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
+"""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
+`, BuiltIn: false},
+	{Name: "schema.graphql", Input: `scalar Time
+scalar Long
 
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  blocks(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: BlockOrder
+    where: BlockWhereInput
+  ): BlockConnection
 }
 `, BuiltIn: false},
 }

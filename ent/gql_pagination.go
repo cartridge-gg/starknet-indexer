@@ -14,8 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -242,20 +241,20 @@ func paginateLimit(first, last *int) int {
 	return limit
 }
 
-// AccountEdge is the edge representation of Account.
-type AccountEdge struct {
-	Node   *Account `json:"node"`
-	Cursor Cursor   `json:"cursor"`
+// BlockEdge is the edge representation of Block.
+type BlockEdge struct {
+	Node   *Block `json:"node"`
+	Cursor Cursor `json:"cursor"`
 }
 
-// AccountConnection is the connection containing edges to Account.
-type AccountConnection struct {
-	Edges      []*AccountEdge `json:"edges"`
-	PageInfo   PageInfo       `json:"pageInfo"`
-	TotalCount int            `json:"totalCount"`
+// BlockConnection is the connection containing edges to Block.
+type BlockConnection struct {
+	Edges      []*BlockEdge `json:"edges"`
+	PageInfo   PageInfo     `json:"pageInfo"`
+	TotalCount int          `json:"totalCount"`
 }
 
-func (c *AccountConnection) build(nodes []*Account, pager *accountPager, first, last *int) {
+func (c *BlockConnection) build(nodes []*Block, pager *blockPager, first, last *int) {
 	if first != nil && *first+1 == len(nodes) {
 		c.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -263,21 +262,21 @@ func (c *AccountConnection) build(nodes []*Account, pager *accountPager, first, 
 		c.PageInfo.HasPreviousPage = true
 		nodes = nodes[:len(nodes)-1]
 	}
-	var nodeAt func(int) *Account
+	var nodeAt func(int) *Block
 	if last != nil {
 		n := len(nodes) - 1
-		nodeAt = func(i int) *Account {
+		nodeAt = func(i int) *Block {
 			return nodes[n-i]
 		}
 	} else {
-		nodeAt = func(i int) *Account {
+		nodeAt = func(i int) *Block {
 			return nodes[i]
 		}
 	}
-	c.Edges = make([]*AccountEdge, len(nodes))
+	c.Edges = make([]*BlockEdge, len(nodes))
 	for i := range nodes {
 		node := nodeAt(i)
-		c.Edges[i] = &AccountEdge{
+		c.Edges[i] = &BlockEdge{
 			Node:   node,
 			Cursor: pager.toCursor(node),
 		}
@@ -289,121 +288,121 @@ func (c *AccountConnection) build(nodes []*Account, pager *accountPager, first, 
 	}
 }
 
-// AccountPaginateOption enables pagination customization.
-type AccountPaginateOption func(*accountPager) error
+// BlockPaginateOption enables pagination customization.
+type BlockPaginateOption func(*blockPager) error
 
-// WithAccountOrder configures pagination ordering.
-func WithAccountOrder(order *AccountOrder) AccountPaginateOption {
+// WithBlockOrder configures pagination ordering.
+func WithBlockOrder(order *BlockOrder) BlockPaginateOption {
 	if order == nil {
-		order = DefaultAccountOrder
+		order = DefaultBlockOrder
 	}
 	o := *order
-	return func(pager *accountPager) error {
+	return func(pager *blockPager) error {
 		if err := o.Direction.Validate(); err != nil {
 			return err
 		}
 		if o.Field == nil {
-			o.Field = DefaultAccountOrder.Field
+			o.Field = DefaultBlockOrder.Field
 		}
 		pager.order = &o
 		return nil
 	}
 }
 
-// WithAccountFilter configures pagination filter.
-func WithAccountFilter(filter func(*AccountQuery) (*AccountQuery, error)) AccountPaginateOption {
-	return func(pager *accountPager) error {
+// WithBlockFilter configures pagination filter.
+func WithBlockFilter(filter func(*BlockQuery) (*BlockQuery, error)) BlockPaginateOption {
+	return func(pager *blockPager) error {
 		if filter == nil {
-			return errors.New("AccountQuery filter cannot be nil")
+			return errors.New("BlockQuery filter cannot be nil")
 		}
 		pager.filter = filter
 		return nil
 	}
 }
 
-type accountPager struct {
-	order  *AccountOrder
-	filter func(*AccountQuery) (*AccountQuery, error)
+type blockPager struct {
+	order  *BlockOrder
+	filter func(*BlockQuery) (*BlockQuery, error)
 }
 
-func newAccountPager(opts []AccountPaginateOption) (*accountPager, error) {
-	pager := &accountPager{}
+func newBlockPager(opts []BlockPaginateOption) (*blockPager, error) {
+	pager := &blockPager{}
 	for _, opt := range opts {
 		if err := opt(pager); err != nil {
 			return nil, err
 		}
 	}
 	if pager.order == nil {
-		pager.order = DefaultAccountOrder
+		pager.order = DefaultBlockOrder
 	}
 	return pager, nil
 }
 
-func (p *accountPager) applyFilter(query *AccountQuery) (*AccountQuery, error) {
+func (p *blockPager) applyFilter(query *BlockQuery) (*BlockQuery, error) {
 	if p.filter != nil {
 		return p.filter(query)
 	}
 	return query, nil
 }
 
-func (p *accountPager) toCursor(a *Account) Cursor {
-	return p.order.Field.toCursor(a)
+func (p *blockPager) toCursor(b *Block) Cursor {
+	return p.order.Field.toCursor(b)
 }
 
-func (p *accountPager) applyCursors(query *AccountQuery, after, before *Cursor) *AccountQuery {
+func (p *blockPager) applyCursors(query *BlockQuery, after, before *Cursor) *BlockQuery {
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
-		p.order.Field.field, DefaultAccountOrder.Field.field,
+		p.order.Field.field, DefaultBlockOrder.Field.field,
 	) {
 		query = query.Where(predicate)
 	}
 	return query
 }
 
-func (p *accountPager) applyOrder(query *AccountQuery, reverse bool) *AccountQuery {
+func (p *blockPager) applyOrder(query *BlockQuery, reverse bool) *BlockQuery {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultAccountOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultAccountOrder.Field.field))
+	if p.order.Field != DefaultBlockOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultBlockOrder.Field.field))
 	}
 	return query
 }
 
-func (p *accountPager) orderExpr(reverse bool) sql.Querier {
+func (p *blockPager) orderExpr(reverse bool) sql.Querier {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultAccountOrder.Field {
-			b.Comma().Ident(DefaultAccountOrder.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultBlockOrder.Field {
+			b.Comma().Ident(DefaultBlockOrder.Field.field).Pad().WriteString(string(direction))
 		}
 	})
 }
 
-// Paginate executes the query and returns a relay based cursor connection to Account.
-func (a *AccountQuery) Paginate(
+// Paginate executes the query and returns a relay based cursor connection to Block.
+func (b *BlockQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...AccountPaginateOption,
-) (*AccountConnection, error) {
+	before *Cursor, last *int, opts ...BlockPaginateOption,
+) (*BlockConnection, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
-	pager, err := newAccountPager(opts)
+	pager, err := newBlockPager(opts)
 	if err != nil {
 		return nil, err
 	}
-	if a, err = pager.applyFilter(a); err != nil {
+	if b, err = pager.applyFilter(b); err != nil {
 		return nil, err
 	}
-	conn := &AccountConnection{Edges: []*AccountEdge{}}
+	conn := &BlockConnection{Edges: []*BlockEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = a.Count(ctx); err != nil {
+			if conn.TotalCount, err = b.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -413,25 +412,25 @@ func (a *AccountQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := a.Clone().Count(ctx)
+		count, err := b.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	a = pager.applyCursors(a, after, before)
-	a = pager.applyOrder(a, last != nil)
+	b = pager.applyCursors(b, after, before)
+	b = pager.applyOrder(b, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		a.Limit(limit)
+		b.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := a.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := b.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := a.All(ctx)
+	nodes, err := b.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -440,309 +439,78 @@ func (a *AccountQuery) Paginate(
 }
 
 var (
-	// AccountOrderFieldCreatedAt orders Account by created_at.
-	AccountOrderFieldCreatedAt = &AccountOrderField{
-		field: account.FieldCreatedAt,
-		toCursor: func(a *Account) Cursor {
+	// BlockOrderFieldTimestamp orders Block by timestamp.
+	BlockOrderFieldTimestamp = &BlockOrderField{
+		field: block.FieldTimestamp,
+		toCursor: func(b *Block) Cursor {
 			return Cursor{
-				ID:    a.ID,
-				Value: a.CreatedAt,
+				ID:    b.ID,
+				Value: b.Timestamp,
 			}
 		},
 	}
 )
 
 // String implement fmt.Stringer interface.
-func (f AccountOrderField) String() string {
+func (f BlockOrderField) String() string {
 	var str string
 	switch f.field {
-	case account.FieldCreatedAt:
-		str = "CREATED_AT"
+	case block.FieldTimestamp:
+		str = "TIMESTAMP"
 	}
 	return str
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (f AccountOrderField) MarshalGQL(w io.Writer) {
+func (f BlockOrderField) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(f.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (f *AccountOrderField) UnmarshalGQL(v interface{}) error {
+func (f *BlockOrderField) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("AccountOrderField %T must be a string", v)
+		return fmt.Errorf("BlockOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
-		*f = *AccountOrderFieldCreatedAt
+	case "TIMESTAMP":
+		*f = *BlockOrderFieldTimestamp
 	default:
-		return fmt.Errorf("%s is not a valid AccountOrderField", str)
+		return fmt.Errorf("%s is not a valid BlockOrderField", str)
 	}
 	return nil
 }
 
-// AccountOrderField defines the ordering field of Account.
-type AccountOrderField struct {
+// BlockOrderField defines the ordering field of Block.
+type BlockOrderField struct {
 	field    string
-	toCursor func(*Account) Cursor
+	toCursor func(*Block) Cursor
 }
 
-// AccountOrder defines the ordering of Account.
-type AccountOrder struct {
-	Direction OrderDirection     `json:"direction"`
-	Field     *AccountOrderField `json:"field"`
+// BlockOrder defines the ordering of Block.
+type BlockOrder struct {
+	Direction OrderDirection   `json:"direction"`
+	Field     *BlockOrderField `json:"field"`
 }
 
-// DefaultAccountOrder is the default ordering of Account.
-var DefaultAccountOrder = &AccountOrder{
+// DefaultBlockOrder is the default ordering of Block.
+var DefaultBlockOrder = &BlockOrder{
 	Direction: OrderDirectionAsc,
-	Field: &AccountOrderField{
-		field: account.FieldID,
-		toCursor: func(a *Account) Cursor {
-			return Cursor{ID: a.ID}
+	Field: &BlockOrderField{
+		field: block.FieldID,
+		toCursor: func(b *Block) Cursor {
+			return Cursor{ID: b.ID}
 		},
 	},
 }
 
-// ToEdge converts Account into AccountEdge.
-func (a *Account) ToEdge(order *AccountOrder) *AccountEdge {
+// ToEdge converts Block into BlockEdge.
+func (b *Block) ToEdge(order *BlockOrder) *BlockEdge {
 	if order == nil {
-		order = DefaultAccountOrder
+		order = DefaultBlockOrder
 	}
-	return &AccountEdge{
-		Node:   a,
-		Cursor: order.Field.toCursor(a),
-	}
-}
-
-// SyncStateEdge is the edge representation of SyncState.
-type SyncStateEdge struct {
-	Node   *SyncState `json:"node"`
-	Cursor Cursor     `json:"cursor"`
-}
-
-// SyncStateConnection is the connection containing edges to SyncState.
-type SyncStateConnection struct {
-	Edges      []*SyncStateEdge `json:"edges"`
-	PageInfo   PageInfo         `json:"pageInfo"`
-	TotalCount int              `json:"totalCount"`
-}
-
-func (c *SyncStateConnection) build(nodes []*SyncState, pager *syncstatePager, first, last *int) {
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *SyncState
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *SyncState {
-			return nodes[n-i]
-		}
-	} else {
-		nodeAt = func(i int) *SyncState {
-			return nodes[i]
-		}
-	}
-	c.Edges = make([]*SyncStateEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &SyncStateEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
-	if c.TotalCount == 0 {
-		c.TotalCount = len(nodes)
-	}
-}
-
-// SyncStatePaginateOption enables pagination customization.
-type SyncStatePaginateOption func(*syncstatePager) error
-
-// WithSyncStateOrder configures pagination ordering.
-func WithSyncStateOrder(order *SyncStateOrder) SyncStatePaginateOption {
-	if order == nil {
-		order = DefaultSyncStateOrder
-	}
-	o := *order
-	return func(pager *syncstatePager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
-		}
-		if o.Field == nil {
-			o.Field = DefaultSyncStateOrder.Field
-		}
-		pager.order = &o
-		return nil
-	}
-}
-
-// WithSyncStateFilter configures pagination filter.
-func WithSyncStateFilter(filter func(*SyncStateQuery) (*SyncStateQuery, error)) SyncStatePaginateOption {
-	return func(pager *syncstatePager) error {
-		if filter == nil {
-			return errors.New("SyncStateQuery filter cannot be nil")
-		}
-		pager.filter = filter
-		return nil
-	}
-}
-
-type syncstatePager struct {
-	order  *SyncStateOrder
-	filter func(*SyncStateQuery) (*SyncStateQuery, error)
-}
-
-func newSyncStatePager(opts []SyncStatePaginateOption) (*syncstatePager, error) {
-	pager := &syncstatePager{}
-	for _, opt := range opts {
-		if err := opt(pager); err != nil {
-			return nil, err
-		}
-	}
-	if pager.order == nil {
-		pager.order = DefaultSyncStateOrder
-	}
-	return pager, nil
-}
-
-func (p *syncstatePager) applyFilter(query *SyncStateQuery) (*SyncStateQuery, error) {
-	if p.filter != nil {
-		return p.filter(query)
-	}
-	return query, nil
-}
-
-func (p *syncstatePager) toCursor(ss *SyncState) Cursor {
-	return p.order.Field.toCursor(ss)
-}
-
-func (p *syncstatePager) applyCursors(query *SyncStateQuery, after, before *Cursor) *SyncStateQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultSyncStateOrder.Field.field,
-	) {
-		query = query.Where(predicate)
-	}
-	return query
-}
-
-func (p *syncstatePager) applyOrder(query *SyncStateQuery, reverse bool) *SyncStateQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultSyncStateOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultSyncStateOrder.Field.field))
-	}
-	return query
-}
-
-func (p *syncstatePager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
-	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultSyncStateOrder.Field {
-			b.Comma().Ident(DefaultSyncStateOrder.Field.field).Pad().WriteString(string(direction))
-		}
-	})
-}
-
-// Paginate executes the query and returns a relay based cursor connection to SyncState.
-func (ss *SyncStateQuery) Paginate(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...SyncStatePaginateOption,
-) (*SyncStateConnection, error) {
-	if err := validateFirstLast(first, last); err != nil {
-		return nil, err
-	}
-	pager, err := newSyncStatePager(opts)
-	if err != nil {
-		return nil, err
-	}
-	if ss, err = pager.applyFilter(ss); err != nil {
-		return nil, err
-	}
-	conn := &SyncStateConnection{Edges: []*SyncStateEdge{}}
-	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = ss.Count(ctx); err != nil {
-				return nil, err
-			}
-			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
-			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
-		}
-		return conn, nil
-	}
-
-	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := ss.Clone().Count(ctx)
-		if err != nil {
-			return nil, err
-		}
-		conn.TotalCount = count
-	}
-
-	ss = pager.applyCursors(ss, after, before)
-	ss = pager.applyOrder(ss, last != nil)
-	if limit := paginateLimit(first, last); limit != 0 {
-		ss.Limit(limit)
-	}
-	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := ss.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
-			return nil, err
-		}
-	}
-
-	nodes, err := ss.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
-	}
-	conn.build(nodes, pager, first, last)
-	return conn, nil
-}
-
-// SyncStateOrderField defines the ordering field of SyncState.
-type SyncStateOrderField struct {
-	field    string
-	toCursor func(*SyncState) Cursor
-}
-
-// SyncStateOrder defines the ordering of SyncState.
-type SyncStateOrder struct {
-	Direction OrderDirection       `json:"direction"`
-	Field     *SyncStateOrderField `json:"field"`
-}
-
-// DefaultSyncStateOrder is the default ordering of SyncState.
-var DefaultSyncStateOrder = &SyncStateOrder{
-	Direction: OrderDirectionAsc,
-	Field: &SyncStateOrderField{
-		field: syncstate.FieldID,
-		toCursor: func(ss *SyncState) Cursor {
-			return Cursor{ID: ss.ID}
-		},
-	},
-}
-
-// ToEdge converts SyncState into SyncStateEdge.
-func (ss *SyncState) ToEdge(order *SyncStateOrder) *SyncStateEdge {
-	if order == nil {
-		order = DefaultSyncStateOrder
-	}
-	return &SyncStateEdge{
-		Node:   ss,
-		Cursor: order.Field.toCursor(ss),
+	return &BlockEdge{
+		Node:   b,
+		Cursor: order.Field.toCursor(b),
 	}
 }

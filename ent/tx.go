@@ -12,10 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// Account is the client for interacting with the Account builders.
-	Account *AccountClient
-	// SyncState is the client for interacting with the SyncState builders.
-	SyncState *SyncStateClient
+	// Block is the client for interacting with the Block builders.
+	Block *BlockClient
 
 	// lazily loaded.
 	client     *Client
@@ -151,8 +149,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.Account = NewAccountClient(tx.config)
-	tx.SyncState = NewSyncStateClient(tx.config)
+	tx.Block = NewBlockClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -162,7 +159,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Account.QueryXXX(), the query will be executed
+// applies a query, for example: Block.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

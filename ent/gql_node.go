@@ -10,8 +10,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
-	"github.com/tarrencev/starknet-indexer/ent/account"
-	"github.com/tarrencev/starknet-indexer/ent/syncstate"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 )
 
 // Noder wraps the basic Node method.
@@ -41,47 +40,60 @@ type Edge struct {
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-func (a *Account) Node(ctx context.Context) (node *Node, err error) {
+func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     a.ID,
-		Type:   "Account",
-		Fields: make([]*Field, 2),
+		ID:     b.ID,
+		Type:   "Block",
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(a.Address); err != nil {
+	if buf, err = json.Marshal(b.BlockHash); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
 		Type:  "string",
-		Name:  "address",
+		Name:  "block_hash",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(a.CreatedAt); err != nil {
+	if buf, err = json.Marshal(b.ParentBlockHash); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
-		Type:  "time.Time",
-		Name:  "created_at",
+		Type:  "string",
+		Name:  "parent_block_hash",
 		Value: string(buf),
 	}
-	return node, nil
-}
-
-func (ss *SyncState) Node(ctx context.Context) (node *Node, err error) {
-	node = &Node{
-		ID:     ss.ID,
-		Type:   "SyncState",
-		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 0),
-	}
-	var buf []byte
-	if buf, err = json.Marshal(ss.StartBlock); err != nil {
+	if buf, err = json.Marshal(b.BlockNumber); err != nil {
 		return nil, err
 	}
-	node.Fields[0] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "uint64",
-		Name:  "start_block",
+		Name:  "block_number",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.StateRoot); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "state_root",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Timestamp); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "time.Time",
+		Name:  "timestamp",
 		Value: string(buf),
 	}
 	return node, nil
@@ -154,22 +166,10 @@ func (c *Client) Noder(ctx context.Context, id string, opts ...NodeOption) (_ No
 
 func (c *Client) noder(ctx context.Context, table string, id string) (Noder, error) {
 	switch table {
-	case account.Table:
-		query := c.Account.Query().
-			Where(account.ID(id))
-		query, err := query.CollectFields(ctx, "Account")
-		if err != nil {
-			return nil, err
-		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
-	case syncstate.Table:
-		query := c.SyncState.Query().
-			Where(syncstate.ID(id))
-		query, err := query.CollectFields(ctx, "SyncState")
+	case block.Table:
+		query := c.Block.Query().
+			Where(block.ID(id))
+		query, err := query.CollectFields(ctx, "Block")
 		if err != nil {
 			return nil, err
 		}
@@ -251,26 +251,10 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
-	case account.Table:
-		query := c.Account.Query().
-			Where(account.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Account")
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
-	case syncstate.Table:
-		query := c.SyncState.Query().
-			Where(syncstate.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "SyncState")
+	case block.Table:
+		query := c.Block.Query().
+			Where(block.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Block")
 		if err != nil {
 			return nil, err
 		}

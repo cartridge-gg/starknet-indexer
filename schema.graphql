@@ -1,0 +1,15 @@
+scalar Time
+scalar Long
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  blocks(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: BlockOrder
+    where: BlockWhereInput
+  ): BlockConnection
+}

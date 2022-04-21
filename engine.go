@@ -39,17 +39,17 @@ func NewEngine(ctx context.Context, client *ent.Client, config Config) *Engine {
 		ticker:  time.NewTicker(config.Interval),
 	}
 
-	for _, c := range config.Contracts {
-		c := c
-		s, err := client.SyncState.Get(ctx, c.Address)
-		if err != nil && !ent.IsNotFound(err) {
-			log.Fatal().Err(err).Msg("Fetching sync state.")
-		} else if err == nil {
-			c.StartBlock = s.StartBlock
-		}
+	// for _, c := range config.Contracts {
+	// 	c := c
+	// 	s, err := client.SyncState.Get(ctx, c.Address)
+	// 	if err != nil && !ent.IsNotFound(err) {
+	// 		log.Fatal().Err(err).Msg("Fetching sync state.")
+	// 	} else if err == nil {
+	// 		c.StartBlock = s.StartBlock
+	// 	}
 
-		e.contracts[c.Address] = &c
-	}
+	// 	e.contracts[c.Address] = &c
+	// }
 
 	return e
 }

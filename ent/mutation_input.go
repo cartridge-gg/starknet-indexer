@@ -6,86 +6,68 @@ import (
 	"time"
 )
 
-// CreateAccountInput represents a mutation input for creating accounts.
-type CreateAccountInput struct {
-	Address   string
-	CreatedAt *time.Time
+// CreateBlockInput represents a mutation input for creating blocks.
+type CreateBlockInput struct {
+	BlockHash       string
+	ParentBlockHash string
+	BlockNumber     uint64
+	StateRoot       string
+	Status          string
+	Timestamp       time.Time
 }
 
-// Mutate applies the CreateAccountInput on the AccountCreate builder.
-func (i *CreateAccountInput) Mutate(m *AccountCreate) {
-	m.SetAddress(i.Address)
-	if v := i.CreatedAt; v != nil {
-		m.SetCreatedAt(*v)
-	}
+// Mutate applies the CreateBlockInput on the BlockCreate builder.
+func (i *CreateBlockInput) Mutate(m *BlockCreate) {
+	m.SetBlockHash(i.BlockHash)
+	m.SetParentBlockHash(i.ParentBlockHash)
+	m.SetBlockNumber(i.BlockNumber)
+	m.SetStateRoot(i.StateRoot)
+	m.SetStatus(i.Status)
+	m.SetTimestamp(i.Timestamp)
 }
 
-// SetInput applies the change-set in the CreateAccountInput on the create builder.
-func (c *AccountCreate) SetInput(i CreateAccountInput) *AccountCreate {
+// SetInput applies the change-set in the CreateBlockInput on the create builder.
+func (c *BlockCreate) SetInput(i CreateBlockInput) *BlockCreate {
 	i.Mutate(c)
 	return c
 }
 
-// UpdateAccountInput represents a mutation input for updating accounts.
-type UpdateAccountInput struct {
-	Address *string
+// UpdateBlockInput represents a mutation input for updating blocks.
+type UpdateBlockInput struct {
+	BlockHash       *string
+	ParentBlockHash *string
+	BlockNumber     *uint64
+	StateRoot       *string
+	Status          *string
 }
 
-// Mutate applies the UpdateAccountInput on the AccountMutation.
-func (i *UpdateAccountInput) Mutate(m *AccountMutation) {
-	if v := i.Address; v != nil {
-		m.SetAddress(*v)
+// Mutate applies the UpdateBlockInput on the BlockMutation.
+func (i *UpdateBlockInput) Mutate(m *BlockMutation) {
+	if v := i.BlockHash; v != nil {
+		m.SetBlockHash(*v)
+	}
+	if v := i.ParentBlockHash; v != nil {
+		m.SetParentBlockHash(*v)
+	}
+	if v := i.BlockNumber; v != nil {
+		m.SetBlockNumber(*v)
+	}
+	if v := i.StateRoot; v != nil {
+		m.SetStateRoot(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
 	}
 }
 
-// SetInput applies the change-set in the UpdateAccountInput on the update builder.
-func (u *AccountUpdate) SetInput(i UpdateAccountInput) *AccountUpdate {
+// SetInput applies the change-set in the UpdateBlockInput on the update builder.
+func (u *BlockUpdate) SetInput(i UpdateBlockInput) *BlockUpdate {
 	i.Mutate(u.Mutation())
 	return u
 }
 
-// SetInput applies the change-set in the UpdateAccountInput on the update-one builder.
-func (u *AccountUpdateOne) SetInput(i UpdateAccountInput) *AccountUpdateOne {
-	i.Mutate(u.Mutation())
-	return u
-}
-
-// CreateSyncStateInput represents a mutation input for creating syncstates.
-type CreateSyncStateInput struct {
-	StartBlock uint64
-}
-
-// Mutate applies the CreateSyncStateInput on the SyncStateCreate builder.
-func (i *CreateSyncStateInput) Mutate(m *SyncStateCreate) {
-	m.SetStartBlock(i.StartBlock)
-}
-
-// SetInput applies the change-set in the CreateSyncStateInput on the create builder.
-func (c *SyncStateCreate) SetInput(i CreateSyncStateInput) *SyncStateCreate {
-	i.Mutate(c)
-	return c
-}
-
-// UpdateSyncStateInput represents a mutation input for updating syncstates.
-type UpdateSyncStateInput struct {
-	StartBlock *uint64
-}
-
-// Mutate applies the UpdateSyncStateInput on the SyncStateMutation.
-func (i *UpdateSyncStateInput) Mutate(m *SyncStateMutation) {
-	if v := i.StartBlock; v != nil {
-		m.SetStartBlock(*v)
-	}
-}
-
-// SetInput applies the change-set in the UpdateSyncStateInput on the update builder.
-func (u *SyncStateUpdate) SetInput(i UpdateSyncStateInput) *SyncStateUpdate {
-	i.Mutate(u.Mutation())
-	return u
-}
-
-// SetInput applies the change-set in the UpdateSyncStateInput on the update-one builder.
-func (u *SyncStateUpdateOne) SetInput(i UpdateSyncStateInput) *SyncStateUpdateOne {
+// SetInput applies the change-set in the UpdateBlockInput on the update-one builder.
+func (u *BlockUpdateOne) SetInput(i UpdateBlockInput) *BlockUpdateOne {
 	i.Mutate(u.Mutation())
 	return u
 }
