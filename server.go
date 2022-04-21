@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -14,7 +15,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 )
 
-func New(addr string, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,
@@ -24,13 +25,7 @@ func New(addr string, config Config, opts ...IndexerOption) {
 		opt.apply(&iopts)
 	}
 
-	client, err := ent.Open(
-		"sqlite3",
-		"file:ent?mode=memory&cache=shared&_fk=1",
-	)
-	if err != nil {
-		log.Fatal().Err(err).Msg("opening ent client")
-	}
+	client := ent.NewClient(ent.Driver(drv))
 
 	if err := client.Schema.Create(
 		context.Background(),

@@ -3,9 +3,11 @@ package main
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/alecthomas/kong"
 	"github.com/dontpanicdao/caigo"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 	indexer "github.com/tarrencev/starknet-indexer"
 	_ "github.com/tarrencev/starknet-indexer/ent/runtime"
 )
@@ -17,7 +19,15 @@ func main() {
 	}
 	kong.Parse(&cli)
 
-	indexer.New(cli.Addr, indexer.Config{
+	drv, err := sql.Open(
+		"sqlite3",
+		"file:ent?mode=memory&cache=shared&_fk=1",
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("opening ent client")
+	}
+
+	indexer.New(cli.Addr, drv, indexer.Config{
 		Interval: 2 * time.Second,
 		Contracts: []indexer.Contract{{
 			Address:    "0x",
