@@ -8,11 +8,15 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/rs/zerolog/log"
+	concurrently "github.com/tejzpr/ordered-concurrently/v3"
+
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/schema"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
+
+const parallelism = 10
 
 type Contract struct {
 	Address    string
@@ -27,21 +31,31 @@ type Config struct {
 
 type Engine struct {
 	sync.Mutex
-	latest    uint64
-	ent       *ent.Client
-	gateway   *caigo.StarknetGateway
-	ticker    *time.Ticker
-	contracts map[string]*Contract
+	latest  uint64
+	ent     *ent.Client
+	gateway *caigo.StarknetGateway
+	ticker  *time.Ticker
 }
 
-func NewEngine(ctx context.Context, client *ent.Client, config Config) *Engine {
+func NewEngine(ctx context.Context, client *ent.Client, config Config) (*Engine, error) {
 	gateway := caigo.NewGateway()
 
-	return &Engine{
+	e := &Engine{
 		ent:     client,
 		gateway: gateway,
 		ticker:  time.NewTicker(config.Interval),
 	}
+
+	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, err
+	}
+
+	if head != nil {
+		e.latest = head.BlockNumber
+	}
+
+	return e, nil
 }
 
 func (e *Engine) Start(ctx context.Context) {
@@ -51,35 +65,7 @@ func (e *Engine) Start(ctx context.Context) {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			block, err := e.gateway.Block(ctx, nil)
-			if err != nil {
-				log.Err(err).Msg("Getting latest block number.")
-				continue
-			}
-
-			latest := uint64(block.BlockNumber)
-
-			for e.latest+1 < latest {
-				block, err := e.gateway.Block(ctx, &caigo.BlockOptions{BlockNumber: int(e.latest)})
-				if err != nil {
-					log.Err(err).Msg("Getting latest block number.")
-					continue
-				}
-
-				if err := e.parse(ctx, block); err != nil {
-					log.Err(err).Uint64("block_number", uint64(block.BlockNumber)).Msg("Parsing block.")
-					continue
-				}
-
-				e.latest += 1
-			}
-
-			if err := e.parse(ctx, block); err != nil {
-				log.Err(err).Uint64("block_number", uint64(block.BlockNumber)).Msg("Parsing block.")
-				continue
-			}
-
-			e.latest = uint64(block.BlockNumber)
+			e.process(ctx)
 			e.Unlock()
 
 		case <-ctx.Done():
@@ -88,7 +74,46 @@ func (e *Engine) Start(ctx context.Context) {
 	}
 }
 
-func (e *Engine) parse(ctx context.Context, b *caigo.Block) error {
+func (e *Engine) process(ctx context.Context) error {
+	worker := make(chan concurrently.WorkFunction, parallelism)
+
+	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
+
+	block, err := e.gateway.Block(ctx, nil)
+	if err != nil {
+		log.Err(err).Msg("Getting latest block number.")
+		return err
+	}
+
+	head := uint64(block.BlockNumber)
+
+	go func() {
+		for i := e.latest; i < head; i++ {
+			worker <- fetcher{e.gateway, i}
+			e.latest += 1
+		}
+	}()
+
+	for output := range outputs {
+		v, ok := output.Value.(response)
+		if !ok {
+			continue
+		}
+
+		if v.err != nil {
+			log.Err(v.err).Msg("Fetching block.")
+			return v.err
+		}
+
+		if err := e.write(ctx, v.block); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (e *Engine) write(ctx context.Context, b *caigo.Block) error {
 	if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
 		if err := tx.Block.Create().
 			SetID(b.BlockHash).
@@ -164,4 +189,22 @@ func (e *Engine) parse(ctx context.Context, b *caigo.Block) error {
 	}
 
 	return nil
+}
+
+// Create a type based on your input to the work function
+type fetcher struct {
+	gateway     *caigo.StarknetGateway
+	blockNumber uint64
+}
+
+type response struct {
+	block *caigo.Block
+	err   error
+}
+
+// The work that needs to be performed
+// The input type should implement the WorkFunction interface
+func (f fetcher) Run(ctx context.Context) interface{} {
+	block, err := f.gateway.Block(ctx, &caigo.BlockOptions{BlockNumber: int(f.blockNumber)})
+	return response{block, err}
 }

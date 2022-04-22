@@ -436,6 +436,12 @@ github.com/stretchr/testify v1.7.1-0.20210427113832-6241f9ab9942/go.mod h1:6Fq8o
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
+github.com/tejzpr/ordered-concurrently v1.0.12 h1:fJuiOW/j6YS+xBs8A1ZLHOkw1KsMG/YNEl5JcjmOdxw=
+github.com/tejzpr/ordered-concurrently v1.0.12/go.mod h1:MRsUMCFyg7RDgA+t0IRl1Zd7Q2DdzCO9CamWz085UdE=
+github.com/tejzpr/ordered-concurrently/v2 v2.0.0 h1:kCiB4RiBijzkxqT31OFaJPTIb/GAbzC013eUCWVeLwQ=
+github.com/tejzpr/ordered-concurrently/v2 v2.0.0/go.mod h1:g2zlAme0V18Oqz80Xd8xNTNkgGSaA+oCgBd+Acizfqk=
+github.com/tejzpr/ordered-concurrently/v3 v3.0.0 h1:T2ebh0maSEo6mbSQz0+gEVaW8v3F9XGKi3KGWuYG3Bo=
+github.com/tejzpr/ordered-concurrently/v3 v3.0.0/go.mod h1:mu/neZ6AGXm5jdPc7PEgViYK3rkYNPvVCEm15Cx/iRI=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=

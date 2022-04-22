@@ -12,7 +12,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/ent/migrate"
 )
 
 func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
@@ -29,7 +28,6 @@ func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 
 	if err := client.Schema.Create(
 		context.Background(),
-		migrate.WithGlobalUniqueID(true),
 	); err != nil {
 		log.Fatal().Err(err).Msg("Running schema migration")
 	}
@@ -46,9 +44,12 @@ func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 	http.Handle("/query", srv)
 
 	ctx := context.Background()
-	e := NewEngine(ctx, client, Config{
+	e, err := NewEngine(ctx, client, Config{
 		Interval: 1 * time.Second,
 	})
+	if err != nil {
+		log.Fatal().Err(err).Msg("Initializing engine.")
+	}
 
 	go e.Start(ctx)
 
