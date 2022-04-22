@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
 
@@ -16,7 +17,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
-const parallelism = 10
+const parallelism = 5
 
 type Contract struct {
 	Address    string
@@ -38,7 +39,7 @@ type Engine struct {
 }
 
 func NewEngine(ctx context.Context, client *ent.Client, config Config) (*Engine, error) {
-	gateway := caigo.NewGateway()
+	gateway := caigo.NewGateway(caigo.WithHttpClient(*retryablehttp.NewClient().StandardClient()))
 
 	e := &Engine{
 		ent:     client,
