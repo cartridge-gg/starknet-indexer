@@ -103,7 +103,7 @@ func (trq *TransactionReceiptQuery) QueryTransaction() *TransactionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, selector),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(trq.driver.Dialect(), step)
 		return fromU, nil
@@ -329,12 +329,12 @@ func (trq *TransactionReceiptQuery) WithTransaction(opts ...func(*TransactionQue
 // Example:
 //
 //	var v []struct {
-//		TransactionIndex int32 `json:"transaction_index,omitempty"`
+//		TransactionHash string `json:"transaction_hash,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.TransactionReceipt.Query().
-//		GroupBy(transactionreceipt.FieldTransactionIndex).
+//		GroupBy(transactionreceipt.FieldTransactionHash).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -358,11 +358,11 @@ func (trq *TransactionReceiptQuery) GroupBy(field string, fields ...string) *Tra
 // Example:
 //
 //	var v []struct {
-//		TransactionIndex int32 `json:"transaction_index,omitempty"`
+//		TransactionHash string `json:"transaction_hash,omitempty"`
 //	}
 //
 //	client.TransactionReceipt.Query().
-//		Select(transactionreceipt.FieldTransactionIndex).
+//		Select(transactionreceipt.FieldTransactionHash).
 //		Scan(ctx, &v)
 //
 func (trq *TransactionReceiptQuery) Select(fields ...string) *TransactionReceiptSelect {

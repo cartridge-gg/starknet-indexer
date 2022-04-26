@@ -18,13 +18,11 @@ func (Transaction) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").Unique().Immutable(),
 		field.String("contract_address"),
-		field.String("entry_point_selector"),
-		field.String("entry_point_type"),
+		field.String("entry_point_selector").Optional(),
 		field.String("transaction_hash"),
 		field.Strings("calldata"),
-		field.Strings("signature"),
-		field.Enum("type").Values("INVOKE_FUNCTION", "DEPLOY"),
-		field.String("nonce").
+		field.Strings("signature").Optional(),
+		field.String("nonce").Optional().
 			Annotations(
 				entgql.OrderField("NONCE"),
 			),
@@ -36,8 +34,7 @@ func (Transaction) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("block", Block.Type).Ref("transactions").
 			Unique(),
-		edge.To("receipts", TransactionReceipt.Type).
-			Unique(),
+		edge.To("receipts", TransactionReceipt.Type),
 	}
 }
 

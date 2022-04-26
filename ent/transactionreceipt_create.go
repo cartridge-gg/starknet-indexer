@@ -4,14 +4,13 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -23,39 +22,39 @@ type TransactionReceiptCreate struct {
 	hooks    []Hook
 }
 
-// SetTransactionIndex sets the "transaction_index" field.
-func (trc *TransactionReceiptCreate) SetTransactionIndex(i int32) *TransactionReceiptCreate {
-	trc.mutation.SetTransactionIndex(i)
-	return trc
-}
-
 // SetTransactionHash sets the "transaction_hash" field.
 func (trc *TransactionReceiptCreate) SetTransactionHash(s string) *TransactionReceiptCreate {
 	trc.mutation.SetTransactionHash(s)
 	return trc
 }
 
-// SetL1ToL2ConsumedMessage sets the "l1_to_l2_consumed_message" field.
-func (trc *TransactionReceiptCreate) SetL1ToL2ConsumedMessage(slm schema.L1ToL2ConsumedMessage) *TransactionReceiptCreate {
-	trc.mutation.SetL1ToL2ConsumedMessage(slm)
+// SetStatus sets the "status" field.
+func (trc *TransactionReceiptCreate) SetStatus(t transactionreceipt.Status) *TransactionReceiptCreate {
+	trc.mutation.SetStatus(t)
 	return trc
 }
 
-// SetExecutionResources sets the "execution_resources" field.
-func (trc *TransactionReceiptCreate) SetExecutionResources(sr schema.ExecutionResources) *TransactionReceiptCreate {
-	trc.mutation.SetExecutionResources(sr)
+// SetStatusData sets the "status_data" field.
+func (trc *TransactionReceiptCreate) SetStatusData(s string) *TransactionReceiptCreate {
+	trc.mutation.SetStatusData(s)
+	return trc
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (trc *TransactionReceiptCreate) SetMessagesSent(t []types.L1Message) *TransactionReceiptCreate {
+	trc.mutation.SetMessagesSent(t)
+	return trc
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (trc *TransactionReceiptCreate) SetL1OriginMessage(t types.L2Message) *TransactionReceiptCreate {
+	trc.mutation.SetL1OriginMessage(t)
 	return trc
 }
 
 // SetEvents sets the "events" field.
-func (trc *TransactionReceiptCreate) SetEvents(jm json.RawMessage) *TransactionReceiptCreate {
-	trc.mutation.SetEvents(jm)
-	return trc
-}
-
-// SetL2ToL1Messages sets the "l2_to_l1_messages" field.
-func (trc *TransactionReceiptCreate) SetL2ToL1Messages(jm json.RawMessage) *TransactionReceiptCreate {
-	trc.mutation.SetL2ToL1Messages(jm)
+func (trc *TransactionReceiptCreate) SetEvents(t []types.Event) *TransactionReceiptCreate {
+	trc.mutation.SetEvents(t)
 	return trc
 }
 
@@ -173,23 +172,28 @@ func (trc *TransactionReceiptCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (trc *TransactionReceiptCreate) check() error {
-	if _, ok := trc.mutation.TransactionIndex(); !ok {
-		return &ValidationError{Name: "transaction_index", err: errors.New(`ent: missing required field "TransactionReceipt.transaction_index"`)}
-	}
 	if _, ok := trc.mutation.TransactionHash(); !ok {
 		return &ValidationError{Name: "transaction_hash", err: errors.New(`ent: missing required field "TransactionReceipt.transaction_hash"`)}
 	}
-	if _, ok := trc.mutation.L1ToL2ConsumedMessage(); !ok {
-		return &ValidationError{Name: "l1_to_l2_consumed_message", err: errors.New(`ent: missing required field "TransactionReceipt.l1_to_l2_consumed_message"`)}
+	if _, ok := trc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "TransactionReceipt.status"`)}
 	}
-	if _, ok := trc.mutation.ExecutionResources(); !ok {
-		return &ValidationError{Name: "execution_resources", err: errors.New(`ent: missing required field "TransactionReceipt.execution_resources"`)}
+	if v, ok := trc.mutation.Status(); ok {
+		if err := transactionreceipt.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "TransactionReceipt.status": %w`, err)}
+		}
+	}
+	if _, ok := trc.mutation.StatusData(); !ok {
+		return &ValidationError{Name: "status_data", err: errors.New(`ent: missing required field "TransactionReceipt.status_data"`)}
+	}
+	if _, ok := trc.mutation.MessagesSent(); !ok {
+		return &ValidationError{Name: "messages_sent", err: errors.New(`ent: missing required field "TransactionReceipt.messages_sent"`)}
+	}
+	if _, ok := trc.mutation.L1OriginMessage(); !ok {
+		return &ValidationError{Name: "l1_origin_message", err: errors.New(`ent: missing required field "TransactionReceipt.l1_origin_message"`)}
 	}
 	if _, ok := trc.mutation.Events(); !ok {
 		return &ValidationError{Name: "events", err: errors.New(`ent: missing required field "TransactionReceipt.events"`)}
-	}
-	if _, ok := trc.mutation.L2ToL1Messages(); !ok {
-		return &ValidationError{Name: "l2_to_l1_messages", err: errors.New(`ent: missing required field "TransactionReceipt.l2_to_l1_messages"`)}
 	}
 	return nil
 }
@@ -227,14 +231,6 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := trc.mutation.TransactionIndex(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: transactionreceipt.FieldTransactionIndex,
-		})
-		_node.TransactionIndex = value
-	}
 	if value, ok := trc.mutation.TransactionHash(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -243,21 +239,37 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 		})
 		_node.TransactionHash = value
 	}
-	if value, ok := trc.mutation.L1ToL2ConsumedMessage(); ok {
+	if value, ok := trc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: transactionreceipt.FieldL1ToL2ConsumedMessage,
+			Column: transactionreceipt.FieldStatus,
 		})
-		_node.L1ToL2ConsumedMessage = value
+		_node.Status = value
 	}
-	if value, ok := trc.mutation.ExecutionResources(); ok {
+	if value, ok := trc.mutation.StatusData(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: transactionreceipt.FieldStatusData,
+		})
+		_node.StatusData = value
+	}
+	if value, ok := trc.mutation.MessagesSent(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: transactionreceipt.FieldExecutionResources,
+			Column: transactionreceipt.FieldMessagesSent,
 		})
-		_node.ExecutionResources = value
+		_node.MessagesSent = value
+	}
+	if value, ok := trc.mutation.L1OriginMessage(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transactionreceipt.FieldL1OriginMessage,
+		})
+		_node.L1OriginMessage = value
 	}
 	if value, ok := trc.mutation.Events(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -266,14 +278,6 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 			Column: transactionreceipt.FieldEvents,
 		})
 		_node.Events = value
-	}
-	if value, ok := trc.mutation.L2ToL1Messages(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldL2ToL1Messages,
-		})
-		_node.L2ToL1Messages = value
 	}
 	if nodes := trc.mutation.BlockIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,7 +301,7 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 	}
 	if nodes := trc.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},

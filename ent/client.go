@@ -368,7 +368,7 @@ func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQue
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, id),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -490,7 +490,7 @@ func (c *TransactionReceiptClient) QueryTransaction(tr *TransactionReceipt) *Tra
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
 		return fromV, nil

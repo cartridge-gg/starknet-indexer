@@ -2,12 +2,6 @@
 
 package transaction
 
-import (
-	"fmt"
-	"io"
-	"strconv"
-)
-
 const (
 	// Label holds the string label denoting the transaction type in the database.
 	Label = "transaction"
@@ -17,16 +11,12 @@ const (
 	FieldContractAddress = "contract_address"
 	// FieldEntryPointSelector holds the string denoting the entry_point_selector field in the database.
 	FieldEntryPointSelector = "entry_point_selector"
-	// FieldEntryPointType holds the string denoting the entry_point_type field in the database.
-	FieldEntryPointType = "entry_point_type"
 	// FieldTransactionHash holds the string denoting the transaction_hash field in the database.
 	FieldTransactionHash = "transaction_hash"
 	// FieldCalldata holds the string denoting the calldata field in the database.
 	FieldCalldata = "calldata"
 	// FieldSignature holds the string denoting the signature field in the database.
 	FieldSignature = "signature"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
 	// FieldNonce holds the string denoting the nonce field in the database.
 	FieldNonce = "nonce"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
@@ -56,11 +46,9 @@ var Columns = []string{
 	FieldID,
 	FieldContractAddress,
 	FieldEntryPointSelector,
-	FieldEntryPointType,
 	FieldTransactionHash,
 	FieldCalldata,
 	FieldSignature,
-	FieldType,
 	FieldNonce,
 }
 
@@ -83,45 +71,4 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
-}
-
-// Type defines the type for the "type" enum field.
-type Type string
-
-// Type values.
-const (
-	TypeINVOKE_FUNCTION Type = "INVOKE_FUNCTION"
-	TypeDEPLOY          Type = "DEPLOY"
-)
-
-func (_type Type) String() string {
-	return string(_type)
-}
-
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeINVOKE_FUNCTION, TypeDEPLOY:
-		return nil
-	default:
-		return fmt.Errorf("transaction: invalid enum value for type field: %q", _type)
-	}
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (e Type) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(e.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *Type) UnmarshalGQL(val interface{}) error {
-	str, ok := val.(string)
-	if !ok {
-		return fmt.Errorf("enum %T must be a string", val)
-	}
-	*e = Type(str)
-	if err := TypeValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid Type", str)
-	}
-	return nil
 }

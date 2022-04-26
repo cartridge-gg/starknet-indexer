@@ -104,7 +104,7 @@ func (tq *TransactionQuery) QueryReceipts() *TransactionReceiptQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -463,6 +463,7 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Receipts = []*TransactionReceipt{}
 		}
 		query.withFKs = true
 		query.Where(predicate.TransactionReceipt(func(s *sql.Selector) {
@@ -481,7 +482,7 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			if !ok {
 				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Receipts = n
+			node.Edges.Receipts = append(node.Edges.Receipts, n)
 		}
 	}
 

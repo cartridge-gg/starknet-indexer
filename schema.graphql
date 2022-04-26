@@ -1,27 +1,27 @@
 scalar Time
 scalar Long
 scalar JSON
+scalar Felt
 
-type L1ToL2ConsumedMessage {
-  fromAddress: String!
+type L1Message {
   toAddress: String!
-  selector: String!
-  payload: [String!]
+  payload: [Felt!]
 }
 
-type BuiltinInstanceCounter {
-  pedersenBuiltin: Long
-  rangeCheckBuiltin: Long
-  bitwiseBuiltin: Long
-  outputBuiltin: Long
-  ecdsaBuiltin: Long
-  ecOpBuiltin: Long
+type L2Message {
+  fromAddress: String!
+  payload: [Felt!]
 }
 
-type ExecutionResources {
-  nSteps: Long
-  builtinInstanceCounter: BuiltinInstanceCounter
-  nMemoryHoles: Long
+type Event {
+  fromAddress: String!
+  keys: [Felt!]
+  values: [Felt!]
+}
+
+extend type TransactionReceipt {
+  messagesSent: [L1Message]!
+  events: [Event!]
 }
 
 type Query {

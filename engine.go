@@ -2,19 +2,18 @@ package indexer
 
 import (
 	"context"
-	"encoding/json"
+	"math/big"
 	"sync"
 	"time"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/hashicorp/go-retryablehttp"
+	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
 
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 const parallelism = 5
@@ -22,7 +21,7 @@ const parallelism = 5
 type Contract struct {
 	Address    string
 	StartBlock uint64
-	Handler    func(caigo.Transaction, caigo.TransactionReceipt) error
+	Handler    func(types.Transaction) error
 }
 
 type Config struct {
@@ -32,19 +31,22 @@ type Config struct {
 
 type Engine struct {
 	sync.Mutex
-	latest  uint64
-	ent     *ent.Client
-	gateway *caigo.StarknetGateway
-	ticker  *time.Ticker
+	latest   uint64
+	ent      *ent.Client
+	provider types.Provider
+	ticker   *time.Ticker
 }
 
 func NewEngine(ctx context.Context, client *ent.Client, config Config) (*Engine, error) {
-	gateway := caigo.NewGateway(caigo.WithHttpClient(*retryablehttp.NewClient().StandardClient()))
+	provider, err := jsonrpc.DialContext(ctx, "http://localhost:9545")
+	if err != nil {
+		return nil, err
+	}
 
 	e := &Engine{
-		ent:     client,
-		gateway: gateway,
-		ticker:  time.NewTicker(config.Interval),
+		ent:      client,
+		provider: provider,
+		ticker:   time.NewTicker(config.Interval),
 	}
 
 	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
@@ -66,7 +68,9 @@ func (e *Engine) Start(ctx context.Context) {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			e.process(ctx)
+			if err := e.process(ctx); err != nil {
+				log.Err(err).Msg("Processing block.")
+			}
 			e.Unlock()
 
 		case <-ctx.Done():
@@ -80,7 +84,7 @@ func (e *Engine) process(ctx context.Context) error {
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
 
-	block, err := e.gateway.Block(ctx, nil)
+	block, err := e.provider.BlockByNumber(ctx, nil, "FULL_TXN_AND_RECEIPTS")
 	if err != nil {
 		log.Err(err).Msg("Getting latest block number.")
 		return err
@@ -90,7 +94,7 @@ func (e *Engine) process(ctx context.Context) error {
 
 	go func() {
 		for i := e.latest; i < head; i++ {
-			worker <- fetcher{e.gateway, i}
+			worker <- fetcher{e.provider, i}
 			e.latest += 1
 		}
 	}()
@@ -114,15 +118,15 @@ func (e *Engine) process(ctx context.Context) error {
 	return nil
 }
 
-func (e *Engine) write(ctx context.Context, b *caigo.Block) error {
+func (e *Engine) write(ctx context.Context, b *types.Block) error {
 	if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
 		if err := tx.Block.Create().
 			SetID(b.BlockHash).
 			SetBlockHash(b.BlockHash).
 			SetBlockNumber(uint64(b.BlockNumber)).
 			SetParentBlockHash(b.ParentBlockHash).
-			SetStateRoot(b.StateRoot).
-			SetTimestamp(time.Unix(int64(b.Timestamp), 0).UTC()).
+			SetStateRoot(b.NewRoot).
+			SetTimestamp(time.Unix(int64(b.AcceptedTime), 0).UTC()).
 			SetStatus(block.Status(b.Status)).
 			Exec(ctx); err != nil {
 			return err
@@ -135,50 +139,21 @@ func (e *Engine) write(ctx context.Context, b *caigo.Block) error {
 				SetBlockID(b.BlockHash).
 				SetContractAddress(t.ContractAddress).
 				SetEntryPointSelector(t.EntryPointSelector).
-				SetEntryPointType(t.EntryPointType).
 				SetNonce(t.Nonce).
-				SetType(transaction.Type(t.Type)).
 				SetCalldata(t.Calldata).
 				SetSignature(t.Signature).
 				Exec(ctx); err != nil {
 				return err
 			}
-		}
-
-		for _, t := range b.TransactionReceipts {
-			events, err := json.Marshal(t.Events)
-			if err != nil {
-				return err
-			}
-
-			l2ToL1Messages, err := json.Marshal(t.L2ToL1Messages)
-			if err != nil {
-				return err
-			}
-
-			executionResources := schema.ExecutionResources{
-				NSteps:       uint64(t.ExecutionResources.NSteps),
-				NMemoryHoles: uint64(t.ExecutionResources.NMemoryHoles),
-				BuiltinInstanceCounter: schema.BuiltinInstanceCounter{
-					PedersenBuiltin:   uint64(t.ExecutionResources.BuiltinInstanceCounter.PedersenBuiltin),
-					RangeCheckBuiltin: uint64(t.ExecutionResources.BuiltinInstanceCounter.RangeCheckBuiltin),
-					BitwiseBuiltin:    uint64(t.ExecutionResources.BuiltinInstanceCounter.BitwiseBuiltin),
-					OutputBuiltin:     uint64(t.ExecutionResources.BuiltinInstanceCounter.OutputBuiltin),
-					EcdsaBuiltin:      uint64(t.ExecutionResources.BuiltinInstanceCounter.EcdsaBuiltin),
-					EcOpBuiltin:       uint64(t.ExecutionResources.BuiltinInstanceCounter.EcOpBuiltin),
-				},
-			}
 
 			if err := tx.TransactionReceipt.Create().
 				SetID(t.TransactionHash).
-				SetTransactionHash(t.TransactionHash).
-				SetBlockID(b.BlockHash).
-				SetTransactionID(t.TransactionHash).
-				SetTransactionIndex(int32(t.TransactionIndex)).
-				SetL1ToL2ConsumedMessage(t.L1ToL2ConsumedMessage).
-				SetExecutionResources(executionResources).
-				SetEvents(events).
-				SetL2ToL1Messages(l2ToL1Messages).
+				SetTransactionHash(t.TransactionReceipt.TransactionHash).
+				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
+				SetStatusData(t.TransactionReceipt.StatusData).
+				SetMessagesSent(t.TransactionReceipt.MessagesSent).
+				SetL1OriginMessage(t.TransactionReceipt.L1OriginMessage).
+				SetEvents(t.TransactionReceipt.Events).
 				Exec(ctx); err != nil {
 				return err
 			}
@@ -194,18 +169,18 @@ func (e *Engine) write(ctx context.Context, b *caigo.Block) error {
 
 // Create a type based on your input to the work function
 type fetcher struct {
-	gateway     *caigo.StarknetGateway
+	provider    types.Provider
 	blockNumber uint64
 }
 
 type response struct {
-	block *caigo.Block
+	block *types.Block
 	err   error
 }
 
 // The work that needs to be performed
 // The input type should implement the WorkFunction interface
 func (f fetcher) Run(ctx context.Context) interface{} {
-	block, err := f.gateway.Block(ctx, &caigo.BlockOptions{BlockNumber: int(f.blockNumber)})
+	block, err := f.provider.BlockByNumber(ctx, big.NewInt(int64(f.blockNumber)), "FULL_TXN_AND_RECEIPTS")
 	return response{block, err}
 }

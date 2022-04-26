@@ -203,6 +203,28 @@ func (tr *TransactionReceiptQuery) CollectFields(ctx context.Context, satisfies 
 
 func (tr *TransactionReceiptQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "block":
+			var (
+				path  = append(path, field.Name)
+				query = &BlockQuery{config: tr.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			tr.withBlock = query
+		case "transaction":
+			var (
+				path  = append(path, field.Name)
+				query = &TransactionQuery{config: tr.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			tr.withTransaction = query
+		}
+	}
 	return nil
 }
 
@@ -228,28 +250,6 @@ func newTransactionReceiptPaginateArgs(rv map[string]interface{}) *transactionre
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
-	}
-	if v, ok := rv[orderByField]; ok {
-		switch v := v.(type) {
-		case map[string]interface{}:
-			var (
-				err1, err2 error
-				order      = &TransactionReceiptOrder{Field: &TransactionReceiptOrderField{}}
-			)
-			if d, ok := v[directionField]; ok {
-				err1 = order.Direction.UnmarshalGQL(d)
-			}
-			if f, ok := v[fieldField]; ok {
-				err2 = order.Field.UnmarshalGQL(f)
-			}
-			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithTransactionReceiptOrder(order))
-			}
-		case *TransactionReceiptOrder:
-			if v != nil {
-				args.opts = append(args.opts, WithTransactionReceiptOrder(v))
-			}
-		}
 	}
 	if v := rv[whereField]; v != nil && v != (*TransactionReceiptWhereInput)(nil) {
 		args.opts = append(args.opts, WithTransactionReceiptFilter(v.(*TransactionReceiptWhereInput).Filter))

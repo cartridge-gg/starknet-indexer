@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -19,18 +19,18 @@ type TransactionReceipt struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
-	// TransactionIndex holds the value of the "transaction_index" field.
-	TransactionIndex int32 `json:"transaction_index,omitempty"`
 	// TransactionHash holds the value of the "transaction_hash" field.
 	TransactionHash string `json:"transaction_hash,omitempty"`
-	// L1ToL2ConsumedMessage holds the value of the "l1_to_l2_consumed_message" field.
-	L1ToL2ConsumedMessage schema.L1ToL2ConsumedMessage `json:"l1_to_l2_consumed_message,omitempty"`
-	// ExecutionResources holds the value of the "execution_resources" field.
-	ExecutionResources schema.ExecutionResources `json:"execution_resources,omitempty"`
+	// Status holds the value of the "status" field.
+	Status transactionreceipt.Status `json:"status,omitempty"`
+	// StatusData holds the value of the "status_data" field.
+	StatusData string `json:"status_data,omitempty"`
+	// MessagesSent holds the value of the "messages_sent" field.
+	MessagesSent []types.L1Message `json:"messages_sent,omitempty"`
+	// L1OriginMessage holds the value of the "l1_origin_message" field.
+	L1OriginMessage types.L2Message `json:"l1_origin_message,omitempty"`
 	// Events holds the value of the "events" field.
-	Events json.RawMessage `json:"events,omitempty"`
-	// L2ToL1Messages holds the value of the "l2_to_l1_messages" field.
-	L2ToL1Messages json.RawMessage `json:"l2_to_l1_messages,omitempty"`
+	Events []types.Event `json:"events,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TransactionReceiptQuery when eager-loading is set.
 	Edges                      TransactionReceiptEdges `json:"edges"`
@@ -84,11 +84,9 @@ func (*TransactionReceipt) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case transactionreceipt.FieldL1ToL2ConsumedMessage, transactionreceipt.FieldExecutionResources, transactionreceipt.FieldEvents, transactionreceipt.FieldL2ToL1Messages:
+		case transactionreceipt.FieldMessagesSent, transactionreceipt.FieldL1OriginMessage, transactionreceipt.FieldEvents:
 			values[i] = new([]byte)
-		case transactionreceipt.FieldTransactionIndex:
-			values[i] = new(sql.NullInt64)
-		case transactionreceipt.FieldID, transactionreceipt.FieldTransactionHash:
+		case transactionreceipt.FieldID, transactionreceipt.FieldTransactionHash, transactionreceipt.FieldStatus, transactionreceipt.FieldStatusData:
 			values[i] = new(sql.NullString)
 		case transactionreceipt.ForeignKeys[0]: // block_transaction_receipts
 			values[i] = new(sql.NullString)
@@ -115,32 +113,38 @@ func (tr *TransactionReceipt) assignValues(columns []string, values []interface{
 			} else if value.Valid {
 				tr.ID = value.String
 			}
-		case transactionreceipt.FieldTransactionIndex:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field transaction_index", values[i])
-			} else if value.Valid {
-				tr.TransactionIndex = int32(value.Int64)
-			}
 		case transactionreceipt.FieldTransactionHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field transaction_hash", values[i])
 			} else if value.Valid {
 				tr.TransactionHash = value.String
 			}
-		case transactionreceipt.FieldL1ToL2ConsumedMessage:
+		case transactionreceipt.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				tr.Status = transactionreceipt.Status(value.String)
+			}
+		case transactionreceipt.FieldStatusData:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status_data", values[i])
+			} else if value.Valid {
+				tr.StatusData = value.String
+			}
+		case transactionreceipt.FieldMessagesSent:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field l1_to_l2_consumed_message", values[i])
+				return fmt.Errorf("unexpected type %T for field messages_sent", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tr.L1ToL2ConsumedMessage); err != nil {
-					return fmt.Errorf("unmarshal field l1_to_l2_consumed_message: %w", err)
+				if err := json.Unmarshal(*value, &tr.MessagesSent); err != nil {
+					return fmt.Errorf("unmarshal field messages_sent: %w", err)
 				}
 			}
-		case transactionreceipt.FieldExecutionResources:
+		case transactionreceipt.FieldL1OriginMessage:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field execution_resources", values[i])
+				return fmt.Errorf("unexpected type %T for field l1_origin_message", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tr.ExecutionResources); err != nil {
-					return fmt.Errorf("unmarshal field execution_resources: %w", err)
+				if err := json.Unmarshal(*value, &tr.L1OriginMessage); err != nil {
+					return fmt.Errorf("unmarshal field l1_origin_message: %w", err)
 				}
 			}
 		case transactionreceipt.FieldEvents:
@@ -149,14 +153,6 @@ func (tr *TransactionReceipt) assignValues(columns []string, values []interface{
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &tr.Events); err != nil {
 					return fmt.Errorf("unmarshal field events: %w", err)
-				}
-			}
-		case transactionreceipt.FieldL2ToL1Messages:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field l2_to_l1_messages", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tr.L2ToL1Messages); err != nil {
-					return fmt.Errorf("unmarshal field l2_to_l1_messages: %w", err)
 				}
 			}
 		case transactionreceipt.ForeignKeys[0]:
@@ -211,18 +207,18 @@ func (tr *TransactionReceipt) String() string {
 	var builder strings.Builder
 	builder.WriteString("TransactionReceipt(")
 	builder.WriteString(fmt.Sprintf("id=%v", tr.ID))
-	builder.WriteString(", transaction_index=")
-	builder.WriteString(fmt.Sprintf("%v", tr.TransactionIndex))
 	builder.WriteString(", transaction_hash=")
 	builder.WriteString(tr.TransactionHash)
-	builder.WriteString(", l1_to_l2_consumed_message=")
-	builder.WriteString(fmt.Sprintf("%v", tr.L1ToL2ConsumedMessage))
-	builder.WriteString(", execution_resources=")
-	builder.WriteString(fmt.Sprintf("%v", tr.ExecutionResources))
+	builder.WriteString(", status=")
+	builder.WriteString(fmt.Sprintf("%v", tr.Status))
+	builder.WriteString(", status_data=")
+	builder.WriteString(tr.StatusData)
+	builder.WriteString(", messages_sent=")
+	builder.WriteString(fmt.Sprintf("%v", tr.MessagesSent))
+	builder.WriteString(", l1_origin_message=")
+	builder.WriteString(fmt.Sprintf("%v", tr.L1OriginMessage))
 	builder.WriteString(", events=")
 	builder.WriteString(fmt.Sprintf("%v", tr.Events))
-	builder.WriteString(", l2_to_l1_messages=")
-	builder.WriteString(fmt.Sprintf("%v", tr.L2ToL1Messages))
 	builder.WriteByte(')')
 	return builder.String()
 }

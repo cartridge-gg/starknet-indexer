@@ -28,12 +28,12 @@ func (t *Transaction) Block(ctx context.Context) (*Block, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Transaction) Receipts(ctx context.Context) (*TransactionReceipt, error) {
+func (t *Transaction) Receipts(ctx context.Context) ([]*TransactionReceipt, error) {
 	result, err := t.Edges.ReceiptsOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryReceipts().Only(ctx)
+		result, err = t.QueryReceipts().All(ctx)
 	}
-	return result, MaskNotFound(err)
+	return result, err
 }
 
 func (tr *TransactionReceipt) Block(ctx context.Context) (*Block, error) {

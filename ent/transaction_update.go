@@ -41,9 +41,17 @@ func (tu *TransactionUpdate) SetEntryPointSelector(s string) *TransactionUpdate 
 	return tu
 }
 
-// SetEntryPointType sets the "entry_point_type" field.
-func (tu *TransactionUpdate) SetEntryPointType(s string) *TransactionUpdate {
-	tu.mutation.SetEntryPointType(s)
+// SetNillableEntryPointSelector sets the "entry_point_selector" field if the given value is not nil.
+func (tu *TransactionUpdate) SetNillableEntryPointSelector(s *string) *TransactionUpdate {
+	if s != nil {
+		tu.SetEntryPointSelector(*s)
+	}
+	return tu
+}
+
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (tu *TransactionUpdate) ClearEntryPointSelector() *TransactionUpdate {
+	tu.mutation.ClearEntryPointSelector()
 	return tu
 }
 
@@ -65,15 +73,29 @@ func (tu *TransactionUpdate) SetSignature(s []string) *TransactionUpdate {
 	return tu
 }
 
-// SetType sets the "type" field.
-func (tu *TransactionUpdate) SetType(t transaction.Type) *TransactionUpdate {
-	tu.mutation.SetType(t)
+// ClearSignature clears the value of the "signature" field.
+func (tu *TransactionUpdate) ClearSignature() *TransactionUpdate {
+	tu.mutation.ClearSignature()
 	return tu
 }
 
 // SetNonce sets the "nonce" field.
 func (tu *TransactionUpdate) SetNonce(s string) *TransactionUpdate {
 	tu.mutation.SetNonce(s)
+	return tu
+}
+
+// SetNillableNonce sets the "nonce" field if the given value is not nil.
+func (tu *TransactionUpdate) SetNillableNonce(s *string) *TransactionUpdate {
+	if s != nil {
+		tu.SetNonce(*s)
+	}
+	return tu
+}
+
+// ClearNonce clears the value of the "nonce" field.
+func (tu *TransactionUpdate) ClearNonce() *TransactionUpdate {
+	tu.mutation.ClearNonce()
 	return tu
 }
 
@@ -96,23 +118,19 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
-	tu.mutation.SetReceiptsID(id)
+// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by IDs.
+func (tu *TransactionUpdate) AddReceiptIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.AddReceiptIDs(ids...)
 	return tu
 }
 
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tu *TransactionUpdate) SetNillableReceiptsID(id *string) *TransactionUpdate {
-	if id != nil {
-		tu = tu.SetReceiptsID(*id)
+// AddReceipts adds the "receipts" edges to the TransactionReceipt entity.
+func (tu *TransactionUpdate) AddReceipts(t ...*TransactionReceipt) *TransactionUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return tu
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tu *TransactionUpdate) SetReceipts(t *TransactionReceipt) *TransactionUpdate {
-	return tu.SetReceiptsID(t.ID)
+	return tu.AddReceiptIDs(ids...)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -126,10 +144,25 @@ func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	return tu
 }
 
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
+// ClearReceipts clears all "receipts" edges to the TransactionReceipt entity.
 func (tu *TransactionUpdate) ClearReceipts() *TransactionUpdate {
 	tu.mutation.ClearReceipts()
 	return tu
+}
+
+// RemoveReceiptIDs removes the "receipts" edge to TransactionReceipt entities by IDs.
+func (tu *TransactionUpdate) RemoveReceiptIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.RemoveReceiptIDs(ids...)
+	return tu
+}
+
+// RemoveReceipts removes "receipts" edges to TransactionReceipt entities.
+func (tu *TransactionUpdate) RemoveReceipts(t ...*TransactionReceipt) *TransactionUpdate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return tu.RemoveReceiptIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -139,18 +172,12 @@ func (tu *TransactionUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(tu.hooks) == 0 {
-		if err = tu.check(); err != nil {
-			return 0, err
-		}
 		affected, err = tu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TransactionMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tu.check(); err != nil {
-				return 0, err
 			}
 			tu.mutation = mutation
 			affected, err = tu.sqlSave(ctx)
@@ -192,16 +219,6 @@ func (tu *TransactionUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (tu *TransactionUpdate) check() error {
-	if v, ok := tu.mutation.GetType(); ok {
-		if err := transaction.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Transaction.type": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -234,11 +251,10 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: transaction.FieldEntryPointSelector,
 		})
 	}
-	if value, ok := tu.mutation.EntryPointType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+	if tu.mutation.EntryPointSelectorCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
+			Column: transaction.FieldEntryPointSelector,
 		})
 	}
 	if value, ok := tu.mutation.TransactionHash(); ok {
@@ -262,17 +278,22 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: transaction.FieldSignature,
 		})
 	}
-	if value, ok := tu.mutation.GetType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: transaction.FieldType,
+	if tu.mutation.SignatureCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: transaction.FieldSignature,
 		})
 	}
 	if value, ok := tu.mutation.Nonce(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
+			Column: transaction.FieldNonce,
+		})
+	}
+	if tu.mutation.NonceCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
 			Column: transaction.FieldNonce,
 		})
 	}
@@ -313,7 +334,7 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.ReceiptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -327,9 +348,28 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := tu.mutation.RemovedReceiptsIDs(); len(nodes) > 0 && !tu.mutation.ReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -377,9 +417,17 @@ func (tuo *TransactionUpdateOne) SetEntryPointSelector(s string) *TransactionUpd
 	return tuo
 }
 
-// SetEntryPointType sets the "entry_point_type" field.
-func (tuo *TransactionUpdateOne) SetEntryPointType(s string) *TransactionUpdateOne {
-	tuo.mutation.SetEntryPointType(s)
+// SetNillableEntryPointSelector sets the "entry_point_selector" field if the given value is not nil.
+func (tuo *TransactionUpdateOne) SetNillableEntryPointSelector(s *string) *TransactionUpdateOne {
+	if s != nil {
+		tuo.SetEntryPointSelector(*s)
+	}
+	return tuo
+}
+
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (tuo *TransactionUpdateOne) ClearEntryPointSelector() *TransactionUpdateOne {
+	tuo.mutation.ClearEntryPointSelector()
 	return tuo
 }
 
@@ -401,15 +449,29 @@ func (tuo *TransactionUpdateOne) SetSignature(s []string) *TransactionUpdateOne 
 	return tuo
 }
 
-// SetType sets the "type" field.
-func (tuo *TransactionUpdateOne) SetType(t transaction.Type) *TransactionUpdateOne {
-	tuo.mutation.SetType(t)
+// ClearSignature clears the value of the "signature" field.
+func (tuo *TransactionUpdateOne) ClearSignature() *TransactionUpdateOne {
+	tuo.mutation.ClearSignature()
 	return tuo
 }
 
 // SetNonce sets the "nonce" field.
 func (tuo *TransactionUpdateOne) SetNonce(s string) *TransactionUpdateOne {
 	tuo.mutation.SetNonce(s)
+	return tuo
+}
+
+// SetNillableNonce sets the "nonce" field if the given value is not nil.
+func (tuo *TransactionUpdateOne) SetNillableNonce(s *string) *TransactionUpdateOne {
+	if s != nil {
+		tuo.SetNonce(*s)
+	}
+	return tuo
+}
+
+// ClearNonce clears the value of the "nonce" field.
+func (tuo *TransactionUpdateOne) ClearNonce() *TransactionUpdateOne {
+	tuo.mutation.ClearNonce()
 	return tuo
 }
 
@@ -432,23 +494,19 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
-	tuo.mutation.SetReceiptsID(id)
+// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by IDs.
+func (tuo *TransactionUpdateOne) AddReceiptIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.AddReceiptIDs(ids...)
 	return tuo
 }
 
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tuo *TransactionUpdateOne) SetNillableReceiptsID(id *string) *TransactionUpdateOne {
-	if id != nil {
-		tuo = tuo.SetReceiptsID(*id)
+// AddReceipts adds the "receipts" edges to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) AddReceipts(t ...*TransactionReceipt) *TransactionUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return tuo
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) SetReceipts(t *TransactionReceipt) *TransactionUpdateOne {
-	return tuo.SetReceiptsID(t.ID)
+	return tuo.AddReceiptIDs(ids...)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -462,10 +520,25 @@ func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	return tuo
 }
 
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
+// ClearReceipts clears all "receipts" edges to the TransactionReceipt entity.
 func (tuo *TransactionUpdateOne) ClearReceipts() *TransactionUpdateOne {
 	tuo.mutation.ClearReceipts()
 	return tuo
+}
+
+// RemoveReceiptIDs removes the "receipts" edge to TransactionReceipt entities by IDs.
+func (tuo *TransactionUpdateOne) RemoveReceiptIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.RemoveReceiptIDs(ids...)
+	return tuo
+}
+
+// RemoveReceipts removes "receipts" edges to TransactionReceipt entities.
+func (tuo *TransactionUpdateOne) RemoveReceipts(t ...*TransactionReceipt) *TransactionUpdateOne {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return tuo.RemoveReceiptIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -482,18 +555,12 @@ func (tuo *TransactionUpdateOne) Save(ctx context.Context) (*Transaction, error)
 		node *Transaction
 	)
 	if len(tuo.hooks) == 0 {
-		if err = tuo.check(); err != nil {
-			return nil, err
-		}
 		node, err = tuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TransactionMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tuo.check(); err != nil {
-				return nil, err
 			}
 			tuo.mutation = mutation
 			node, err = tuo.sqlSave(ctx)
@@ -533,16 +600,6 @@ func (tuo *TransactionUpdateOne) ExecX(ctx context.Context) {
 	if err := tuo.Exec(ctx); err != nil {
 		panic(err)
 	}
-}
-
-// check runs all checks and user-defined validators on the builder.
-func (tuo *TransactionUpdateOne) check() error {
-	if v, ok := tuo.mutation.GetType(); ok {
-		if err := transaction.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Transaction.type": %w`, err)}
-		}
-	}
-	return nil
 }
 
 func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transaction, err error) {
@@ -594,11 +651,10 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 			Column: transaction.FieldEntryPointSelector,
 		})
 	}
-	if value, ok := tuo.mutation.EntryPointType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+	if tuo.mutation.EntryPointSelectorCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
+			Column: transaction.FieldEntryPointSelector,
 		})
 	}
 	if value, ok := tuo.mutation.TransactionHash(); ok {
@@ -622,17 +678,22 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 			Column: transaction.FieldSignature,
 		})
 	}
-	if value, ok := tuo.mutation.GetType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: transaction.FieldType,
+	if tuo.mutation.SignatureCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: transaction.FieldSignature,
 		})
 	}
 	if value, ok := tuo.mutation.Nonce(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
+			Column: transaction.FieldNonce,
+		})
+	}
+	if tuo.mutation.NonceCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
 			Column: transaction.FieldNonce,
 		})
 	}
@@ -673,7 +734,7 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 	}
 	if tuo.mutation.ReceiptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -687,9 +748,28 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := tuo.mutation.RemovedReceiptsIDs(); len(nodes) > 0 && !tuo.mutation.ReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.ReceiptsTable,
+			Columns: []string{transaction.ReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transactionreceipt.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},

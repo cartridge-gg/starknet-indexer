@@ -4,18 +4,17 @@ package gql
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
-	rawmessage "github.com/tarrencev/starknet-indexer/ent/schema/json"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -196,391 +195,8 @@ func (ec *executionContext) field_Query_transactions_args(ctx context.Context, r
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _BuiltinInstanceCounter_pedersenBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PedersenBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BuiltinInstanceCounter_rangeCheckBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RangeCheckBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BuiltinInstanceCounter_bitwiseBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BitwiseBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BuiltinInstanceCounter_outputBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OutputBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BuiltinInstanceCounter_ecdsaBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EcdsaBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BuiltinInstanceCounter_ecOpBuiltin(ctx context.Context, field graphql.CollectedField, obj *schema.BuiltinInstanceCounter) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EcOpBuiltin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BuiltinInstanceCounter",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ExecutionResources_nSteps(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ExecutionResources_nSteps(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NSteps, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ExecutionResources_nSteps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ExecutionResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ExecutionResources_builtinInstanceCounter(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ExecutionResources_builtinInstanceCounter(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BuiltinInstanceCounter, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(schema.BuiltinInstanceCounter)
-	fc.Result = res
-	return ec.marshalOBuiltinInstanceCounter2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐBuiltinInstanceCounter(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ExecutionResources_builtinInstanceCounter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ExecutionResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "pedersenBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_pedersenBuiltin(ctx, field)
-			case "rangeCheckBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field)
-			case "bitwiseBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_bitwiseBuiltin(ctx, field)
-			case "outputBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_outputBuiltin(ctx, field)
-			case "ecdsaBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_ecdsaBuiltin(ctx, field)
-			case "ecOpBuiltin":
-				return ec.fieldContext_BuiltinInstanceCounter_ecOpBuiltin(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type BuiltinInstanceCounter", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ExecutionResources_nMemoryHoles(ctx context.Context, field graphql.CollectedField, obj *schema.ExecutionResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ExecutionResources_nMemoryHoles(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NMemoryHoles, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalOLong2uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ExecutionResources_nMemoryHoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ExecutionResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Long does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _L1ToL2ConsumedMessage_fromAddress(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_fromAddress(ctx, field)
+func (ec *executionContext) _Event_fromAddress(ctx context.Context, field graphql.CollectedField, obj *types.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_fromAddress(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -610,9 +226,9 @@ func (ec *executionContext) _L1ToL2ConsumedMessage_fromAddress(ctx context.Conte
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_fromAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Event_fromAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "L1ToL2ConsumedMessage",
+		Object:     "Event",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -623,8 +239,90 @@ func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_fromAddress(ctx c
 	return fc, nil
 }
 
-func (ec *executionContext) _L1ToL2ConsumedMessage_toAddress(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_toAddress(ctx, field)
+func (ec *executionContext) _Event_keys(ctx context.Context, field graphql.CollectedField, obj *types.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_keys(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Keys, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*types.Felt)
+	fc.Result = res
+	return ec.marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_keys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_values(ctx context.Context, field graphql.CollectedField, obj *types.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_values(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Values, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*types.Felt)
+	fc.Result = res
+	return ec.marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_values(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L1Message_toAddress(ctx context.Context, field graphql.CollectedField, obj *types.L1Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1Message_toAddress(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -654,9 +352,9 @@ func (ec *executionContext) _L1ToL2ConsumedMessage_toAddress(ctx context.Context
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_toAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_L1Message_toAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "L1ToL2ConsumedMessage",
+		Object:     "L1Message",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -667,52 +365,8 @@ func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_toAddress(ctx con
 	return fc, nil
 }
 
-func (ec *executionContext) _L1ToL2ConsumedMessage_selector(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_selector(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Selector, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_selector(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "L1ToL2ConsumedMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _L1ToL2ConsumedMessage_payload(ctx context.Context, field graphql.CollectedField, obj *schema.L1ToL2ConsumedMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_L1ToL2ConsumedMessage_payload(ctx, field)
+func (ec *executionContext) _L1Message_payload(ctx context.Context, field graphql.CollectedField, obj *types.L1Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L1Message_payload(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -734,19 +388,104 @@ func (ec *executionContext) _L1ToL2ConsumedMessage_payload(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*types.Felt)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_L1ToL2ConsumedMessage_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_L1Message_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "L1ToL2ConsumedMessage",
+		Object:     "L1Message",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L2Message_fromAddress(ctx context.Context, field graphql.CollectedField, obj *types.L2Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L2Message_fromAddress(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FromAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L2Message_fromAddress(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L2Message",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _L2Message_payload(ctx context.Context, field graphql.CollectedField, obj *types.L2Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_L2Message_payload(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payload, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*types.Felt)
+	fc.Result = res
+	return ec.marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_L2Message_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "L2Message",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1120,124 +859,19 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 
 // region    **************************** object.gotpl ****************************
 
-var builtinInstanceCounterImplementors = []string{"BuiltinInstanceCounter"}
+var eventImplementors = []string{"Event"}
 
-func (ec *executionContext) _BuiltinInstanceCounter(ctx context.Context, sel ast.SelectionSet, obj *schema.BuiltinInstanceCounter) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, builtinInstanceCounterImplementors)
+func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj *types.Event) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("BuiltinInstanceCounter")
-		case "pedersenBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_pedersenBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "rangeCheckBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_rangeCheckBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "bitwiseBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_bitwiseBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "outputBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_outputBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "ecdsaBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_ecdsaBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "ecOpBuiltin":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._BuiltinInstanceCounter_ecOpBuiltin(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var executionResourcesImplementors = []string{"ExecutionResources"}
-
-func (ec *executionContext) _ExecutionResources(ctx context.Context, sel ast.SelectionSet, obj *schema.ExecutionResources) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, executionResourcesImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ExecutionResources")
-		case "nSteps":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ExecutionResources_nSteps(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "builtinInstanceCounter":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ExecutionResources_builtinInstanceCounter(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "nMemoryHoles":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ExecutionResources_nMemoryHoles(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var l1ToL2ConsumedMessageImplementors = []string{"L1ToL2ConsumedMessage"}
-
-func (ec *executionContext) _L1ToL2ConsumedMessage(ctx context.Context, sel ast.SelectionSet, obj *schema.L1ToL2ConsumedMessage) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, l1ToL2ConsumedMessageImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("L1ToL2ConsumedMessage")
+			out.Values[i] = graphql.MarshalString("Event")
 		case "fromAddress":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._L1ToL2ConsumedMessage_fromAddress(ctx, field, obj)
+				return ec._Event_fromAddress(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -1245,19 +879,44 @@ func (ec *executionContext) _L1ToL2ConsumedMessage(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "keys":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_keys(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "values":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_values(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var l1MessageImplementors = []string{"L1Message"}
+
+func (ec *executionContext) _L1Message(ctx context.Context, sel ast.SelectionSet, obj *types.L1Message) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, l1MessageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("L1Message")
 		case "toAddress":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._L1ToL2ConsumedMessage_toAddress(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "selector":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._L1ToL2ConsumedMessage_selector(ctx, field, obj)
+				return ec._L1Message_toAddress(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -1267,7 +926,45 @@ func (ec *executionContext) _L1ToL2ConsumedMessage(ctx context.Context, sel ast.
 			}
 		case "payload":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._L1ToL2ConsumedMessage_payload(ctx, field, obj)
+				return ec._L1Message_payload(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var l2MessageImplementors = []string{"L2Message"}
+
+func (ec *executionContext) _L2Message(ctx context.Context, sel ast.SelectionSet, obj *types.L2Message) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, l2MessageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("L2Message")
+		case "fromAddress":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L2Message_fromAddress(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "payload":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._L2Message_payload(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -1414,33 +1111,66 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNExecutionResources2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐExecutionResources(ctx context.Context, sel ast.SelectionSet, v schema.ExecutionResources) graphql.Marshaler {
-	return ec._ExecutionResources(ctx, sel, &v)
+func (ec *executionContext) marshalNEvent2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx context.Context, sel ast.SelectionSet, v types.Event) graphql.Marshaler {
+	return ec._Event(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx context.Context, v interface{}) (json.RawMessage, error) {
-	res, err := rawmessage.UnmarshalRawMessage(v)
+func (ec *executionContext) unmarshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) (*types.Felt, error) {
+	var res = new(types.Felt)
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNJSON2encodingᚋjsonᚐRawMessage(ctx context.Context, sel ast.SelectionSet, v json.RawMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, sel ast.SelectionSet, v *types.Felt) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	res := rawmessage.MarshalRawMessage(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
-func (ec *executionContext) marshalNL1ToL2ConsumedMessage2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐL1ToL2ConsumedMessage(ctx context.Context, sel ast.SelectionSet, v schema.L1ToL2ConsumedMessage) graphql.Marshaler {
-	return ec._L1ToL2ConsumedMessage(ctx, sel, &v)
+func (ec *executionContext) marshalNL1Message2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v []types.L1Message) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOL1Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNL2Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL2Message(ctx context.Context, sel ast.SelectionSet, v types.L2Message) graphql.Marshaler {
+	return ec._L2Message(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNLong2uint64(ctx context.Context, v interface{}) (uint64, error) {
@@ -1494,18 +1224,93 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) marshalOBuiltinInstanceCounter2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚋschemaᚐBuiltinInstanceCounter(ctx context.Context, sel ast.SelectionSet, v schema.BuiltinInstanceCounter) graphql.Marshaler {
-	return ec._BuiltinInstanceCounter(ctx, sel, &v)
+func (ec *executionContext) marshalOEvent2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []types.Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEvent2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
-func (ec *executionContext) unmarshalOLong2uint64(ctx context.Context, v interface{}) (uint64, error) {
-	res, err := graphql.UnmarshalUint64(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx context.Context, v interface{}) ([]*types.Felt, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*types.Felt, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
-func (ec *executionContext) marshalOLong2uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
-	res := graphql.MarshalUint64(v)
-	return res
+func (ec *executionContext) marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Felt) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOL1Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v types.L1Message) graphql.Marshaler {
+	return ec._L1Message(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalOLong2ᚕuint64ᚄ(ctx context.Context, v interface{}) ([]uint64, error) {

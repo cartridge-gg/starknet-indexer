@@ -33,9 +33,11 @@ func (tc *TransactionCreate) SetEntryPointSelector(s string) *TransactionCreate 
 	return tc
 }
 
-// SetEntryPointType sets the "entry_point_type" field.
-func (tc *TransactionCreate) SetEntryPointType(s string) *TransactionCreate {
-	tc.mutation.SetEntryPointType(s)
+// SetNillableEntryPointSelector sets the "entry_point_selector" field if the given value is not nil.
+func (tc *TransactionCreate) SetNillableEntryPointSelector(s *string) *TransactionCreate {
+	if s != nil {
+		tc.SetEntryPointSelector(*s)
+	}
 	return tc
 }
 
@@ -57,15 +59,17 @@ func (tc *TransactionCreate) SetSignature(s []string) *TransactionCreate {
 	return tc
 }
 
-// SetType sets the "type" field.
-func (tc *TransactionCreate) SetType(t transaction.Type) *TransactionCreate {
-	tc.mutation.SetType(t)
-	return tc
-}
-
 // SetNonce sets the "nonce" field.
 func (tc *TransactionCreate) SetNonce(s string) *TransactionCreate {
 	tc.mutation.SetNonce(s)
+	return tc
+}
+
+// SetNillableNonce sets the "nonce" field if the given value is not nil.
+func (tc *TransactionCreate) SetNillableNonce(s *string) *TransactionCreate {
+	if s != nil {
+		tc.SetNonce(*s)
+	}
 	return tc
 }
 
@@ -94,23 +98,19 @@ func (tc *TransactionCreate) SetBlock(b *Block) *TransactionCreate {
 	return tc.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tc *TransactionCreate) SetReceiptsID(id string) *TransactionCreate {
-	tc.mutation.SetReceiptsID(id)
+// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by IDs.
+func (tc *TransactionCreate) AddReceiptIDs(ids ...string) *TransactionCreate {
+	tc.mutation.AddReceiptIDs(ids...)
 	return tc
 }
 
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tc *TransactionCreate) SetNillableReceiptsID(id *string) *TransactionCreate {
-	if id != nil {
-		tc = tc.SetReceiptsID(*id)
+// AddReceipts adds the "receipts" edges to the TransactionReceipt entity.
+func (tc *TransactionCreate) AddReceipts(t ...*TransactionReceipt) *TransactionCreate {
+	ids := make([]string, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return tc
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tc *TransactionCreate) SetReceipts(t *TransactionReceipt) *TransactionCreate {
-	return tc.SetReceiptsID(t.ID)
+	return tc.AddReceiptIDs(ids...)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -186,31 +186,11 @@ func (tc *TransactionCreate) check() error {
 	if _, ok := tc.mutation.ContractAddress(); !ok {
 		return &ValidationError{Name: "contract_address", err: errors.New(`ent: missing required field "Transaction.contract_address"`)}
 	}
-	if _, ok := tc.mutation.EntryPointSelector(); !ok {
-		return &ValidationError{Name: "entry_point_selector", err: errors.New(`ent: missing required field "Transaction.entry_point_selector"`)}
-	}
-	if _, ok := tc.mutation.EntryPointType(); !ok {
-		return &ValidationError{Name: "entry_point_type", err: errors.New(`ent: missing required field "Transaction.entry_point_type"`)}
-	}
 	if _, ok := tc.mutation.TransactionHash(); !ok {
 		return &ValidationError{Name: "transaction_hash", err: errors.New(`ent: missing required field "Transaction.transaction_hash"`)}
 	}
 	if _, ok := tc.mutation.Calldata(); !ok {
 		return &ValidationError{Name: "calldata", err: errors.New(`ent: missing required field "Transaction.calldata"`)}
-	}
-	if _, ok := tc.mutation.Signature(); !ok {
-		return &ValidationError{Name: "signature", err: errors.New(`ent: missing required field "Transaction.signature"`)}
-	}
-	if _, ok := tc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Transaction.type"`)}
-	}
-	if v, ok := tc.mutation.GetType(); ok {
-		if err := transaction.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Transaction.type": %w`, err)}
-		}
-	}
-	if _, ok := tc.mutation.Nonce(); !ok {
-		return &ValidationError{Name: "nonce", err: errors.New(`ent: missing required field "Transaction.nonce"`)}
 	}
 	return nil
 }
@@ -264,14 +244,6 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 		})
 		_node.EntryPointSelector = value
 	}
-	if value, ok := tc.mutation.EntryPointType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
-		})
-		_node.EntryPointType = value
-	}
 	if value, ok := tc.mutation.TransactionHash(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -295,14 +267,6 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 			Column: transaction.FieldSignature,
 		})
 		_node.Signature = value
-	}
-	if value, ok := tc.mutation.GetType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: transaction.FieldType,
-		})
-		_node.Type = value
 	}
 	if value, ok := tc.mutation.Nonce(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -334,7 +298,7 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 	}
 	if nodes := tc.mutation.ReceiptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},

@@ -5,7 +5,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/alecthomas/kong"
-	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
 	indexer "github.com/tarrencev/starknet-indexer"
@@ -32,7 +32,7 @@ func main() {
 		Contracts: []indexer.Contract{{
 			Address:    "0x",
 			StartBlock: 1000,
-			Handler: func(caigo.Transaction, caigo.TransactionReceipt) error {
+			Handler: func(types.Transaction) error {
 				// handle transaction
 				return nil
 			},

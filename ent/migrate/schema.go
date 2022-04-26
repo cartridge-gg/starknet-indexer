@@ -28,13 +28,11 @@ var (
 	TransactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "contract_address", Type: field.TypeString},
-		{Name: "entry_point_selector", Type: field.TypeString},
-		{Name: "entry_point_type", Type: field.TypeString},
+		{Name: "entry_point_selector", Type: field.TypeString, Nullable: true},
 		{Name: "transaction_hash", Type: field.TypeString},
 		{Name: "calldata", Type: field.TypeJSON},
-		{Name: "signature", Type: field.TypeJSON},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"INVOKE_FUNCTION", "DEPLOY"}},
-		{Name: "nonce", Type: field.TypeString},
+		{Name: "signature", Type: field.TypeJSON, Nullable: true},
+		{Name: "nonce", Type: field.TypeString, Nullable: true},
 		{Name: "block_transactions", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionsTable holds the schema information for the "transactions" table.
@@ -45,7 +43,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "transactions_blocks_transactions",
-				Columns:    []*schema.Column{TransactionsColumns[9]},
+				Columns:    []*schema.Column{TransactionsColumns[7]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -54,14 +52,14 @@ var (
 	// TransactionReceiptsColumns holds the columns for the "transaction_receipts" table.
 	TransactionReceiptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "transaction_index", Type: field.TypeInt32},
 		{Name: "transaction_hash", Type: field.TypeString},
-		{Name: "l1_to_l2_consumed_message", Type: field.TypeJSON},
-		{Name: "execution_resources", Type: field.TypeJSON},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1", "REJECTED"}},
+		{Name: "status_data", Type: field.TypeString},
+		{Name: "messages_sent", Type: field.TypeJSON},
+		{Name: "l1_origin_message", Type: field.TypeJSON},
 		{Name: "events", Type: field.TypeJSON},
-		{Name: "l2_to_l1_messages", Type: field.TypeJSON},
 		{Name: "block_transaction_receipts", Type: field.TypeString, Nullable: true},
-		{Name: "transaction_receipts", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "transaction_receipts", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionReceiptsTable holds the schema information for the "transaction_receipts" table.
 	TransactionReceiptsTable = &schema.Table{
