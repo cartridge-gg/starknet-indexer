@@ -1762,9 +1762,9 @@ func (ec *executionContext) _TransactionReceipt_l1OriginMessage(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(types.L2Message)
+	res := resTmp.(*types.L2Message)
 	fc.Result = res
-	return ec.marshalNL2Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL2Message(ctx, field.Selections, res)
+	return ec.marshalNL2Message2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL2Message(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TransactionReceipt_l1OriginMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1934,9 +1934,9 @@ func (ec *executionContext) _TransactionReceipt_messagesSent(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]types.L1Message)
+	res := resTmp.([]*types.L1Message)
 	fc.Result = res
-	return ec.marshalNL1Message2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx, field.Selections, res)
+	return ec.marshalNL1Message2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TransactionReceipt_messagesSent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1981,9 +1981,9 @@ func (ec *executionContext) _TransactionReceipt_events(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]types.Event)
+	res := resTmp.([]*types.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TransactionReceipt_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {

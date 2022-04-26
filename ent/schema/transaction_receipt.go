@@ -26,11 +26,11 @@ func (TransactionReceipt) Fields() []ent.Field {
 			"ACCEPTED_ON_L1",
 			"REJECTED"),
 		field.String("status_data"),
-		field.JSON("messages_sent", []types.L1Message{}).Annotations(
+		field.JSON("messages_sent", []*types.L1Message{}).Annotations(
 			entgql.Skip(),
 		),
-		field.JSON("l1_origin_message", types.L2Message{}),
-		field.JSON("events", []types.Event{}).Annotations(
+		field.JSON("l1_origin_message", &types.L2Message{}),
+		field.JSON("events", []*types.Event{}).Annotations(
 			entgql.Skip(),
 		),
 	}

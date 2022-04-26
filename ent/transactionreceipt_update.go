@@ -49,19 +49,19 @@ func (tru *TransactionReceiptUpdate) SetStatusData(s string) *TransactionReceipt
 }
 
 // SetMessagesSent sets the "messages_sent" field.
-func (tru *TransactionReceiptUpdate) SetMessagesSent(t []types.L1Message) *TransactionReceiptUpdate {
+func (tru *TransactionReceiptUpdate) SetMessagesSent(t []*types.L1Message) *TransactionReceiptUpdate {
 	tru.mutation.SetMessagesSent(t)
 	return tru
 }
 
 // SetL1OriginMessage sets the "l1_origin_message" field.
-func (tru *TransactionReceiptUpdate) SetL1OriginMessage(t types.L2Message) *TransactionReceiptUpdate {
+func (tru *TransactionReceiptUpdate) SetL1OriginMessage(t *types.L2Message) *TransactionReceiptUpdate {
 	tru.mutation.SetL1OriginMessage(t)
 	return tru
 }
 
 // SetEvents sets the "events" field.
-func (tru *TransactionReceiptUpdate) SetEvents(t []types.Event) *TransactionReceiptUpdate {
+func (tru *TransactionReceiptUpdate) SetEvents(t []*types.Event) *TransactionReceiptUpdate {
 	tru.mutation.SetEvents(t)
 	return tru
 }
@@ -359,19 +359,19 @@ func (truo *TransactionReceiptUpdateOne) SetStatusData(s string) *TransactionRec
 }
 
 // SetMessagesSent sets the "messages_sent" field.
-func (truo *TransactionReceiptUpdateOne) SetMessagesSent(t []types.L1Message) *TransactionReceiptUpdateOne {
+func (truo *TransactionReceiptUpdateOne) SetMessagesSent(t []*types.L1Message) *TransactionReceiptUpdateOne {
 	truo.mutation.SetMessagesSent(t)
 	return truo
 }
 
 // SetL1OriginMessage sets the "l1_origin_message" field.
-func (truo *TransactionReceiptUpdateOne) SetL1OriginMessage(t types.L2Message) *TransactionReceiptUpdateOne {
+func (truo *TransactionReceiptUpdateOne) SetL1OriginMessage(t *types.L2Message) *TransactionReceiptUpdateOne {
 	truo.mutation.SetL1OriginMessage(t)
 	return truo
 }
 
 // SetEvents sets the "events" field.
-func (truo *TransactionReceiptUpdateOne) SetEvents(t []types.Event) *TransactionReceiptUpdateOne {
+func (truo *TransactionReceiptUpdateOne) SetEvents(t []*types.Event) *TransactionReceiptUpdateOne {
 	truo.mutation.SetEvents(t)
 	return truo
 }

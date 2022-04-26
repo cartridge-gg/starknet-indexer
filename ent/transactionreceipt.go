@@ -26,11 +26,11 @@ type TransactionReceipt struct {
 	// StatusData holds the value of the "status_data" field.
 	StatusData string `json:"status_data,omitempty"`
 	// MessagesSent holds the value of the "messages_sent" field.
-	MessagesSent []types.L1Message `json:"messages_sent,omitempty"`
+	MessagesSent []*types.L1Message `json:"messages_sent,omitempty"`
 	// L1OriginMessage holds the value of the "l1_origin_message" field.
-	L1OriginMessage types.L2Message `json:"l1_origin_message,omitempty"`
+	L1OriginMessage *types.L2Message `json:"l1_origin_message,omitempty"`
 	// Events holds the value of the "events" field.
-	Events []types.Event `json:"events,omitempty"`
+	Events []*types.Event `json:"events,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TransactionReceiptQuery when eager-loading is set.
 	Edges                      TransactionReceiptEdges `json:"edges"`

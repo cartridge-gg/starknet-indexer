@@ -236,7 +236,7 @@ func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) 
 		return nil, err
 	}
 	node.Fields[3] = &Field{
-		Type:  "types.L2Message",
+		Type:  "*types.L2Message",
 		Name:  "l1_origin_message",
 		Value: string(buf),
 	}

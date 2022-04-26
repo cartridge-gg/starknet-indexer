@@ -7,7 +7,7 @@ require (
 	entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd
 	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
 	github.com/alecthomas/kong v0.2.11
-	github.com/dontpanicdao/caigo v0.2.1-0.20220420142156-b05c26eb481e
+	github.com/dontpanicdao/caigo v0.2.1-0.20220426164541-87056ea3b43b
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
@@ -54,5 +54,3 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace github.com/dontpanicdao/caigo => ../caigo

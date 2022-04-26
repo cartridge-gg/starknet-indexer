@@ -1639,9 +1639,9 @@ type TransactionReceiptMutation struct {
 	transaction_hash   *string
 	status             *transactionreceipt.Status
 	status_data        *string
-	messages_sent      *[]types.L1Message
-	l1_origin_message  *types.L2Message
-	events             *[]types.Event
+	messages_sent      *[]*types.L1Message
+	l1_origin_message  **types.L2Message
+	events             *[]*types.Event
 	clearedFields      map[string]struct{}
 	block              *string
 	clearedblock       bool
@@ -1865,12 +1865,12 @@ func (m *TransactionReceiptMutation) ResetStatusData() {
 }
 
 // SetMessagesSent sets the "messages_sent" field.
-func (m *TransactionReceiptMutation) SetMessagesSent(t []types.L1Message) {
+func (m *TransactionReceiptMutation) SetMessagesSent(t []*types.L1Message) {
 	m.messages_sent = &t
 }
 
 // MessagesSent returns the value of the "messages_sent" field in the mutation.
-func (m *TransactionReceiptMutation) MessagesSent() (r []types.L1Message, exists bool) {
+func (m *TransactionReceiptMutation) MessagesSent() (r []*types.L1Message, exists bool) {
 	v := m.messages_sent
 	if v == nil {
 		return
@@ -1881,7 +1881,7 @@ func (m *TransactionReceiptMutation) MessagesSent() (r []types.L1Message, exists
 // OldMessagesSent returns the old "messages_sent" field's value of the TransactionReceipt entity.
 // If the TransactionReceipt object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionReceiptMutation) OldMessagesSent(ctx context.Context) (v []types.L1Message, err error) {
+func (m *TransactionReceiptMutation) OldMessagesSent(ctx context.Context) (v []*types.L1Message, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMessagesSent is only allowed on UpdateOne operations")
 	}
@@ -1901,12 +1901,12 @@ func (m *TransactionReceiptMutation) ResetMessagesSent() {
 }
 
 // SetL1OriginMessage sets the "l1_origin_message" field.
-func (m *TransactionReceiptMutation) SetL1OriginMessage(t types.L2Message) {
+func (m *TransactionReceiptMutation) SetL1OriginMessage(t *types.L2Message) {
 	m.l1_origin_message = &t
 }
 
 // L1OriginMessage returns the value of the "l1_origin_message" field in the mutation.
-func (m *TransactionReceiptMutation) L1OriginMessage() (r types.L2Message, exists bool) {
+func (m *TransactionReceiptMutation) L1OriginMessage() (r *types.L2Message, exists bool) {
 	v := m.l1_origin_message
 	if v == nil {
 		return
@@ -1917,7 +1917,7 @@ func (m *TransactionReceiptMutation) L1OriginMessage() (r types.L2Message, exist
 // OldL1OriginMessage returns the old "l1_origin_message" field's value of the TransactionReceipt entity.
 // If the TransactionReceipt object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionReceiptMutation) OldL1OriginMessage(ctx context.Context) (v types.L2Message, err error) {
+func (m *TransactionReceiptMutation) OldL1OriginMessage(ctx context.Context) (v *types.L2Message, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldL1OriginMessage is only allowed on UpdateOne operations")
 	}
@@ -1937,12 +1937,12 @@ func (m *TransactionReceiptMutation) ResetL1OriginMessage() {
 }
 
 // SetEvents sets the "events" field.
-func (m *TransactionReceiptMutation) SetEvents(t []types.Event) {
+func (m *TransactionReceiptMutation) SetEvents(t []*types.Event) {
 	m.events = &t
 }
 
 // Events returns the value of the "events" field in the mutation.
-func (m *TransactionReceiptMutation) Events() (r []types.Event, exists bool) {
+func (m *TransactionReceiptMutation) Events() (r []*types.Event, exists bool) {
 	v := m.events
 	if v == nil {
 		return
@@ -1953,7 +1953,7 @@ func (m *TransactionReceiptMutation) Events() (r []types.Event, exists bool) {
 // OldEvents returns the old "events" field's value of the TransactionReceipt entity.
 // If the TransactionReceipt object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionReceiptMutation) OldEvents(ctx context.Context) (v []types.Event, err error) {
+func (m *TransactionReceiptMutation) OldEvents(ctx context.Context) (v []*types.Event, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEvents is only allowed on UpdateOne operations")
 	}
@@ -2160,21 +2160,21 @@ func (m *TransactionReceiptMutation) SetField(name string, value ent.Value) erro
 		m.SetStatusData(v)
 		return nil
 	case transactionreceipt.FieldMessagesSent:
-		v, ok := value.([]types.L1Message)
+		v, ok := value.([]*types.L1Message)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMessagesSent(v)
 		return nil
 	case transactionreceipt.FieldL1OriginMessage:
-		v, ok := value.(types.L2Message)
+		v, ok := value.(*types.L2Message)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetL1OriginMessage(v)
 		return nil
 	case transactionreceipt.FieldEvents:
-		v, ok := value.([]types.Event)
+		v, ok := value.([]*types.Event)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -41,19 +41,19 @@ func (trc *TransactionReceiptCreate) SetStatusData(s string) *TransactionReceipt
 }
 
 // SetMessagesSent sets the "messages_sent" field.
-func (trc *TransactionReceiptCreate) SetMessagesSent(t []types.L1Message) *TransactionReceiptCreate {
+func (trc *TransactionReceiptCreate) SetMessagesSent(t []*types.L1Message) *TransactionReceiptCreate {
 	trc.mutation.SetMessagesSent(t)
 	return trc
 }
 
 // SetL1OriginMessage sets the "l1_origin_message" field.
-func (trc *TransactionReceiptCreate) SetL1OriginMessage(t types.L2Message) *TransactionReceiptCreate {
+func (trc *TransactionReceiptCreate) SetL1OriginMessage(t *types.L2Message) *TransactionReceiptCreate {
 	trc.mutation.SetL1OriginMessage(t)
 	return trc
 }
 
 // SetEvents sets the "events" field.
-func (trc *TransactionReceiptCreate) SetEvents(t []types.Event) *TransactionReceiptCreate {
+func (trc *TransactionReceiptCreate) SetEvents(t []*types.Event) *TransactionReceiptCreate {
 	trc.mutation.SetEvents(t)
 	return trc
 }

@@ -1111,8 +1111,14 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNEvent2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx context.Context, sel ast.SelectionSet, v types.Event) graphql.Marshaler {
-	return ec._Event(ctx, sel, &v)
+func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx context.Context, sel ast.SelectionSet, v *types.Event) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Event(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) (*types.Felt, error) {
@@ -1131,7 +1137,7 @@ func (ec *executionContext) marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigo�
 	return v
 }
 
-func (ec *executionContext) marshalNL1Message2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v []types.L1Message) graphql.Marshaler {
+func (ec *executionContext) marshalNL1Message2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v []*types.L1Message) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -1155,7 +1161,7 @@ func (ec *executionContext) marshalNL1Message2ᚕgithubᚗcomᚋdontpanicdaoᚋc
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOL1Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx, sel, v[i])
+			ret[i] = ec.marshalOL1Message2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -1169,8 +1175,14 @@ func (ec *executionContext) marshalNL1Message2ᚕgithubᚗcomᚋdontpanicdaoᚋc
 	return ret
 }
 
-func (ec *executionContext) marshalNL2Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL2Message(ctx context.Context, sel ast.SelectionSet, v types.L2Message) graphql.Marshaler {
-	return ec._L2Message(ctx, sel, &v)
+func (ec *executionContext) marshalNL2Message2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL2Message(ctx context.Context, sel ast.SelectionSet, v *types.L2Message) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._L2Message(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLong2uint64(ctx context.Context, v interface{}) (uint64, error) {
@@ -1224,7 +1236,7 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) marshalOEvent2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []types.Event) graphql.Marshaler {
+func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -1251,7 +1263,7 @@ func (ec *executionContext) marshalOEvent2ᚕgithubᚗcomᚋdontpanicdaoᚋcaigo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEvent2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx, sel, v[i])
+			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEvent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -1309,8 +1321,11 @@ func (ec *executionContext) marshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcai
 	return ret
 }
 
-func (ec *executionContext) marshalOL1Message2githubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v types.L1Message) graphql.Marshaler {
-	return ec._L1Message(ctx, sel, &v)
+func (ec *executionContext) marshalOL1Message2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐL1Message(ctx context.Context, sel ast.SelectionSet, v *types.L1Message) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._L1Message(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOLong2ᚕuint64ᚄ(ctx context.Context, v interface{}) ([]uint64, error) {
