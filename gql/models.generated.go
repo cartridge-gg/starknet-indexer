@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
@@ -149,6 +148,9 @@ type TransactionReceiptWhereInput struct {
 	// block edge predicates
 	HasBlock     *bool              `json:"hasBlock"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith"`
+	// transaction edge predicates
+	HasTransaction     *bool                    `json:"hasTransaction"`
+	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith"`
 }
 
 // TransactionWhereInput is used for filtering Transaction objects.
@@ -183,6 +185,8 @@ type TransactionWhereInput struct {
 	EntryPointSelectorContains     *string  `json:"entryPointSelectorContains"`
 	EntryPointSelectorHasPrefix    *string  `json:"entryPointSelectorHasPrefix"`
 	EntryPointSelectorHasSuffix    *string  `json:"entryPointSelectorHasSuffix"`
+	EntryPointSelectorIsNil        *bool    `json:"entryPointSelectorIsNil"`
+	EntryPointSelectorNotNil       *bool    `json:"entryPointSelectorNotNil"`
 	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold"`
 	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold"`
 	// transaction_hash field predicates
@@ -199,11 +203,6 @@ type TransactionWhereInput struct {
 	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix"`
 	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold"`
 	TransactionHashContainsFold *string  `json:"transactionHashContainsFold"`
-	// type field predicates
-	Type      *transaction.Type  `json:"type"`
-	TypeNeq   *transaction.Type  `json:"typeNEQ"`
-	TypeIn    []transaction.Type `json:"typeIn"`
-	TypeNotIn []transaction.Type `json:"typeNotIn"`
 	// nonce field predicates
 	Nonce             *string  `json:"nonce"`
 	NonceNeq          *string  `json:"nonceNEQ"`
@@ -216,6 +215,8 @@ type TransactionWhereInput struct {
 	NonceContains     *string  `json:"nonceContains"`
 	NonceHasPrefix    *string  `json:"nonceHasPrefix"`
 	NonceHasSuffix    *string  `json:"nonceHasSuffix"`
+	NonceIsNil        *bool    `json:"nonceIsNil"`
+	NonceNotNil       *bool    `json:"nonceNotNil"`
 	NonceEqualFold    *string  `json:"nonceEqualFold"`
 	NonceContainsFold *string  `json:"nonceContainsFold"`
 	// id field predicates
@@ -230,4 +231,7 @@ type TransactionWhereInput struct {
 	// block edge predicates
 	HasBlock     *bool              `json:"hasBlock"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith"`
+	// receipts edge predicates
+	HasReceipts     *bool                           `json:"hasReceipts"`
+	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith"`
 }

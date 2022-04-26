@@ -174,10 +174,10 @@ type Transaction implements Node {
   entryPointSelector: String!
   transactionHash: String!
   calldata: [String!]!
-  signature: [String!]!
-  type: Type!
+  signature: [String!]
   nonce: String!
   block: Block
+  receipts: [TransactionReceipt!]
 }
 """A connection to a list of items."""
 type TransactionConnection {
@@ -208,6 +208,7 @@ type TransactionReceipt implements Node {
   statusData: String!
   l1OriginMessage: L2Message!
   block: Block
+  transaction: Transaction
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -277,6 +278,9 @@ input TransactionReceiptWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
+  """transaction edge predicates"""
+  hasTransaction: Boolean
+  hasTransactionWith: [TransactionWhereInput!]
 }
 """
 TransactionWhereInput is used for filtering Transaction objects.
@@ -312,6 +316,8 @@ input TransactionWhereInput {
   entryPointSelectorContains: String
   entryPointSelectorHasPrefix: String
   entryPointSelectorHasSuffix: String
+  entryPointSelectorIsNil: Boolean
+  entryPointSelectorNotNil: Boolean
   entryPointSelectorEqualFold: String
   entryPointSelectorContainsFold: String
   """transaction_hash field predicates"""
@@ -328,11 +334,6 @@ input TransactionWhereInput {
   transactionHashHasSuffix: String
   transactionHashEqualFold: String
   transactionHashContainsFold: String
-  """type field predicates"""
-  type: Type
-  typeNEQ: Type
-  typeIn: [Type!]
-  typeNotIn: [Type!]
   """nonce field predicates"""
   nonce: String
   nonceNEQ: String
@@ -345,6 +346,8 @@ input TransactionWhereInput {
   nonceContains: String
   nonceHasPrefix: String
   nonceHasSuffix: String
+  nonceIsNil: Boolean
+  nonceNotNil: Boolean
   nonceEqualFold: String
   nonceContainsFold: String
   """id field predicates"""
@@ -359,9 +362,7 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-}
-"""Type is enum for the field type"""
-enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transaction.Type") {
-  INVOKE_FUNCTION
-  DEPLOY
+  """receipts edge predicates"""
+  hasReceipts: Boolean
+  hasReceiptsWith: [TransactionReceiptWhereInput!]
 }

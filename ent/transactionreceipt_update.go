@@ -13,6 +13,7 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
+	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
@@ -84,6 +85,25 @@ func (tru *TransactionReceiptUpdate) SetBlock(b *Block) *TransactionReceiptUpdat
 	return tru.SetBlockID(b.ID)
 }
 
+// SetTransactionID sets the "transaction" edge to the Transaction entity by ID.
+func (tru *TransactionReceiptUpdate) SetTransactionID(id string) *TransactionReceiptUpdate {
+	tru.mutation.SetTransactionID(id)
+	return tru
+}
+
+// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
+func (tru *TransactionReceiptUpdate) SetNillableTransactionID(id *string) *TransactionReceiptUpdate {
+	if id != nil {
+		tru = tru.SetTransactionID(*id)
+	}
+	return tru
+}
+
+// SetTransaction sets the "transaction" edge to the Transaction entity.
+func (tru *TransactionReceiptUpdate) SetTransaction(t *Transaction) *TransactionReceiptUpdate {
+	return tru.SetTransactionID(t.ID)
+}
+
 // Mutation returns the TransactionReceiptMutation object of the builder.
 func (tru *TransactionReceiptUpdate) Mutation() *TransactionReceiptMutation {
 	return tru.mutation
@@ -92,6 +112,12 @@ func (tru *TransactionReceiptUpdate) Mutation() *TransactionReceiptMutation {
 // ClearBlock clears the "block" edge to the Block entity.
 func (tru *TransactionReceiptUpdate) ClearBlock() *TransactionReceiptUpdate {
 	tru.mutation.ClearBlock()
+	return tru
+}
+
+// ClearTransaction clears the "transaction" edge to the Transaction entity.
+func (tru *TransactionReceiptUpdate) ClearTransaction() *TransactionReceiptUpdate {
+	tru.mutation.ClearTransaction()
 	return tru
 }
 
@@ -260,6 +286,41 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tru.mutation.TransactionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   transactionreceipt.TransactionTable,
+			Columns: []string{transactionreceipt.TransactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tru.mutation.TransactionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   transactionreceipt.TransactionTable,
+			Columns: []string{transactionreceipt.TransactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{transactionreceipt.Label}
@@ -334,6 +395,25 @@ func (truo *TransactionReceiptUpdateOne) SetBlock(b *Block) *TransactionReceiptU
 	return truo.SetBlockID(b.ID)
 }
 
+// SetTransactionID sets the "transaction" edge to the Transaction entity by ID.
+func (truo *TransactionReceiptUpdateOne) SetTransactionID(id string) *TransactionReceiptUpdateOne {
+	truo.mutation.SetTransactionID(id)
+	return truo
+}
+
+// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
+func (truo *TransactionReceiptUpdateOne) SetNillableTransactionID(id *string) *TransactionReceiptUpdateOne {
+	if id != nil {
+		truo = truo.SetTransactionID(*id)
+	}
+	return truo
+}
+
+// SetTransaction sets the "transaction" edge to the Transaction entity.
+func (truo *TransactionReceiptUpdateOne) SetTransaction(t *Transaction) *TransactionReceiptUpdateOne {
+	return truo.SetTransactionID(t.ID)
+}
+
 // Mutation returns the TransactionReceiptMutation object of the builder.
 func (truo *TransactionReceiptUpdateOne) Mutation() *TransactionReceiptMutation {
 	return truo.mutation
@@ -342,6 +422,12 @@ func (truo *TransactionReceiptUpdateOne) Mutation() *TransactionReceiptMutation 
 // ClearBlock clears the "block" edge to the Block entity.
 func (truo *TransactionReceiptUpdateOne) ClearBlock() *TransactionReceiptUpdateOne {
 	truo.mutation.ClearBlock()
+	return truo
+}
+
+// ClearTransaction clears the "transaction" edge to the Transaction entity.
+func (truo *TransactionReceiptUpdateOne) ClearTransaction() *TransactionReceiptUpdateOne {
+	truo.mutation.ClearTransaction()
 	return truo
 }
 
@@ -526,6 +612,41 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if truo.mutation.TransactionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   transactionreceipt.TransactionTable,
+			Columns: []string{transactionreceipt.TransactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := truo.mutation.TransactionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   transactionreceipt.TransactionTable,
+			Columns: []string{transactionreceipt.TransactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: transaction.FieldID,
 				},
 			},
 		}

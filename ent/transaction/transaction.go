@@ -2,12 +2,6 @@
 
 package transaction
 
-import (
-	"fmt"
-	"io"
-	"strconv"
-)
-
 const (
 	// Label holds the string label denoting the transaction type in the database.
 	Label = "transaction"
@@ -23,12 +17,12 @@ const (
 	FieldCalldata = "calldata"
 	// FieldSignature holds the string denoting the signature field in the database.
 	FieldSignature = "signature"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
 	// FieldNonce holds the string denoting the nonce field in the database.
 	FieldNonce = "nonce"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
+	// EdgeReceipts holds the string denoting the receipts edge name in mutations.
+	EdgeReceipts = "receipts"
 	// Table holds the table name of the transaction in the database.
 	Table = "transactions"
 	// BlockTable is the table that holds the block relation/edge.
@@ -38,6 +32,13 @@ const (
 	BlockInverseTable = "blocks"
 	// BlockColumn is the table column denoting the block relation/edge.
 	BlockColumn = "block_transactions"
+	// ReceiptsTable is the table that holds the receipts relation/edge.
+	ReceiptsTable = "transaction_receipts"
+	// ReceiptsInverseTable is the table name for the TransactionReceipt entity.
+	// It exists in this package in order to avoid circular dependency with the "transactionreceipt" package.
+	ReceiptsInverseTable = "transaction_receipts"
+	// ReceiptsColumn is the table column denoting the receipts relation/edge.
+	ReceiptsColumn = "transaction_receipts"
 )
 
 // Columns holds all SQL columns for transaction fields.
@@ -48,7 +49,6 @@ var Columns = []string{
 	FieldTransactionHash,
 	FieldCalldata,
 	FieldSignature,
-	FieldType,
 	FieldNonce,
 }
 
@@ -71,45 +71,4 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
-}
-
-// Type defines the type for the "type" enum field.
-type Type string
-
-// Type values.
-const (
-	TypeINVOKE_FUNCTION Type = "INVOKE_FUNCTION"
-	TypeDEPLOY          Type = "DEPLOY"
-)
-
-func (_type Type) String() string {
-	return string(_type)
-}
-
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeINVOKE_FUNCTION, TypeDEPLOY:
-		return nil
-	default:
-		return fmt.Errorf("transaction: invalid enum value for type field: %q", _type)
-	}
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (e Type) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(e.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *Type) UnmarshalGQL(val interface{}) error {
-	str, ok := val.(string)
-	if !ok {
-		return fmt.Errorf("enum %T must be a string", val)
-	}
-	*e = Type(str)
-	if err := TypeValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid Type", str)
-	}
-	return nil
 }

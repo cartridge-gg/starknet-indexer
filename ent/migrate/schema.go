@@ -28,12 +28,11 @@ var (
 	TransactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "contract_address", Type: field.TypeString},
-		{Name: "entry_point_selector", Type: field.TypeString},
+		{Name: "entry_point_selector", Type: field.TypeString, Nullable: true},
 		{Name: "transaction_hash", Type: field.TypeString},
 		{Name: "calldata", Type: field.TypeJSON},
-		{Name: "signature", Type: field.TypeJSON},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"INVOKE_FUNCTION", "DEPLOY"}},
-		{Name: "nonce", Type: field.TypeString},
+		{Name: "signature", Type: field.TypeJSON, Nullable: true},
+		{Name: "nonce", Type: field.TypeString, Nullable: true},
 		{Name: "block_transactions", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionsTable holds the schema information for the "transactions" table.
@@ -44,7 +43,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "transactions_blocks_transactions",
-				Columns:    []*schema.Column{TransactionsColumns[8]},
+				Columns:    []*schema.Column{TransactionsColumns[7]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -60,6 +59,7 @@ var (
 		{Name: "l1_origin_message", Type: field.TypeJSON},
 		{Name: "events", Type: field.TypeJSON},
 		{Name: "block_transaction_receipts", Type: field.TypeString, Nullable: true},
+		{Name: "transaction_receipts", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionReceiptsTable holds the schema information for the "transaction_receipts" table.
 	TransactionReceiptsTable = &schema.Table{
@@ -71,6 +71,12 @@ var (
 				Symbol:     "transaction_receipts_blocks_transaction_receipts",
 				Columns:    []*schema.Column{TransactionReceiptsColumns[7]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "transaction_receipts_transactions_receipts",
+				Columns:    []*schema.Column{TransactionReceiptsColumns[8]},
+				RefColumns: []*schema.Column{TransactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -86,4 +92,5 @@ var (
 func init() {
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
+	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable
 }

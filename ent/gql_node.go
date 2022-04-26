@@ -125,8 +125,8 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Transaction",
-		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.ContractAddress); err != nil {
@@ -169,18 +169,10 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "signature",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Type); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "transaction.Type",
-		Name:  "type",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(t.Nonce); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "string",
 		Name:  "nonce",
 		Value: string(buf),
@@ -195,6 +187,16 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Edges[1] = &Edge{
+		Type: "TransactionReceipt",
+		Name: "receipts",
+	}
+	err = t.QueryReceipts().
+		Select(transactionreceipt.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -203,7 +205,7 @@ func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) 
 		ID:     tr.ID,
 		Type:   "TransactionReceipt",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(tr.TransactionHash); err != nil {
@@ -245,6 +247,16 @@ func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) 
 	err = tr.QueryBlock().
 		Select(block.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Transaction",
+		Name: "transaction",
+	}
+	err = tr.QueryTransaction().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

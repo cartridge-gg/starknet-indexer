@@ -403,6 +403,34 @@ func HasBlockWith(preds ...predicate.Block) predicate.TransactionReceipt {
 	})
 }
 
+// HasTransaction applies the HasEdge predicate on the "transaction" edge.
+func HasTransaction() predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TransactionTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TransactionTable, TransactionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTransactionWith applies the HasEdge predicate on the "transaction" edge with a given conditions (other predicates).
+func HasTransactionWith(preds ...predicate.Transaction) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TransactionInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TransactionTable, TransactionColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.TransactionReceipt) predicate.TransactionReceipt {
 	return predicate.TransactionReceipt(func(s *sql.Selector) {

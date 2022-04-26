@@ -842,11 +842,13 @@ type TransactionMutation struct {
 	transaction_hash     *string
 	calldata             *[]string
 	signature            *[]string
-	_type                *transaction.Type
 	nonce                *string
 	clearedFields        map[string]struct{}
 	block                *string
 	clearedblock         bool
+	receipts             map[string]struct{}
+	removedreceipts      map[string]struct{}
+	clearedreceipts      bool
 	done                 bool
 	oldValue             func(context.Context) (*Transaction, error)
 	predicates           []predicate.Transaction
@@ -1023,9 +1025,22 @@ func (m *TransactionMutation) OldEntryPointSelector(ctx context.Context) (v stri
 	return oldValue.EntryPointSelector, nil
 }
 
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (m *TransactionMutation) ClearEntryPointSelector() {
+	m.entry_point_selector = nil
+	m.clearedFields[transaction.FieldEntryPointSelector] = struct{}{}
+}
+
+// EntryPointSelectorCleared returns if the "entry_point_selector" field was cleared in this mutation.
+func (m *TransactionMutation) EntryPointSelectorCleared() bool {
+	_, ok := m.clearedFields[transaction.FieldEntryPointSelector]
+	return ok
+}
+
 // ResetEntryPointSelector resets all changes to the "entry_point_selector" field.
 func (m *TransactionMutation) ResetEntryPointSelector() {
 	m.entry_point_selector = nil
+	delete(m.clearedFields, transaction.FieldEntryPointSelector)
 }
 
 // SetTransactionHash sets the "transaction_hash" field.
@@ -1131,45 +1146,22 @@ func (m *TransactionMutation) OldSignature(ctx context.Context) (v []string, err
 	return oldValue.Signature, nil
 }
 
+// ClearSignature clears the value of the "signature" field.
+func (m *TransactionMutation) ClearSignature() {
+	m.signature = nil
+	m.clearedFields[transaction.FieldSignature] = struct{}{}
+}
+
+// SignatureCleared returns if the "signature" field was cleared in this mutation.
+func (m *TransactionMutation) SignatureCleared() bool {
+	_, ok := m.clearedFields[transaction.FieldSignature]
+	return ok
+}
+
 // ResetSignature resets all changes to the "signature" field.
 func (m *TransactionMutation) ResetSignature() {
 	m.signature = nil
-}
-
-// SetType sets the "type" field.
-func (m *TransactionMutation) SetType(t transaction.Type) {
-	m._type = &t
-}
-
-// GetType returns the value of the "type" field in the mutation.
-func (m *TransactionMutation) GetType() (r transaction.Type, exists bool) {
-	v := m._type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldType returns the old "type" field's value of the Transaction entity.
-// If the Transaction object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionMutation) OldType(ctx context.Context) (v transaction.Type, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
-	}
-	return oldValue.Type, nil
-}
-
-// ResetType resets all changes to the "type" field.
-func (m *TransactionMutation) ResetType() {
-	m._type = nil
+	delete(m.clearedFields, transaction.FieldSignature)
 }
 
 // SetNonce sets the "nonce" field.
@@ -1203,9 +1195,22 @@ func (m *TransactionMutation) OldNonce(ctx context.Context) (v string, err error
 	return oldValue.Nonce, nil
 }
 
+// ClearNonce clears the value of the "nonce" field.
+func (m *TransactionMutation) ClearNonce() {
+	m.nonce = nil
+	m.clearedFields[transaction.FieldNonce] = struct{}{}
+}
+
+// NonceCleared returns if the "nonce" field was cleared in this mutation.
+func (m *TransactionMutation) NonceCleared() bool {
+	_, ok := m.clearedFields[transaction.FieldNonce]
+	return ok
+}
+
 // ResetNonce resets all changes to the "nonce" field.
 func (m *TransactionMutation) ResetNonce() {
 	m.nonce = nil
+	delete(m.clearedFields, transaction.FieldNonce)
 }
 
 // SetBlockID sets the "block" edge to the Block entity by id.
@@ -1247,6 +1252,60 @@ func (m *TransactionMutation) ResetBlock() {
 	m.clearedblock = false
 }
 
+// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by ids.
+func (m *TransactionMutation) AddReceiptIDs(ids ...string) {
+	if m.receipts == nil {
+		m.receipts = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.receipts[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
+func (m *TransactionMutation) ClearReceipts() {
+	m.clearedreceipts = true
+}
+
+// ReceiptsCleared reports if the "receipts" edge to the TransactionReceipt entity was cleared.
+func (m *TransactionMutation) ReceiptsCleared() bool {
+	return m.clearedreceipts
+}
+
+// RemoveReceiptIDs removes the "receipts" edge to the TransactionReceipt entity by IDs.
+func (m *TransactionMutation) RemoveReceiptIDs(ids ...string) {
+	if m.removedreceipts == nil {
+		m.removedreceipts = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.receipts, ids[i])
+		m.removedreceipts[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReceipts returns the removed IDs of the "receipts" edge to the TransactionReceipt entity.
+func (m *TransactionMutation) RemovedReceiptsIDs() (ids []string) {
+	for id := range m.removedreceipts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReceiptsIDs returns the "receipts" edge IDs in the mutation.
+func (m *TransactionMutation) ReceiptsIDs() (ids []string) {
+	for id := range m.receipts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReceipts resets all changes to the "receipts" edge.
+func (m *TransactionMutation) ResetReceipts() {
+	m.receipts = nil
+	m.clearedreceipts = false
+	m.removedreceipts = nil
+}
+
 // Where appends a list predicates to the TransactionMutation builder.
 func (m *TransactionMutation) Where(ps ...predicate.Transaction) {
 	m.predicates = append(m.predicates, ps...)
@@ -1266,7 +1325,7 @@ func (m *TransactionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TransactionMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.contract_address != nil {
 		fields = append(fields, transaction.FieldContractAddress)
 	}
@@ -1281,9 +1340,6 @@ func (m *TransactionMutation) Fields() []string {
 	}
 	if m.signature != nil {
 		fields = append(fields, transaction.FieldSignature)
-	}
-	if m._type != nil {
-		fields = append(fields, transaction.FieldType)
 	}
 	if m.nonce != nil {
 		fields = append(fields, transaction.FieldNonce)
@@ -1306,8 +1362,6 @@ func (m *TransactionMutation) Field(name string) (ent.Value, bool) {
 		return m.Calldata()
 	case transaction.FieldSignature:
 		return m.Signature()
-	case transaction.FieldType:
-		return m.GetType()
 	case transaction.FieldNonce:
 		return m.Nonce()
 	}
@@ -1329,8 +1383,6 @@ func (m *TransactionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCalldata(ctx)
 	case transaction.FieldSignature:
 		return m.OldSignature(ctx)
-	case transaction.FieldType:
-		return m.OldType(ctx)
 	case transaction.FieldNonce:
 		return m.OldNonce(ctx)
 	}
@@ -1377,13 +1429,6 @@ func (m *TransactionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSignature(v)
 		return nil
-	case transaction.FieldType:
-		v, ok := value.(transaction.Type)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetType(v)
-		return nil
 	case transaction.FieldNonce:
 		v, ok := value.(string)
 		if !ok {
@@ -1420,7 +1465,17 @@ func (m *TransactionMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TransactionMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(transaction.FieldEntryPointSelector) {
+		fields = append(fields, transaction.FieldEntryPointSelector)
+	}
+	if m.FieldCleared(transaction.FieldSignature) {
+		fields = append(fields, transaction.FieldSignature)
+	}
+	if m.FieldCleared(transaction.FieldNonce) {
+		fields = append(fields, transaction.FieldNonce)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1433,6 +1488,17 @@ func (m *TransactionMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TransactionMutation) ClearField(name string) error {
+	switch name {
+	case transaction.FieldEntryPointSelector:
+		m.ClearEntryPointSelector()
+		return nil
+	case transaction.FieldSignature:
+		m.ClearSignature()
+		return nil
+	case transaction.FieldNonce:
+		m.ClearNonce()
+		return nil
+	}
 	return fmt.Errorf("unknown Transaction nullable field %s", name)
 }
 
@@ -1455,9 +1521,6 @@ func (m *TransactionMutation) ResetField(name string) error {
 	case transaction.FieldSignature:
 		m.ResetSignature()
 		return nil
-	case transaction.FieldType:
-		m.ResetType()
-		return nil
 	case transaction.FieldNonce:
 		m.ResetNonce()
 		return nil
@@ -1467,9 +1530,12 @@ func (m *TransactionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TransactionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.block != nil {
 		edges = append(edges, transaction.EdgeBlock)
+	}
+	if m.receipts != nil {
+		edges = append(edges, transaction.EdgeReceipts)
 	}
 	return edges
 }
@@ -1482,13 +1548,22 @@ func (m *TransactionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.block; id != nil {
 			return []ent.Value{*id}
 		}
+	case transaction.EdgeReceipts:
+		ids := make([]ent.Value, 0, len(m.receipts))
+		for id := range m.receipts {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TransactionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedreceipts != nil {
+		edges = append(edges, transaction.EdgeReceipts)
+	}
 	return edges
 }
 
@@ -1496,15 +1571,24 @@ func (m *TransactionMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *TransactionMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case transaction.EdgeReceipts:
+		ids := make([]ent.Value, 0, len(m.removedreceipts))
+		for id := range m.removedreceipts {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TransactionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedblock {
 		edges = append(edges, transaction.EdgeBlock)
+	}
+	if m.clearedreceipts {
+		edges = append(edges, transaction.EdgeReceipts)
 	}
 	return edges
 }
@@ -1515,6 +1599,8 @@ func (m *TransactionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case transaction.EdgeBlock:
 		return m.clearedblock
+	case transaction.EdgeReceipts:
+		return m.clearedreceipts
 	}
 	return false
 }
@@ -1537,6 +1623,9 @@ func (m *TransactionMutation) ResetEdge(name string) error {
 	case transaction.EdgeBlock:
 		m.ResetBlock()
 		return nil
+	case transaction.EdgeReceipts:
+		m.ResetReceipts()
+		return nil
 	}
 	return fmt.Errorf("unknown Transaction edge %s", name)
 }
@@ -1544,21 +1633,23 @@ func (m *TransactionMutation) ResetEdge(name string) error {
 // TransactionReceiptMutation represents an operation that mutates the TransactionReceipt nodes in the graph.
 type TransactionReceiptMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *string
-	transaction_hash  *string
-	status            *transactionreceipt.Status
-	status_data       *string
-	messages_sent     *[]types.L1Message
-	l1_origin_message *types.L2Message
-	events            *[]types.Event
-	clearedFields     map[string]struct{}
-	block             *string
-	clearedblock      bool
-	done              bool
-	oldValue          func(context.Context) (*TransactionReceipt, error)
-	predicates        []predicate.TransactionReceipt
+	op                 Op
+	typ                string
+	id                 *string
+	transaction_hash   *string
+	status             *transactionreceipt.Status
+	status_data        *string
+	messages_sent      *[]types.L1Message
+	l1_origin_message  *types.L2Message
+	events             *[]types.Event
+	clearedFields      map[string]struct{}
+	block              *string
+	clearedblock       bool
+	transaction        *string
+	clearedtransaction bool
+	done               bool
+	oldValue           func(context.Context) (*TransactionReceipt, error)
+	predicates         []predicate.TransactionReceipt
 }
 
 var _ ent.Mutation = (*TransactionReceiptMutation)(nil)
@@ -1920,6 +2011,45 @@ func (m *TransactionReceiptMutation) ResetBlock() {
 	m.clearedblock = false
 }
 
+// SetTransactionID sets the "transaction" edge to the Transaction entity by id.
+func (m *TransactionReceiptMutation) SetTransactionID(id string) {
+	m.transaction = &id
+}
+
+// ClearTransaction clears the "transaction" edge to the Transaction entity.
+func (m *TransactionReceiptMutation) ClearTransaction() {
+	m.clearedtransaction = true
+}
+
+// TransactionCleared reports if the "transaction" edge to the Transaction entity was cleared.
+func (m *TransactionReceiptMutation) TransactionCleared() bool {
+	return m.clearedtransaction
+}
+
+// TransactionID returns the "transaction" edge ID in the mutation.
+func (m *TransactionReceiptMutation) TransactionID() (id string, exists bool) {
+	if m.transaction != nil {
+		return *m.transaction, true
+	}
+	return
+}
+
+// TransactionIDs returns the "transaction" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TransactionID instead. It exists only for internal usage by the builders.
+func (m *TransactionReceiptMutation) TransactionIDs() (ids []string) {
+	if id := m.transaction; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTransaction resets all changes to the "transaction" edge.
+func (m *TransactionReceiptMutation) ResetTransaction() {
+	m.transaction = nil
+	m.clearedtransaction = false
+}
+
 // Where appends a list predicates to the TransactionReceiptMutation builder.
 func (m *TransactionReceiptMutation) Where(ps ...predicate.TransactionReceipt) {
 	m.predicates = append(m.predicates, ps...)
@@ -2123,9 +2253,12 @@ func (m *TransactionReceiptMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TransactionReceiptMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.block != nil {
 		edges = append(edges, transactionreceipt.EdgeBlock)
+	}
+	if m.transaction != nil {
+		edges = append(edges, transactionreceipt.EdgeTransaction)
 	}
 	return edges
 }
@@ -2138,13 +2271,17 @@ func (m *TransactionReceiptMutation) AddedIDs(name string) []ent.Value {
 		if id := m.block; id != nil {
 			return []ent.Value{*id}
 		}
+	case transactionreceipt.EdgeTransaction:
+		if id := m.transaction; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TransactionReceiptMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -2158,9 +2295,12 @@ func (m *TransactionReceiptMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TransactionReceiptMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedblock {
 		edges = append(edges, transactionreceipt.EdgeBlock)
+	}
+	if m.clearedtransaction {
+		edges = append(edges, transactionreceipt.EdgeTransaction)
 	}
 	return edges
 }
@@ -2171,6 +2311,8 @@ func (m *TransactionReceiptMutation) EdgeCleared(name string) bool {
 	switch name {
 	case transactionreceipt.EdgeBlock:
 		return m.clearedblock
+	case transactionreceipt.EdgeTransaction:
+		return m.clearedtransaction
 	}
 	return false
 }
@@ -2182,6 +2324,9 @@ func (m *TransactionReceiptMutation) ClearEdge(name string) error {
 	case transactionreceipt.EdgeBlock:
 		m.ClearBlock()
 		return nil
+	case transactionreceipt.EdgeTransaction:
+		m.ClearTransaction()
+		return nil
 	}
 	return fmt.Errorf("unknown TransactionReceipt unique edge %s", name)
 }
@@ -2192,6 +2337,9 @@ func (m *TransactionReceiptMutation) ResetEdge(name string) error {
 	switch name {
 	case transactionreceipt.EdgeBlock:
 		m.ResetBlock()
+		return nil
+	case transactionreceipt.EdgeTransaction:
+		m.ResetTransaction()
 		return nil
 	}
 	return fmt.Errorf("unknown TransactionReceipt edge %s", name)

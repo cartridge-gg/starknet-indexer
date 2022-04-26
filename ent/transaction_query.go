@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionQuery is the builder for querying Transaction entities.
@@ -25,10 +27,11 @@ type TransactionQuery struct {
 	fields     []string
 	predicates []predicate.Transaction
 	// eager-loading edges.
-	withBlock *BlockQuery
-	withFKs   bool
-	modifiers []func(*sql.Selector)
-	loadTotal []func(context.Context, []*Transaction) error
+	withBlock    *BlockQuery
+	withReceipts *TransactionReceiptQuery
+	withFKs      bool
+	modifiers    []func(*sql.Selector)
+	loadTotal    []func(context.Context, []*Transaction) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +83,28 @@ func (tq *TransactionQuery) QueryBlock() *BlockQuery {
 			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
 			sqlgraph.To(block.Table, block.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, transaction.BlockTable, transaction.BlockColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReceipts chains the current query on the "receipts" edge.
+func (tq *TransactionQuery) QueryReceipts() *TransactionReceiptQuery {
+	query := &TransactionReceiptQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
+			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -263,12 +288,13 @@ func (tq *TransactionQuery) Clone() *TransactionQuery {
 		return nil
 	}
 	return &TransactionQuery{
-		config:     tq.config,
-		limit:      tq.limit,
-		offset:     tq.offset,
-		order:      append([]OrderFunc{}, tq.order...),
-		predicates: append([]predicate.Transaction{}, tq.predicates...),
-		withBlock:  tq.withBlock.Clone(),
+		config:       tq.config,
+		limit:        tq.limit,
+		offset:       tq.offset,
+		order:        append([]OrderFunc{}, tq.order...),
+		predicates:   append([]predicate.Transaction{}, tq.predicates...),
+		withBlock:    tq.withBlock.Clone(),
+		withReceipts: tq.withReceipts.Clone(),
 		// clone intermediate query.
 		sql:    tq.sql.Clone(),
 		path:   tq.path,
@@ -284,6 +310,17 @@ func (tq *TransactionQuery) WithBlock(opts ...func(*BlockQuery)) *TransactionQue
 		opt(query)
 	}
 	tq.withBlock = query
+	return tq
+}
+
+// WithReceipts tells the query-builder to eager-load the nodes that are connected to
+// the "receipts" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TransactionQuery) WithReceipts(opts ...func(*TransactionReceiptQuery)) *TransactionQuery {
+	query := &TransactionReceiptQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withReceipts = query
 	return tq
 }
 
@@ -358,8 +395,9 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*Transaction{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			tq.withBlock != nil,
+			tq.withReceipts != nil,
 		}
 	)
 	if tq.withBlock != nil {
@@ -416,6 +454,35 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			for i := range nodes {
 				nodes[i].Edges.Block = n
 			}
+		}
+	}
+
+	if query := tq.withReceipts; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Transaction)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Receipts = []*TransactionReceipt{}
+		}
+		query.withFKs = true
+		query.Where(predicate.TransactionReceipt(func(s *sql.Selector) {
+			s.Where(sql.InValues(transaction.ReceiptsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.transaction_receipts
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "transaction_receipts" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Receipts = append(node.Edges.Receipts, n)
 		}
 	}
 

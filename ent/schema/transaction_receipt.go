@@ -41,6 +41,8 @@ func (TransactionReceipt) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("block", Block.Type).Ref("transaction_receipts").
 			Unique(),
+		edge.From("transaction", Transaction.Type).Ref("receipts").
+			Unique(),
 	}
 }
 

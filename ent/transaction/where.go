@@ -327,6 +327,20 @@ func EntryPointSelectorHasSuffix(v string) predicate.Transaction {
 	})
 }
 
+// EntryPointSelectorIsNil applies the IsNil predicate on the "entry_point_selector" field.
+func EntryPointSelectorIsNil() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEntryPointSelector)))
+	})
+}
+
+// EntryPointSelectorNotNil applies the NotNil predicate on the "entry_point_selector" field.
+func EntryPointSelectorNotNil() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEntryPointSelector)))
+	})
+}
+
 // EntryPointSelectorEqualFold applies the EqualFold predicate on the "entry_point_selector" field.
 func EntryPointSelectorEqualFold(v string) predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
@@ -452,51 +466,17 @@ func TransactionHashContainsFold(v string) predicate.Transaction {
 	})
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v Type) predicate.Transaction {
+// SignatureIsNil applies the IsNil predicate on the "signature" field.
+func SignatureIsNil() predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldType), v))
+		s.Where(sql.IsNull(s.C(FieldSignature)))
 	})
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v Type) predicate.Transaction {
+// SignatureNotNil applies the NotNil predicate on the "signature" field.
+func SignatureNotNil() predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldType), v))
-	})
-}
-
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...Type) predicate.Transaction {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Transaction(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldType), v...))
-	})
-}
-
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...Type) predicate.Transaction {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Transaction(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldType), v...))
+		s.Where(sql.NotNull(s.C(FieldSignature)))
 	})
 }
 
@@ -597,6 +577,20 @@ func NonceHasSuffix(v string) predicate.Transaction {
 	})
 }
 
+// NonceIsNil applies the IsNil predicate on the "nonce" field.
+func NonceIsNil() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNonce)))
+	})
+}
+
+// NonceNotNil applies the NotNil predicate on the "nonce" field.
+func NonceNotNil() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNonce)))
+	})
+}
+
 // NonceEqualFold applies the EqualFold predicate on the "nonce" field.
 func NonceEqualFold(v string) predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
@@ -630,6 +624,34 @@ func HasBlockWith(preds ...predicate.Block) predicate.Transaction {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(BlockInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, BlockTable, BlockColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReceipts applies the HasEdge predicate on the "receipts" edge.
+func HasReceipts() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReceiptsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReceiptsTable, ReceiptsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReceiptsWith applies the HasEdge predicate on the "receipts" edge with a given conditions (other predicates).
+func HasReceiptsWith(preds ...predicate.TransactionReceipt) predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReceiptsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReceiptsTable, ReceiptsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

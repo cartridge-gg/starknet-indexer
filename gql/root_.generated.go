@@ -97,9 +97,9 @@ type ComplexityRoot struct {
 		EntryPointSelector func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Nonce              func(childComplexity int) int
+		Receipts           func(childComplexity int) int
 		Signature          func(childComplexity int) int
 		TransactionHash    func(childComplexity int) int
-		Type               func(childComplexity int) int
 	}
 
 	TransactionConnection struct {
@@ -121,6 +121,7 @@ type ComplexityRoot struct {
 		MessagesSent    func(childComplexity int) int
 		Status          func(childComplexity int) int
 		StatusData      func(childComplexity int) int
+		Transaction     func(childComplexity int) int
 		TransactionHash func(childComplexity int) int
 	}
 
@@ -416,6 +417,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Nonce(childComplexity), true
 
+	case "Transaction.receipts":
+		if e.complexity.Transaction.Receipts == nil {
+			break
+		}
+
+		return e.complexity.Transaction.Receipts(childComplexity), true
+
 	case "Transaction.signature":
 		if e.complexity.Transaction.Signature == nil {
 			break
@@ -429,13 +437,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Transaction.TransactionHash(childComplexity), true
-
-	case "Transaction.type":
-		if e.complexity.Transaction.Type == nil {
-			break
-		}
-
-		return e.complexity.Transaction.Type(childComplexity), true
 
 	case "TransactionConnection.edges":
 		if e.complexity.TransactionConnection.Edges == nil {
@@ -520,6 +521,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TransactionReceipt.StatusData(childComplexity), true
+
+	case "TransactionReceipt.transaction":
+		if e.complexity.TransactionReceipt.Transaction == nil {
+			break
+		}
+
+		return e.complexity.TransactionReceipt.Transaction(childComplexity), true
 
 	case "TransactionReceipt.transactionHash":
 		if e.complexity.TransactionReceipt.TransactionHash == nil {
@@ -789,10 +797,10 @@ type Transaction implements Node {
   entryPointSelector: String!
   transactionHash: String!
   calldata: [String!]!
-  signature: [String!]!
-  type: Type!
+  signature: [String!]
   nonce: String!
   block: Block
+  receipts: [TransactionReceipt!]
 }
 """A connection to a list of items."""
 type TransactionConnection {
@@ -823,6 +831,7 @@ type TransactionReceipt implements Node {
   statusData: String!
   l1OriginMessage: L2Message!
   block: Block
+  transaction: Transaction
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -892,6 +901,9 @@ input TransactionReceiptWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
+  """transaction edge predicates"""
+  hasTransaction: Boolean
+  hasTransactionWith: [TransactionWhereInput!]
 }
 """
 TransactionWhereInput is used for filtering Transaction objects.
@@ -927,6 +939,8 @@ input TransactionWhereInput {
   entryPointSelectorContains: String
   entryPointSelectorHasPrefix: String
   entryPointSelectorHasSuffix: String
+  entryPointSelectorIsNil: Boolean
+  entryPointSelectorNotNil: Boolean
   entryPointSelectorEqualFold: String
   entryPointSelectorContainsFold: String
   """transaction_hash field predicates"""
@@ -943,11 +957,6 @@ input TransactionWhereInput {
   transactionHashHasSuffix: String
   transactionHashEqualFold: String
   transactionHashContainsFold: String
-  """type field predicates"""
-  type: Type
-  typeNEQ: Type
-  typeIn: [Type!]
-  typeNotIn: [Type!]
   """nonce field predicates"""
   nonce: String
   nonceNEQ: String
@@ -960,6 +969,8 @@ input TransactionWhereInput {
   nonceContains: String
   nonceHasPrefix: String
   nonceHasSuffix: String
+  nonceIsNil: Boolean
+  nonceNotNil: Boolean
   nonceEqualFold: String
   nonceContainsFold: String
   """id field predicates"""
@@ -974,11 +985,9 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-}
-"""Type is enum for the field type"""
-enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transaction.Type") {
-  INVOKE_FUNCTION
-  DEPLOY
+  """receipts edge predicates"""
+  hasReceipts: Boolean
+  hasReceiptsWith: [TransactionReceiptWhereInput!]
 }
 `, BuiltIn: false},
 	{Name: "schema.graphql", Input: `scalar Time

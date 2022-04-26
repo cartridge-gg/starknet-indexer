@@ -27,6 +27,8 @@ const (
 	FieldEvents = "events"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
+	// EdgeTransaction holds the string denoting the transaction edge name in mutations.
+	EdgeTransaction = "transaction"
 	// Table holds the table name of the transactionreceipt in the database.
 	Table = "transaction_receipts"
 	// BlockTable is the table that holds the block relation/edge.
@@ -36,6 +38,13 @@ const (
 	BlockInverseTable = "blocks"
 	// BlockColumn is the table column denoting the block relation/edge.
 	BlockColumn = "block_transaction_receipts"
+	// TransactionTable is the table that holds the transaction relation/edge.
+	TransactionTable = "transaction_receipts"
+	// TransactionInverseTable is the table name for the Transaction entity.
+	// It exists in this package in order to avoid circular dependency with the "transaction" package.
+	TransactionInverseTable = "transactions"
+	// TransactionColumn is the table column denoting the transaction relation/edge.
+	TransactionColumn = "transaction_receipts"
 )
 
 // Columns holds all SQL columns for transactionreceipt fields.
@@ -53,6 +62,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"block_transaction_receipts",
+	"transaction_receipts",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

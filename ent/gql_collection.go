@@ -124,6 +124,15 @@ func (t *TransactionQuery) collectField(ctx context.Context, op *graphql.Operati
 				return err
 			}
 			t.withBlock = query
+		case "receipts":
+			var (
+				path  = append(path, field.Name)
+				query = &TransactionReceiptQuery{config: t.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			t.withReceipts = query
 		}
 	}
 	return nil
@@ -205,6 +214,15 @@ func (tr *TransactionReceiptQuery) collectField(ctx context.Context, op *graphql
 				return err
 			}
 			tr.withBlock = query
+		case "transaction":
+			var (
+				path  = append(path, field.Name)
+				query = &TransactionQuery{config: tr.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			tr.withTransaction = query
 		}
 	}
 	return nil

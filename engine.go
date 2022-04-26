@@ -68,7 +68,9 @@ func (e *Engine) Start(ctx context.Context) {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			e.process(ctx)
+			if err := e.process(ctx); err != nil {
+				log.Err(err).Msg("Processing block.")
+			}
 			e.Unlock()
 
 		case <-ctx.Done():
@@ -145,7 +147,7 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 			}
 
 			if err := tx.TransactionReceipt.Create().
-				SetID(t.TransactionReceipt.TransactionHash).
+				SetID(t.TransactionHash).
 				SetTransactionHash(t.TransactionReceipt.TransactionHash).
 				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
 				SetStatusData(t.TransactionReceipt.StatusData).

@@ -458,6 +458,8 @@ type TransactionWhereInput struct {
 	EntryPointSelectorContains     *string  `json:"entryPointSelectorContains,omitempty"`
 	EntryPointSelectorHasPrefix    *string  `json:"entryPointSelectorHasPrefix,omitempty"`
 	EntryPointSelectorHasSuffix    *string  `json:"entryPointSelectorHasSuffix,omitempty"`
+	EntryPointSelectorIsNil        bool     `json:"entryPointSelectorIsNil,omitempty"`
+	EntryPointSelectorNotNil       bool     `json:"entryPointSelectorNotNil,omitempty"`
 	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold,omitempty"`
 	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold,omitempty"`
 
@@ -476,12 +478,6 @@ type TransactionWhereInput struct {
 	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
 	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
 
-	// "type" field predicates.
-	Type      *transaction.Type  `json:"type,omitempty"`
-	TypeNEQ   *transaction.Type  `json:"typeNEQ,omitempty"`
-	TypeIn    []transaction.Type `json:"typeIn,omitempty"`
-	TypeNotIn []transaction.Type `json:"typeNotIn,omitempty"`
-
 	// "nonce" field predicates.
 	Nonce             *string  `json:"nonce,omitempty"`
 	NonceNEQ          *string  `json:"nonceNEQ,omitempty"`
@@ -494,12 +490,18 @@ type TransactionWhereInput struct {
 	NonceContains     *string  `json:"nonceContains,omitempty"`
 	NonceHasPrefix    *string  `json:"nonceHasPrefix,omitempty"`
 	NonceHasSuffix    *string  `json:"nonceHasSuffix,omitempty"`
+	NonceIsNil        bool     `json:"nonceIsNil,omitempty"`
+	NonceNotNil       bool     `json:"nonceNotNil,omitempty"`
 	NonceEqualFold    *string  `json:"nonceEqualFold,omitempty"`
 	NonceContainsFold *string  `json:"nonceContainsFold,omitempty"`
 
 	// "block" edge predicates.
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "receipts" edge predicates.
+	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
+	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
 }
 
 // Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
@@ -657,6 +659,12 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 	if i.EntryPointSelectorHasSuffix != nil {
 		predicates = append(predicates, transaction.EntryPointSelectorHasSuffix(*i.EntryPointSelectorHasSuffix))
 	}
+	if i.EntryPointSelectorIsNil {
+		predicates = append(predicates, transaction.EntryPointSelectorIsNil())
+	}
+	if i.EntryPointSelectorNotNil {
+		predicates = append(predicates, transaction.EntryPointSelectorNotNil())
+	}
 	if i.EntryPointSelectorEqualFold != nil {
 		predicates = append(predicates, transaction.EntryPointSelectorEqualFold(*i.EntryPointSelectorEqualFold))
 	}
@@ -702,18 +710,6 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 	if i.TransactionHashContainsFold != nil {
 		predicates = append(predicates, transaction.TransactionHashContainsFold(*i.TransactionHashContainsFold))
 	}
-	if i.Type != nil {
-		predicates = append(predicates, transaction.TypeEQ(*i.Type))
-	}
-	if i.TypeNEQ != nil {
-		predicates = append(predicates, transaction.TypeNEQ(*i.TypeNEQ))
-	}
-	if len(i.TypeIn) > 0 {
-		predicates = append(predicates, transaction.TypeIn(i.TypeIn...))
-	}
-	if len(i.TypeNotIn) > 0 {
-		predicates = append(predicates, transaction.TypeNotIn(i.TypeNotIn...))
-	}
 	if i.Nonce != nil {
 		predicates = append(predicates, transaction.NonceEQ(*i.Nonce))
 	}
@@ -747,6 +743,12 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 	if i.NonceHasSuffix != nil {
 		predicates = append(predicates, transaction.NonceHasSuffix(*i.NonceHasSuffix))
 	}
+	if i.NonceIsNil {
+		predicates = append(predicates, transaction.NonceIsNil())
+	}
+	if i.NonceNotNil {
+		predicates = append(predicates, transaction.NonceNotNil())
+	}
 	if i.NonceEqualFold != nil {
 		predicates = append(predicates, transaction.NonceEqualFold(*i.NonceEqualFold))
 	}
@@ -771,6 +773,24 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, transaction.HasBlockWith(with...))
+	}
+	if i.HasReceipts != nil {
+		p := transaction.HasReceipts()
+		if !*i.HasReceipts {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasReceiptsWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptsWith))
+		for _, w := range i.HasReceiptsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasReceiptsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
@@ -837,6 +857,10 @@ type TransactionReceiptWhereInput struct {
 	// "block" edge predicates.
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
+
+	// "transaction" edge predicates.
+	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
+	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
 }
 
 // Filter applies the TransactionReceiptWhereInput filter on the TransactionReceiptQuery builder.
@@ -1030,6 +1054,24 @@ func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error)
 			with = append(with, p)
 		}
 		predicates = append(predicates, transactionreceipt.HasBlockWith(with...))
+	}
+	if i.HasTransaction != nil {
+		p := transactionreceipt.HasTransaction()
+		if !*i.HasTransaction {
+			p = transactionreceipt.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionWith))
+		for _, w := range i.HasTransactionWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transactionreceipt.HasTransactionWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
