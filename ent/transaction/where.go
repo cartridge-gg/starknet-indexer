@@ -105,13 +105,6 @@ func EntryPointSelector(v string) predicate.Transaction {
 	})
 }
 
-// EntryPointType applies equality check predicate on the "entry_point_type" field. It's identical to EntryPointTypeEQ.
-func EntryPointType(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEntryPointType), v))
-	})
-}
-
 // TransactionHash applies equality check predicate on the "transaction_hash" field. It's identical to TransactionHashEQ.
 func TransactionHash(v string) predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
@@ -345,117 +338,6 @@ func EntryPointSelectorEqualFold(v string) predicate.Transaction {
 func EntryPointSelectorContainsFold(v string) predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldEntryPointSelector), v))
-	})
-}
-
-// EntryPointTypeEQ applies the EQ predicate on the "entry_point_type" field.
-func EntryPointTypeEQ(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeNEQ applies the NEQ predicate on the "entry_point_type" field.
-func EntryPointTypeNEQ(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeIn applies the In predicate on the "entry_point_type" field.
-func EntryPointTypeIn(vs ...string) predicate.Transaction {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Transaction(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldEntryPointType), v...))
-	})
-}
-
-// EntryPointTypeNotIn applies the NotIn predicate on the "entry_point_type" field.
-func EntryPointTypeNotIn(vs ...string) predicate.Transaction {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Transaction(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldEntryPointType), v...))
-	})
-}
-
-// EntryPointTypeGT applies the GT predicate on the "entry_point_type" field.
-func EntryPointTypeGT(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeGTE applies the GTE predicate on the "entry_point_type" field.
-func EntryPointTypeGTE(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeLT applies the LT predicate on the "entry_point_type" field.
-func EntryPointTypeLT(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeLTE applies the LTE predicate on the "entry_point_type" field.
-func EntryPointTypeLTE(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeContains applies the Contains predicate on the "entry_point_type" field.
-func EntryPointTypeContains(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeHasPrefix applies the HasPrefix predicate on the "entry_point_type" field.
-func EntryPointTypeHasPrefix(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeHasSuffix applies the HasSuffix predicate on the "entry_point_type" field.
-func EntryPointTypeHasSuffix(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeEqualFold applies the EqualFold predicate on the "entry_point_type" field.
-func EntryPointTypeEqualFold(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldEntryPointType), v))
-	})
-}
-
-// EntryPointTypeContainsFold applies the ContainsFold predicate on the "entry_point_type" field.
-func EntryPointTypeContainsFold(v string) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldEntryPointType), v))
 	})
 }
 
@@ -748,34 +630,6 @@ func HasBlockWith(preds ...predicate.Block) predicate.Transaction {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(BlockInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, BlockTable, BlockColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasReceipts applies the HasEdge predicate on the "receipts" edge.
-func HasReceipts() predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiptsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasReceiptsWith applies the HasEdge predicate on the "receipts" edge with a given conditions (other predicates).
-func HasReceiptsWith(preds ...predicate.TransactionReceipt) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiptsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

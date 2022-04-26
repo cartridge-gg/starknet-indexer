@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
@@ -26,11 +25,10 @@ type TransactionReceiptQuery struct {
 	fields     []string
 	predicates []predicate.TransactionReceipt
 	// eager-loading edges.
-	withBlock       *BlockQuery
-	withTransaction *TransactionQuery
-	withFKs         bool
-	modifiers       []func(*sql.Selector)
-	loadTotal       []func(context.Context, []*TransactionReceipt) error
+	withBlock *BlockQuery
+	withFKs   bool
+	modifiers []func(*sql.Selector)
+	loadTotal []func(context.Context, []*TransactionReceipt) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,28 +80,6 @@ func (trq *TransactionReceiptQuery) QueryBlock() *BlockQuery {
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, selector),
 			sqlgraph.To(block.Table, block.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(trq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryTransaction chains the current query on the "transaction" edge.
-func (trq *TransactionReceiptQuery) QueryTransaction() *TransactionQuery {
-	query := &TransactionQuery{config: trq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := trq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := trq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, selector),
-			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(trq.driver.Dialect(), step)
 		return fromU, nil
@@ -287,13 +263,12 @@ func (trq *TransactionReceiptQuery) Clone() *TransactionReceiptQuery {
 		return nil
 	}
 	return &TransactionReceiptQuery{
-		config:          trq.config,
-		limit:           trq.limit,
-		offset:          trq.offset,
-		order:           append([]OrderFunc{}, trq.order...),
-		predicates:      append([]predicate.TransactionReceipt{}, trq.predicates...),
-		withBlock:       trq.withBlock.Clone(),
-		withTransaction: trq.withTransaction.Clone(),
+		config:     trq.config,
+		limit:      trq.limit,
+		offset:     trq.offset,
+		order:      append([]OrderFunc{}, trq.order...),
+		predicates: append([]predicate.TransactionReceipt{}, trq.predicates...),
+		withBlock:  trq.withBlock.Clone(),
 		// clone intermediate query.
 		sql:    trq.sql.Clone(),
 		path:   trq.path,
@@ -312,29 +287,18 @@ func (trq *TransactionReceiptQuery) WithBlock(opts ...func(*BlockQuery)) *Transa
 	return trq
 }
 
-// WithTransaction tells the query-builder to eager-load the nodes that are connected to
-// the "transaction" edge. The optional arguments are used to configure the query builder of the edge.
-func (trq *TransactionReceiptQuery) WithTransaction(opts ...func(*TransactionQuery)) *TransactionReceiptQuery {
-	query := &TransactionQuery{config: trq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	trq.withTransaction = query
-	return trq
-}
-
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		TransactionIndex int32 `json:"transaction_index,omitempty"`
+//		TransactionHash string `json:"transaction_hash,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.TransactionReceipt.Query().
-//		GroupBy(transactionreceipt.FieldTransactionIndex).
+//		GroupBy(transactionreceipt.FieldTransactionHash).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -358,11 +322,11 @@ func (trq *TransactionReceiptQuery) GroupBy(field string, fields ...string) *Tra
 // Example:
 //
 //	var v []struct {
-//		TransactionIndex int32 `json:"transaction_index,omitempty"`
+//		TransactionHash string `json:"transaction_hash,omitempty"`
 //	}
 //
 //	client.TransactionReceipt.Query().
-//		Select(transactionreceipt.FieldTransactionIndex).
+//		Select(transactionreceipt.FieldTransactionHash).
 //		Scan(ctx, &v)
 //
 func (trq *TransactionReceiptQuery) Select(fields ...string) *TransactionReceiptSelect {
@@ -394,12 +358,11 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		nodes       = []*TransactionReceipt{}
 		withFKs     = trq.withFKs
 		_spec       = trq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [1]bool{
 			trq.withBlock != nil,
-			trq.withTransaction != nil,
 		}
 	)
-	if trq.withBlock != nil || trq.withTransaction != nil {
+	if trq.withBlock != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -452,35 +415,6 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			}
 			for i := range nodes {
 				nodes[i].Edges.Block = n
-			}
-		}
-	}
-
-	if query := trq.withTransaction; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*TransactionReceipt)
-		for i := range nodes {
-			if nodes[i].transaction_receipts == nil {
-				continue
-			}
-			fk := *nodes[i].transaction_receipts
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(transaction.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Transaction = n
 			}
 		}
 	}

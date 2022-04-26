@@ -1008,49 +1008,6 @@ func (tr *TransactionReceiptQuery) Paginate(
 	return conn, nil
 }
 
-var (
-	// TransactionReceiptOrderFieldTransactionIndex orders TransactionReceipt by transaction_index.
-	TransactionReceiptOrderFieldTransactionIndex = &TransactionReceiptOrderField{
-		field: transactionreceipt.FieldTransactionIndex,
-		toCursor: func(tr *TransactionReceipt) Cursor {
-			return Cursor{
-				ID:    tr.ID,
-				Value: tr.TransactionIndex,
-			}
-		},
-	}
-)
-
-// String implement fmt.Stringer interface.
-func (f TransactionReceiptOrderField) String() string {
-	var str string
-	switch f.field {
-	case transactionreceipt.FieldTransactionIndex:
-		str = "INDEX"
-	}
-	return str
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (f TransactionReceiptOrderField) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(f.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (f *TransactionReceiptOrderField) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("TransactionReceiptOrderField %T must be a string", v)
-	}
-	switch str {
-	case "INDEX":
-		*f = *TransactionReceiptOrderFieldTransactionIndex
-	default:
-		return fmt.Errorf("%s is not a valid TransactionReceiptOrderField", str)
-	}
-	return nil
-}
-
 // TransactionReceiptOrderField defines the ordering field of TransactionReceipt.
 type TransactionReceiptOrderField struct {
 	field    string

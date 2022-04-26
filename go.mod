@@ -9,7 +9,6 @@ require (
 	github.com/alecthomas/kong v0.2.11
 	github.com/dontpanicdao/caigo v0.2.1-0.20220420142156-b05c26eb481e
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
 	github.com/tejzpr/ordered-concurrently/v3 v3.0.0
@@ -32,7 +31,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
 	github.com/logrusorgru/aurora/v3 v3.0.0 // indirect

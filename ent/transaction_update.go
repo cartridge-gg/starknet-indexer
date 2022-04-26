@@ -13,7 +13,6 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionUpdate is the builder for updating Transaction entities.
@@ -38,12 +37,6 @@ func (tu *TransactionUpdate) SetContractAddress(s string) *TransactionUpdate {
 // SetEntryPointSelector sets the "entry_point_selector" field.
 func (tu *TransactionUpdate) SetEntryPointSelector(s string) *TransactionUpdate {
 	tu.mutation.SetEntryPointSelector(s)
-	return tu
-}
-
-// SetEntryPointType sets the "entry_point_type" field.
-func (tu *TransactionUpdate) SetEntryPointType(s string) *TransactionUpdate {
-	tu.mutation.SetEntryPointType(s)
 	return tu
 }
 
@@ -96,25 +89,6 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
-	tu.mutation.SetReceiptsID(id)
-	return tu
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tu *TransactionUpdate) SetNillableReceiptsID(id *string) *TransactionUpdate {
-	if id != nil {
-		tu = tu.SetReceiptsID(*id)
-	}
-	return tu
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tu *TransactionUpdate) SetReceipts(t *TransactionReceipt) *TransactionUpdate {
-	return tu.SetReceiptsID(t.ID)
-}
-
 // Mutation returns the TransactionMutation object of the builder.
 func (tu *TransactionUpdate) Mutation() *TransactionMutation {
 	return tu.mutation
@@ -123,12 +97,6 @@ func (tu *TransactionUpdate) Mutation() *TransactionMutation {
 // ClearBlock clears the "block" edge to the Block entity.
 func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	tu.mutation.ClearBlock()
-	return tu
-}
-
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
-func (tu *TransactionUpdate) ClearReceipts() *TransactionUpdate {
-	tu.mutation.ClearReceipts()
 	return tu
 }
 
@@ -234,13 +202,6 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: transaction.FieldEntryPointSelector,
 		})
 	}
-	if value, ok := tu.mutation.EntryPointType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
-		})
-	}
 	if value, ok := tu.mutation.TransactionHash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -311,41 +272,6 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tu.mutation.ReceiptsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{transaction.Label}
@@ -374,12 +300,6 @@ func (tuo *TransactionUpdateOne) SetContractAddress(s string) *TransactionUpdate
 // SetEntryPointSelector sets the "entry_point_selector" field.
 func (tuo *TransactionUpdateOne) SetEntryPointSelector(s string) *TransactionUpdateOne {
 	tuo.mutation.SetEntryPointSelector(s)
-	return tuo
-}
-
-// SetEntryPointType sets the "entry_point_type" field.
-func (tuo *TransactionUpdateOne) SetEntryPointType(s string) *TransactionUpdateOne {
-	tuo.mutation.SetEntryPointType(s)
 	return tuo
 }
 
@@ -432,25 +352,6 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
-	tuo.mutation.SetReceiptsID(id)
-	return tuo
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tuo *TransactionUpdateOne) SetNillableReceiptsID(id *string) *TransactionUpdateOne {
-	if id != nil {
-		tuo = tuo.SetReceiptsID(*id)
-	}
-	return tuo
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) SetReceipts(t *TransactionReceipt) *TransactionUpdateOne {
-	return tuo.SetReceiptsID(t.ID)
-}
-
 // Mutation returns the TransactionMutation object of the builder.
 func (tuo *TransactionUpdateOne) Mutation() *TransactionMutation {
 	return tuo.mutation
@@ -459,12 +360,6 @@ func (tuo *TransactionUpdateOne) Mutation() *TransactionMutation {
 // ClearBlock clears the "block" edge to the Block entity.
 func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	tuo.mutation.ClearBlock()
-	return tuo
-}
-
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) ClearReceipts() *TransactionUpdateOne {
-	tuo.mutation.ClearReceipts()
 	return tuo
 }
 
@@ -594,13 +489,6 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 			Column: transaction.FieldEntryPointSelector,
 		})
 	}
-	if value, ok := tuo.mutation.EntryPointType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
-		})
-	}
 	if value, ok := tuo.mutation.TransactionHash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -663,41 +551,6 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if tuo.mutation.ReceiptsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
 				},
 			},
 		}

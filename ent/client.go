@@ -360,22 +360,6 @@ func (c *TransactionClient) QueryBlock(t *Transaction) *BlockQuery {
 	return query
 }
 
-// QueryReceipts queries the receipts edge of a Transaction.
-func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQuery {
-	query := &TransactionReceiptQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transaction.Table, transaction.FieldID, id),
-			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *TransactionClient) Hooks() []Hook {
 	return c.hooks.Transaction
@@ -475,22 +459,6 @@ func (c *TransactionReceiptClient) QueryBlock(tr *TransactionReceipt) *BlockQuer
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
 			sqlgraph.To(block.Table, block.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
-		)
-		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryTransaction queries the transaction edge of a TransactionReceipt.
-func (c *TransactionReceiptClient) QueryTransaction(tr *TransactionReceipt) *TransactionQuery {
-	query := &TransactionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := tr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
-			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
 		return fromV, nil

@@ -13,7 +13,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 const parallelism = 5
@@ -21,7 +21,7 @@ const parallelism = 5
 type Contract struct {
 	Address    string
 	StartBlock uint64
-	Handler    func(types.Transaction, types.TransactionReceipt) error
+	Handler    func(types.Transaction) error
 }
 
 type Config struct {
@@ -124,7 +124,7 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 			SetBlockNumber(uint64(b.BlockNumber)).
 			SetParentBlockHash(b.ParentBlockHash).
 			SetStateRoot(b.NewRoot).
-			SetTimestamp(b.AcceptedTime).
+			SetTimestamp(time.Unix(int64(b.AcceptedTime), 0).UTC()).
 			SetStatus(block.Status(b.Status)).
 			Exec(ctx); err != nil {
 			return err
@@ -137,54 +137,25 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 				SetBlockID(b.BlockHash).
 				SetContractAddress(t.ContractAddress).
 				SetEntryPointSelector(t.EntryPointSelector).
-				SetEntryPointType(t.EntryPointType).
 				SetNonce(t.Nonce).
-				SetType(transaction.Type(t.Type)).
 				SetCalldata(t.Calldata).
 				SetSignature(t.Signature).
 				Exec(ctx); err != nil {
 				return err
 			}
+
+			if err := tx.TransactionReceipt.Create().
+				SetID(t.TransactionReceipt.TransactionHash).
+				SetTransactionHash(t.TransactionReceipt.TransactionHash).
+				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
+				SetStatusData(t.TransactionReceipt.StatusData).
+				SetMessagesSent(t.TransactionReceipt.MessagesSent).
+				SetL1OriginMessage(t.TransactionReceipt.L1OriginMessage).
+				SetEvents(t.TransactionReceipt.Events).
+				Exec(ctx); err != nil {
+				return err
+			}
 		}
-
-		// for _, t := range b.TransactionReceipts {
-		// 	events, err := json.Marshal(t.Events)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	l2ToL1Messages, err := json.Marshal(t.L2ToL1Messages)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	executionResources := schema.ExecutionResources{
-		// 		NSteps:       uint64(t.ExecutionResources.NSteps),
-		// 		NMemoryHoles: uint64(t.ExecutionResources.NMemoryHoles),
-		// 		BuiltinInstanceCounter: schema.BuiltinInstanceCounter{
-		// 			PedersenBuiltin:   uint64(t.ExecutionResources.BuiltinInstanceCounter.PedersenBuiltin),
-		// 			RangeCheckBuiltin: uint64(t.ExecutionResources.BuiltinInstanceCounter.RangeCheckBuiltin),
-		// 			BitwiseBuiltin:    uint64(t.ExecutionResources.BuiltinInstanceCounter.BitwiseBuiltin),
-		// 			OutputBuiltin:     uint64(t.ExecutionResources.BuiltinInstanceCounter.OutputBuiltin),
-		// 			EcdsaBuiltin:      uint64(t.ExecutionResources.BuiltinInstanceCounter.EcdsaBuiltin),
-		// 			EcOpBuiltin:       uint64(t.ExecutionResources.BuiltinInstanceCounter.EcOpBuiltin),
-		// 		},
-		// 	}
-
-		// 	if err := tx.TransactionReceipt.Create().
-		// 		SetID(t.TransactionHash).
-		// 		SetTransactionHash(t.TransactionHash).
-		// 		SetBlockID(b.BlockHash).
-		// 		SetTransactionID(t.TransactionHash).
-		// 		SetTransactionIndex(int32(t.TransactionIndex)).
-		// 		SetL1ToL2ConsumedMessage(t.L1ToL2ConsumedMessage).
-		// 		SetExecutionResources(executionResources).
-		// 		SetEvents(events).
-		// 		SetL2ToL1Messages(l2ToL1Messages).
-		// 		Exec(ctx); err != nil {
-		// 		return err
-		// 	}
-		// }
 
 		return nil
 	}); err != nil {

@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionCreate is the builder for creating a Transaction entity.
@@ -30,12 +29,6 @@ func (tc *TransactionCreate) SetContractAddress(s string) *TransactionCreate {
 // SetEntryPointSelector sets the "entry_point_selector" field.
 func (tc *TransactionCreate) SetEntryPointSelector(s string) *TransactionCreate {
 	tc.mutation.SetEntryPointSelector(s)
-	return tc
-}
-
-// SetEntryPointType sets the "entry_point_type" field.
-func (tc *TransactionCreate) SetEntryPointType(s string) *TransactionCreate {
-	tc.mutation.SetEntryPointType(s)
 	return tc
 }
 
@@ -92,25 +85,6 @@ func (tc *TransactionCreate) SetNillableBlockID(id *string) *TransactionCreate {
 // SetBlock sets the "block" edge to the Block entity.
 func (tc *TransactionCreate) SetBlock(b *Block) *TransactionCreate {
 	return tc.SetBlockID(b.ID)
-}
-
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tc *TransactionCreate) SetReceiptsID(id string) *TransactionCreate {
-	tc.mutation.SetReceiptsID(id)
-	return tc
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tc *TransactionCreate) SetNillableReceiptsID(id *string) *TransactionCreate {
-	if id != nil {
-		tc = tc.SetReceiptsID(*id)
-	}
-	return tc
-}
-
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tc *TransactionCreate) SetReceipts(t *TransactionReceipt) *TransactionCreate {
-	return tc.SetReceiptsID(t.ID)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -189,9 +163,6 @@ func (tc *TransactionCreate) check() error {
 	if _, ok := tc.mutation.EntryPointSelector(); !ok {
 		return &ValidationError{Name: "entry_point_selector", err: errors.New(`ent: missing required field "Transaction.entry_point_selector"`)}
 	}
-	if _, ok := tc.mutation.EntryPointType(); !ok {
-		return &ValidationError{Name: "entry_point_type", err: errors.New(`ent: missing required field "Transaction.entry_point_type"`)}
-	}
 	if _, ok := tc.mutation.TransactionHash(); !ok {
 		return &ValidationError{Name: "transaction_hash", err: errors.New(`ent: missing required field "Transaction.transaction_hash"`)}
 	}
@@ -264,14 +235,6 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 		})
 		_node.EntryPointSelector = value
 	}
-	if value, ok := tc.mutation.EntryPointType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: transaction.FieldEntryPointType,
-		})
-		_node.EntryPointType = value
-	}
 	if value, ok := tc.mutation.TransactionHash(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -330,25 +293,6 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.block_transactions = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := tc.mutation.ReceiptsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

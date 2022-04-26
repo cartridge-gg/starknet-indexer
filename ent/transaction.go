@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Transaction is the model entity for the Transaction schema.
@@ -22,8 +21,6 @@ type Transaction struct {
 	ContractAddress string `json:"contract_address,omitempty"`
 	// EntryPointSelector holds the value of the "entry_point_selector" field.
 	EntryPointSelector string `json:"entry_point_selector,omitempty"`
-	// EntryPointType holds the value of the "entry_point_type" field.
-	EntryPointType string `json:"entry_point_type,omitempty"`
 	// TransactionHash holds the value of the "transaction_hash" field.
 	TransactionHash string `json:"transaction_hash,omitempty"`
 	// Calldata holds the value of the "calldata" field.
@@ -44,13 +41,11 @@ type Transaction struct {
 type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
-	// Receipts holds the value of the receipts edge.
-	Receipts *TransactionReceipt `json:"receipts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]*int
+	totalCount [1]*int
 }
 
 // BlockOrErr returns the Block value or an error if the edge
@@ -67,20 +62,6 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 	return nil, &NotLoadedError{edge: "block"}
 }
 
-// ReceiptsOrErr returns the Receipts value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
-	if e.loadedTypes[1] {
-		if e.Receipts == nil {
-			// The edge receipts was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: transactionreceipt.Label}
-		}
-		return e.Receipts, nil
-	}
-	return nil, &NotLoadedError{edge: "receipts"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Transaction) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -88,7 +69,7 @@ func (*Transaction) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case transaction.FieldCalldata, transaction.FieldSignature:
 			values[i] = new([]byte)
-		case transaction.FieldID, transaction.FieldContractAddress, transaction.FieldEntryPointSelector, transaction.FieldEntryPointType, transaction.FieldTransactionHash, transaction.FieldType, transaction.FieldNonce:
+		case transaction.FieldID, transaction.FieldContractAddress, transaction.FieldEntryPointSelector, transaction.FieldTransactionHash, transaction.FieldType, transaction.FieldNonce:
 			values[i] = new(sql.NullString)
 		case transaction.ForeignKeys[0]: // block_transactions
 			values[i] = new(sql.NullString)
@@ -124,12 +105,6 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 				return fmt.Errorf("unexpected type %T for field entry_point_selector", values[i])
 			} else if value.Valid {
 				t.EntryPointSelector = value.String
-			}
-		case transaction.FieldEntryPointType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field entry_point_type", values[i])
-			} else if value.Valid {
-				t.EntryPointType = value.String
 			}
 		case transaction.FieldTransactionHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -182,11 +157,6 @@ func (t *Transaction) QueryBlock() *BlockQuery {
 	return (&TransactionClient{config: t.config}).QueryBlock(t)
 }
 
-// QueryReceipts queries the "receipts" edge of the Transaction entity.
-func (t *Transaction) QueryReceipts() *TransactionReceiptQuery {
-	return (&TransactionClient{config: t.config}).QueryReceipts(t)
-}
-
 // Update returns a builder for updating this Transaction.
 // Note that you need to call Transaction.Unwrap() before calling this method if this Transaction
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -214,8 +184,6 @@ func (t *Transaction) String() string {
 	builder.WriteString(t.ContractAddress)
 	builder.WriteString(", entry_point_selector=")
 	builder.WriteString(t.EntryPointSelector)
-	builder.WriteString(", entry_point_type=")
-	builder.WriteString(t.EntryPointType)
 	builder.WriteString(", transaction_hash=")
 	builder.WriteString(t.TransactionHash)
 	builder.WriteString(", calldata=")

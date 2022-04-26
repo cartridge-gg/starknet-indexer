@@ -60,26 +60,20 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
-	BuiltinInstanceCounter struct {
-		BitwiseBuiltin    func(childComplexity int) int
-		EcOpBuiltin       func(childComplexity int) int
-		EcdsaBuiltin      func(childComplexity int) int
-		OutputBuiltin     func(childComplexity int) int
-		PedersenBuiltin   func(childComplexity int) int
-		RangeCheckBuiltin func(childComplexity int) int
+	Event struct {
+		FromAddress func(childComplexity int) int
+		Keys        func(childComplexity int) int
+		Values      func(childComplexity int) int
 	}
 
-	ExecutionResources struct {
-		BuiltinInstanceCounter func(childComplexity int) int
-		NMemoryHoles           func(childComplexity int) int
-		NSteps                 func(childComplexity int) int
+	L1Message struct {
+		Payload   func(childComplexity int) int
+		ToAddress func(childComplexity int) int
 	}
 
-	L1ToL2ConsumedMessage struct {
+	L2Message struct {
 		FromAddress func(childComplexity int) int
 		Payload     func(childComplexity int) int
-		Selector    func(childComplexity int) int
-		ToAddress   func(childComplexity int) int
 	}
 
 	PageInfo struct {
@@ -101,10 +95,8 @@ type ComplexityRoot struct {
 		Calldata           func(childComplexity int) int
 		ContractAddress    func(childComplexity int) int
 		EntryPointSelector func(childComplexity int) int
-		EntryPointType     func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Nonce              func(childComplexity int) int
-		Receipts           func(childComplexity int) int
 		Signature          func(childComplexity int) int
 		TransactionHash    func(childComplexity int) int
 		Type               func(childComplexity int) int
@@ -122,15 +114,14 @@ type ComplexityRoot struct {
 	}
 
 	TransactionReceipt struct {
-		Block                 func(childComplexity int) int
-		Events                func(childComplexity int) int
-		ExecutionResources    func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		L1ToL2ConsumedMessage func(childComplexity int) int
-		L2ToL1Messages        func(childComplexity int) int
-		Transaction           func(childComplexity int) int
-		TransactionHash       func(childComplexity int) int
-		TransactionIndex      func(childComplexity int) int
+		Block           func(childComplexity int) int
+		Events          func(childComplexity int) int
+		ID              func(childComplexity int) int
+		L1OriginMessage func(childComplexity int) int
+		MessagesSent    func(childComplexity int) int
+		Status          func(childComplexity int) int
+		StatusData      func(childComplexity int) int
+		TransactionHash func(childComplexity int) int
 	}
 
 	TransactionReceiptConnection struct {
@@ -258,96 +249,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BlockEdge.Node(childComplexity), true
 
-	case "BuiltinInstanceCounter.bitwiseBuiltin":
-		if e.complexity.BuiltinInstanceCounter.BitwiseBuiltin == nil {
+	case "Event.fromAddress":
+		if e.complexity.Event.FromAddress == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.BitwiseBuiltin(childComplexity), true
+		return e.complexity.Event.FromAddress(childComplexity), true
 
-	case "BuiltinInstanceCounter.ecOpBuiltin":
-		if e.complexity.BuiltinInstanceCounter.EcOpBuiltin == nil {
+	case "Event.keys":
+		if e.complexity.Event.Keys == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.EcOpBuiltin(childComplexity), true
+		return e.complexity.Event.Keys(childComplexity), true
 
-	case "BuiltinInstanceCounter.ecdsaBuiltin":
-		if e.complexity.BuiltinInstanceCounter.EcdsaBuiltin == nil {
+	case "Event.values":
+		if e.complexity.Event.Values == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.EcdsaBuiltin(childComplexity), true
+		return e.complexity.Event.Values(childComplexity), true
 
-	case "BuiltinInstanceCounter.outputBuiltin":
-		if e.complexity.BuiltinInstanceCounter.OutputBuiltin == nil {
+	case "L1Message.payload":
+		if e.complexity.L1Message.Payload == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.OutputBuiltin(childComplexity), true
+		return e.complexity.L1Message.Payload(childComplexity), true
 
-	case "BuiltinInstanceCounter.pedersenBuiltin":
-		if e.complexity.BuiltinInstanceCounter.PedersenBuiltin == nil {
+	case "L1Message.toAddress":
+		if e.complexity.L1Message.ToAddress == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.PedersenBuiltin(childComplexity), true
+		return e.complexity.L1Message.ToAddress(childComplexity), true
 
-	case "BuiltinInstanceCounter.rangeCheckBuiltin":
-		if e.complexity.BuiltinInstanceCounter.RangeCheckBuiltin == nil {
+	case "L2Message.fromAddress":
+		if e.complexity.L2Message.FromAddress == nil {
 			break
 		}
 
-		return e.complexity.BuiltinInstanceCounter.RangeCheckBuiltin(childComplexity), true
+		return e.complexity.L2Message.FromAddress(childComplexity), true
 
-	case "ExecutionResources.builtinInstanceCounter":
-		if e.complexity.ExecutionResources.BuiltinInstanceCounter == nil {
+	case "L2Message.payload":
+		if e.complexity.L2Message.Payload == nil {
 			break
 		}
 
-		return e.complexity.ExecutionResources.BuiltinInstanceCounter(childComplexity), true
-
-	case "ExecutionResources.nMemoryHoles":
-		if e.complexity.ExecutionResources.NMemoryHoles == nil {
-			break
-		}
-
-		return e.complexity.ExecutionResources.NMemoryHoles(childComplexity), true
-
-	case "ExecutionResources.nSteps":
-		if e.complexity.ExecutionResources.NSteps == nil {
-			break
-		}
-
-		return e.complexity.ExecutionResources.NSteps(childComplexity), true
-
-	case "L1ToL2ConsumedMessage.fromAddress":
-		if e.complexity.L1ToL2ConsumedMessage.FromAddress == nil {
-			break
-		}
-
-		return e.complexity.L1ToL2ConsumedMessage.FromAddress(childComplexity), true
-
-	case "L1ToL2ConsumedMessage.payload":
-		if e.complexity.L1ToL2ConsumedMessage.Payload == nil {
-			break
-		}
-
-		return e.complexity.L1ToL2ConsumedMessage.Payload(childComplexity), true
-
-	case "L1ToL2ConsumedMessage.selector":
-		if e.complexity.L1ToL2ConsumedMessage.Selector == nil {
-			break
-		}
-
-		return e.complexity.L1ToL2ConsumedMessage.Selector(childComplexity), true
-
-	case "L1ToL2ConsumedMessage.toAddress":
-		if e.complexity.L1ToL2ConsumedMessage.ToAddress == nil {
-			break
-		}
-
-		return e.complexity.L1ToL2ConsumedMessage.ToAddress(childComplexity), true
+		return e.complexity.L2Message.Payload(childComplexity), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -453,13 +402,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.EntryPointSelector(childComplexity), true
 
-	case "Transaction.entryPointType":
-		if e.complexity.Transaction.EntryPointType == nil {
-			break
-		}
-
-		return e.complexity.Transaction.EntryPointType(childComplexity), true
-
 	case "Transaction.id":
 		if e.complexity.Transaction.ID == nil {
 			break
@@ -473,13 +415,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Transaction.Nonce(childComplexity), true
-
-	case "Transaction.receipts":
-		if e.complexity.Transaction.Receipts == nil {
-			break
-		}
-
-		return e.complexity.Transaction.Receipts(childComplexity), true
 
 	case "Transaction.signature":
 		if e.complexity.Transaction.Signature == nil {
@@ -551,13 +486,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TransactionReceipt.Events(childComplexity), true
 
-	case "TransactionReceipt.executionResources":
-		if e.complexity.TransactionReceipt.ExecutionResources == nil {
-			break
-		}
-
-		return e.complexity.TransactionReceipt.ExecutionResources(childComplexity), true
-
 	case "TransactionReceipt.id":
 		if e.complexity.TransactionReceipt.ID == nil {
 			break
@@ -565,26 +493,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TransactionReceipt.ID(childComplexity), true
 
-	case "TransactionReceipt.l1ToL2ConsumedMessage":
-		if e.complexity.TransactionReceipt.L1ToL2ConsumedMessage == nil {
+	case "TransactionReceipt.l1OriginMessage":
+		if e.complexity.TransactionReceipt.L1OriginMessage == nil {
 			break
 		}
 
-		return e.complexity.TransactionReceipt.L1ToL2ConsumedMessage(childComplexity), true
+		return e.complexity.TransactionReceipt.L1OriginMessage(childComplexity), true
 
-	case "TransactionReceipt.l2ToL1Messages":
-		if e.complexity.TransactionReceipt.L2ToL1Messages == nil {
+	case "TransactionReceipt.messagesSent":
+		if e.complexity.TransactionReceipt.MessagesSent == nil {
 			break
 		}
 
-		return e.complexity.TransactionReceipt.L2ToL1Messages(childComplexity), true
+		return e.complexity.TransactionReceipt.MessagesSent(childComplexity), true
 
-	case "TransactionReceipt.transaction":
-		if e.complexity.TransactionReceipt.Transaction == nil {
+	case "TransactionReceipt.status":
+		if e.complexity.TransactionReceipt.Status == nil {
 			break
 		}
 
-		return e.complexity.TransactionReceipt.Transaction(childComplexity), true
+		return e.complexity.TransactionReceipt.Status(childComplexity), true
+
+	case "TransactionReceipt.statusData":
+		if e.complexity.TransactionReceipt.StatusData == nil {
+			break
+		}
+
+		return e.complexity.TransactionReceipt.StatusData(childComplexity), true
 
 	case "TransactionReceipt.transactionHash":
 		if e.complexity.TransactionReceipt.TransactionHash == nil {
@@ -592,13 +527,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TransactionReceipt.TransactionHash(childComplexity), true
-
-	case "TransactionReceipt.transactionIndex":
-		if e.complexity.TransactionReceipt.TransactionIndex == nil {
-			break
-		}
-
-		return e.complexity.TransactionReceipt.TransactionIndex(childComplexity), true
 
 	case "TransactionReceiptConnection.edges":
 		if e.complexity.TransactionReceiptConnection.Edges == nil {
@@ -846,18 +774,25 @@ type PageInfo {
   """When paginating forwards, the cursor to continue."""
   endCursor: Cursor
 }
+"""Status is enum for the field status"""
+enum Status @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transactionreceipt.Status") {
+  UNKNOWN
+  RECEIVED
+  PENDING
+  ACCEPTED_ON_L2
+  ACCEPTED_ON_L1
+  REJECTED
+}
 type Transaction implements Node {
   id: ID!
   contractAddress: String!
   entryPointSelector: String!
-  entryPointType: String!
   transactionHash: String!
   calldata: [String!]!
   signature: [String!]!
   type: Type!
   nonce: String!
   block: Block
-  receipts: TransactionReceipt
 }
 """A connection to a list of items."""
 type TransactionConnection {
@@ -883,14 +818,11 @@ enum TransactionOrderField {
 }
 type TransactionReceipt implements Node {
   id: ID!
-  transactionIndex: Int!
   transactionHash: String!
-  l1ToL2ConsumedMessage: L1ToL2ConsumedMessage!
-  executionResources: ExecutionResources!
-  events: JSON!
-  l2ToL1Messages: JSON!
+  status: Status!
+  statusData: String!
+  l1OriginMessage: L2Message!
   block: Block
-  transaction: Transaction
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -907,13 +839,6 @@ type TransactionReceiptEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
-input TransactionReceiptOrder {
-  direction: OrderDirection! = ASC
-  field: TransactionReceiptOrderField!
-}
-enum TransactionReceiptOrderField {
-  INDEX
-}
 """
 TransactionReceiptWhereInput is used for filtering TransactionReceipt objects.
 Input was generated by ent.
@@ -922,15 +847,6 @@ input TransactionReceiptWhereInput {
   not: TransactionReceiptWhereInput
   and: [TransactionReceiptWhereInput!]
   or: [TransactionReceiptWhereInput!]
-  """transaction_index field predicates"""
-  transactionIndex: Int
-  transactionIndexNEQ: Int
-  transactionIndexIn: [Int!]
-  transactionIndexNotIn: [Int!]
-  transactionIndexGT: Int
-  transactionIndexGTE: Int
-  transactionIndexLT: Int
-  transactionIndexLTE: Int
   """transaction_hash field predicates"""
   transactionHash: String
   transactionHashNEQ: String
@@ -945,6 +861,25 @@ input TransactionReceiptWhereInput {
   transactionHashHasSuffix: String
   transactionHashEqualFold: String
   transactionHashContainsFold: String
+  """status field predicates"""
+  status: Status
+  statusNEQ: Status
+  statusIn: [Status!]
+  statusNotIn: [Status!]
+  """status_data field predicates"""
+  statusData: String
+  statusDataNEQ: String
+  statusDataIn: [String!]
+  statusDataNotIn: [String!]
+  statusDataGT: String
+  statusDataGTE: String
+  statusDataLT: String
+  statusDataLTE: String
+  statusDataContains: String
+  statusDataHasPrefix: String
+  statusDataHasSuffix: String
+  statusDataEqualFold: String
+  statusDataContainsFold: String
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -957,9 +892,6 @@ input TransactionReceiptWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-  """transaction edge predicates"""
-  hasTransaction: Boolean
-  hasTransactionWith: [TransactionWhereInput!]
 }
 """
 TransactionWhereInput is used for filtering Transaction objects.
@@ -997,20 +929,6 @@ input TransactionWhereInput {
   entryPointSelectorHasSuffix: String
   entryPointSelectorEqualFold: String
   entryPointSelectorContainsFold: String
-  """entry_point_type field predicates"""
-  entryPointType: String
-  entryPointTypeNEQ: String
-  entryPointTypeIn: [String!]
-  entryPointTypeNotIn: [String!]
-  entryPointTypeGT: String
-  entryPointTypeGTE: String
-  entryPointTypeLT: String
-  entryPointTypeLTE: String
-  entryPointTypeContains: String
-  entryPointTypeHasPrefix: String
-  entryPointTypeHasSuffix: String
-  entryPointTypeEqualFold: String
-  entryPointTypeContainsFold: String
   """transaction_hash field predicates"""
   transactionHash: String
   transactionHashNEQ: String
@@ -1056,9 +974,6 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-  """receipts edge predicates"""
-  hasReceipts: Boolean
-  hasReceiptsWith: [TransactionReceiptWhereInput!]
 }
 """Type is enum for the field type"""
 enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transaction.Type") {
@@ -1069,27 +984,27 @@ enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transaction
 	{Name: "schema.graphql", Input: `scalar Time
 scalar Long
 scalar JSON
+scalar Felt
 
-type L1ToL2ConsumedMessage {
-  fromAddress: String!
+type L1Message {
   toAddress: String!
-  selector: String!
-  payload: [String!]
+  payload: [Felt!]
 }
 
-type BuiltinInstanceCounter {
-  pedersenBuiltin: Long
-  rangeCheckBuiltin: Long
-  bitwiseBuiltin: Long
-  outputBuiltin: Long
-  ecdsaBuiltin: Long
-  ecOpBuiltin: Long
+type L2Message {
+  fromAddress: String!
+  payload: [Felt!]
 }
 
-type ExecutionResources {
-  nSteps: Long
-  builtinInstanceCounter: BuiltinInstanceCounter
-  nMemoryHoles: Long
+type Event {
+  fromAddress: String!
+  keys: [Felt!]
+  values: [Felt!]
+}
+
+extend type TransactionReceipt {
+  messagesSent: [L1Message]!
+  events: [Event!]
 }
 
 type Query {

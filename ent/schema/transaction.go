@@ -19,7 +19,6 @@ func (Transaction) Fields() []ent.Field {
 		field.String("id").Unique().Immutable(),
 		field.String("contract_address"),
 		field.String("entry_point_selector"),
-		field.String("entry_point_type"),
 		field.String("transaction_hash"),
 		field.Strings("calldata"),
 		field.Strings("signature"),
@@ -35,8 +34,6 @@ func (Transaction) Fields() []ent.Field {
 func (Transaction) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("block", Block.Type).Ref("transactions").
-			Unique(),
-		edge.To("receipts", TransactionReceipt.Type).
 			Unique(),
 	}
 }

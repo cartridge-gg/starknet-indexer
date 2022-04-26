@@ -20,18 +20,21 @@ models:
   Node:
     model:
       - github.com/tarrencev/starknet-indexer/ent.Noder
+  Felt:
+    model:
+      - github.com/dontpanicdao/caigo/types.Felt
   Long:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64
   JSON:
     model:
       - github.com/tarrencev/starknet-indexer/ent/schema/json.RawMessage
-  L1ToL2ConsumedMessage:
+  L1Message:
     model:
-      - github.com/tarrencev/starknet-indexer/ent/schema.L1ToL2ConsumedMessage
-  BuiltinInstanceCounter:
+      - github.com/dontpanicdao/caigo/types.L1Message
+  L2Message:
     model:
-      - github.com/tarrencev/starknet-indexer/ent/schema.BuiltinInstanceCounter
-  ExecutionResources:
+      - github.com/dontpanicdao/caigo/types.L2Message
+  Event:
     model:
-      - github.com/tarrencev/starknet-indexer/ent/schema.ExecutionResources
+      - github.com/dontpanicdao/caigo/types.Event

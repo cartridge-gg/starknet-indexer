@@ -21,7 +21,7 @@ func main() {
 
 	drv, err := sql.Open(
 		"sqlite3",
-		"file:ent?mode=memory&crawache=shared&_fk=1",
+		"file:ent?mode=memory&cache=shared&_fk=1",
 	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("opening ent client")
@@ -32,7 +32,7 @@ func main() {
 		Contracts: []indexer.Contract{{
 			Address:    "0x",
 			StartBlock: 1000,
-			Handler: func(types.Transaction, types.TransactionReceipt) error {
+			Handler: func(types.Transaction) error {
 				// handle transaction
 				return nil
 			},

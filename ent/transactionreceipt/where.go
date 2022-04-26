@@ -91,13 +91,6 @@ func IDLTE(id string) predicate.TransactionReceipt {
 	})
 }
 
-// TransactionIndex applies equality check predicate on the "transaction_index" field. It's identical to TransactionIndexEQ.
-func TransactionIndex(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTransactionIndex), v))
-	})
-}
-
 // TransactionHash applies equality check predicate on the "transaction_hash" field. It's identical to TransactionHashEQ.
 func TransactionHash(v string) predicate.TransactionReceipt {
 	return predicate.TransactionReceipt(func(s *sql.Selector) {
@@ -105,79 +98,10 @@ func TransactionHash(v string) predicate.TransactionReceipt {
 	})
 }
 
-// TransactionIndexEQ applies the EQ predicate on the "transaction_index" field.
-func TransactionIndexEQ(v int32) predicate.TransactionReceipt {
+// StatusData applies equality check predicate on the "status_data" field. It's identical to StatusDataEQ.
+func StatusData(v string) predicate.TransactionReceipt {
 	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTransactionIndex), v))
-	})
-}
-
-// TransactionIndexNEQ applies the NEQ predicate on the "transaction_index" field.
-func TransactionIndexNEQ(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTransactionIndex), v))
-	})
-}
-
-// TransactionIndexIn applies the In predicate on the "transaction_index" field.
-func TransactionIndexIn(vs ...int32) predicate.TransactionReceipt {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldTransactionIndex), v...))
-	})
-}
-
-// TransactionIndexNotIn applies the NotIn predicate on the "transaction_index" field.
-func TransactionIndexNotIn(vs ...int32) predicate.TransactionReceipt {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldTransactionIndex), v...))
-	})
-}
-
-// TransactionIndexGT applies the GT predicate on the "transaction_index" field.
-func TransactionIndexGT(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTransactionIndex), v))
-	})
-}
-
-// TransactionIndexGTE applies the GTE predicate on the "transaction_index" field.
-func TransactionIndexGTE(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTransactionIndex), v))
-	})
-}
-
-// TransactionIndexLT applies the LT predicate on the "transaction_index" field.
-func TransactionIndexLT(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTransactionIndex), v))
-	})
-}
-
-// TransactionIndexLTE applies the LTE predicate on the "transaction_index" field.
-func TransactionIndexLTE(v int32) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTransactionIndex), v))
+		s.Where(sql.EQ(s.C(FieldStatusData), v))
 	})
 }
 
@@ -292,6 +216,165 @@ func TransactionHashContainsFold(v string) predicate.TransactionReceipt {
 	})
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldStatus), v))
+	})
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldStatus), v))
+	})
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.TransactionReceipt {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldStatus), v...))
+	})
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.TransactionReceipt {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldStatus), v...))
+	})
+}
+
+// StatusDataEQ applies the EQ predicate on the "status_data" field.
+func StatusDataEQ(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataNEQ applies the NEQ predicate on the "status_data" field.
+func StatusDataNEQ(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataIn applies the In predicate on the "status_data" field.
+func StatusDataIn(vs ...string) predicate.TransactionReceipt {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldStatusData), v...))
+	})
+}
+
+// StatusDataNotIn applies the NotIn predicate on the "status_data" field.
+func StatusDataNotIn(vs ...string) predicate.TransactionReceipt {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldStatusData), v...))
+	})
+}
+
+// StatusDataGT applies the GT predicate on the "status_data" field.
+func StatusDataGT(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataGTE applies the GTE predicate on the "status_data" field.
+func StatusDataGTE(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataLT applies the LT predicate on the "status_data" field.
+func StatusDataLT(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataLTE applies the LTE predicate on the "status_data" field.
+func StatusDataLTE(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataContains applies the Contains predicate on the "status_data" field.
+func StatusDataContains(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataHasPrefix applies the HasPrefix predicate on the "status_data" field.
+func StatusDataHasPrefix(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataHasSuffix applies the HasSuffix predicate on the "status_data" field.
+func StatusDataHasSuffix(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataEqualFold applies the EqualFold predicate on the "status_data" field.
+func StatusDataEqualFold(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldStatusData), v))
+	})
+}
+
+// StatusDataContainsFold applies the ContainsFold predicate on the "status_data" field.
+func StatusDataContainsFold(v string) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldStatusData), v))
+	})
+}
+
 // HasBlock applies the HasEdge predicate on the "block" edge.
 func HasBlock() predicate.TransactionReceipt {
 	return predicate.TransactionReceipt(func(s *sql.Selector) {
@@ -311,34 +394,6 @@ func HasBlockWith(preds ...predicate.Block) predicate.TransactionReceipt {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(BlockInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, BlockTable, BlockColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasTransaction applies the HasEdge predicate on the "transaction" edge.
-func HasTransaction() predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TransactionTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, TransactionTable, TransactionColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTransactionWith applies the HasEdge predicate on the "transaction" edge with a given conditions (other predicates).
-func HasTransactionWith(preds ...predicate.Transaction) predicate.TransactionReceipt {
-	return predicate.TransactionReceipt(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TransactionInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, TransactionTable, TransactionColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

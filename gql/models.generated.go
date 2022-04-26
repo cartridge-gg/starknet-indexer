@@ -7,6 +7,7 @@ import (
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockWhereInput is used for filtering Block objects.
@@ -103,15 +104,6 @@ type TransactionReceiptWhereInput struct {
 	Not *TransactionReceiptWhereInput   `json:"not"`
 	And []*TransactionReceiptWhereInput `json:"and"`
 	Or  []*TransactionReceiptWhereInput `json:"or"`
-	// transaction_index field predicates
-	TransactionIndex      *int  `json:"transactionIndex"`
-	TransactionIndexNeq   *int  `json:"transactionIndexNEQ"`
-	TransactionIndexIn    []int `json:"transactionIndexIn"`
-	TransactionIndexNotIn []int `json:"transactionIndexNotIn"`
-	TransactionIndexGt    *int  `json:"transactionIndexGT"`
-	TransactionIndexGte   *int  `json:"transactionIndexGTE"`
-	TransactionIndexLt    *int  `json:"transactionIndexLT"`
-	TransactionIndexLte   *int  `json:"transactionIndexLTE"`
 	// transaction_hash field predicates
 	TransactionHash             *string  `json:"transactionHash"`
 	TransactionHashNeq          *string  `json:"transactionHashNEQ"`
@@ -126,6 +118,25 @@ type TransactionReceiptWhereInput struct {
 	TransactionHashHasSuffix    *string  `json:"transactionHashHasSuffix"`
 	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold"`
 	TransactionHashContainsFold *string  `json:"transactionHashContainsFold"`
+	// status field predicates
+	Status      *transactionreceipt.Status  `json:"status"`
+	StatusNeq   *transactionreceipt.Status  `json:"statusNEQ"`
+	StatusIn    []transactionreceipt.Status `json:"statusIn"`
+	StatusNotIn []transactionreceipt.Status `json:"statusNotIn"`
+	// status_data field predicates
+	StatusData             *string  `json:"statusData"`
+	StatusDataNeq          *string  `json:"statusDataNEQ"`
+	StatusDataIn           []string `json:"statusDataIn"`
+	StatusDataNotIn        []string `json:"statusDataNotIn"`
+	StatusDataGt           *string  `json:"statusDataGT"`
+	StatusDataGte          *string  `json:"statusDataGTE"`
+	StatusDataLt           *string  `json:"statusDataLT"`
+	StatusDataLte          *string  `json:"statusDataLTE"`
+	StatusDataContains     *string  `json:"statusDataContains"`
+	StatusDataHasPrefix    *string  `json:"statusDataHasPrefix"`
+	StatusDataHasSuffix    *string  `json:"statusDataHasSuffix"`
+	StatusDataEqualFold    *string  `json:"statusDataEqualFold"`
+	StatusDataContainsFold *string  `json:"statusDataContainsFold"`
 	// id field predicates
 	ID      *string  `json:"id"`
 	IDNeq   *string  `json:"idNEQ"`
@@ -138,9 +149,6 @@ type TransactionReceiptWhereInput struct {
 	// block edge predicates
 	HasBlock     *bool              `json:"hasBlock"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith"`
-	// transaction edge predicates
-	HasTransaction     *bool                    `json:"hasTransaction"`
-	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith"`
 }
 
 // TransactionWhereInput is used for filtering Transaction objects.
@@ -177,20 +185,6 @@ type TransactionWhereInput struct {
 	EntryPointSelectorHasSuffix    *string  `json:"entryPointSelectorHasSuffix"`
 	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold"`
 	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold"`
-	// entry_point_type field predicates
-	EntryPointType             *string  `json:"entryPointType"`
-	EntryPointTypeNeq          *string  `json:"entryPointTypeNEQ"`
-	EntryPointTypeIn           []string `json:"entryPointTypeIn"`
-	EntryPointTypeNotIn        []string `json:"entryPointTypeNotIn"`
-	EntryPointTypeGt           *string  `json:"entryPointTypeGT"`
-	EntryPointTypeGte          *string  `json:"entryPointTypeGTE"`
-	EntryPointTypeLt           *string  `json:"entryPointTypeLT"`
-	EntryPointTypeLte          *string  `json:"entryPointTypeLTE"`
-	EntryPointTypeContains     *string  `json:"entryPointTypeContains"`
-	EntryPointTypeHasPrefix    *string  `json:"entryPointTypeHasPrefix"`
-	EntryPointTypeHasSuffix    *string  `json:"entryPointTypeHasSuffix"`
-	EntryPointTypeEqualFold    *string  `json:"entryPointTypeEqualFold"`
-	EntryPointTypeContainsFold *string  `json:"entryPointTypeContainsFold"`
 	// transaction_hash field predicates
 	TransactionHash             *string  `json:"transactionHash"`
 	TransactionHashNeq          *string  `json:"transactionHashNEQ"`
@@ -236,7 +230,4 @@ type TransactionWhereInput struct {
 	// block edge predicates
 	HasBlock     *bool              `json:"hasBlock"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith"`
-	// receipts edge predicates
-	HasReceipts     *bool                           `json:"hasReceipts"`
-	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith"`
 }

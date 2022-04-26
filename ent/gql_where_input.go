@@ -461,21 +461,6 @@ type TransactionWhereInput struct {
 	EntryPointSelectorEqualFold    *string  `json:"entryPointSelectorEqualFold,omitempty"`
 	EntryPointSelectorContainsFold *string  `json:"entryPointSelectorContainsFold,omitempty"`
 
-	// "entry_point_type" field predicates.
-	EntryPointType             *string  `json:"entryPointType,omitempty"`
-	EntryPointTypeNEQ          *string  `json:"entryPointTypeNEQ,omitempty"`
-	EntryPointTypeIn           []string `json:"entryPointTypeIn,omitempty"`
-	EntryPointTypeNotIn        []string `json:"entryPointTypeNotIn,omitempty"`
-	EntryPointTypeGT           *string  `json:"entryPointTypeGT,omitempty"`
-	EntryPointTypeGTE          *string  `json:"entryPointTypeGTE,omitempty"`
-	EntryPointTypeLT           *string  `json:"entryPointTypeLT,omitempty"`
-	EntryPointTypeLTE          *string  `json:"entryPointTypeLTE,omitempty"`
-	EntryPointTypeContains     *string  `json:"entryPointTypeContains,omitempty"`
-	EntryPointTypeHasPrefix    *string  `json:"entryPointTypeHasPrefix,omitempty"`
-	EntryPointTypeHasSuffix    *string  `json:"entryPointTypeHasSuffix,omitempty"`
-	EntryPointTypeEqualFold    *string  `json:"entryPointTypeEqualFold,omitempty"`
-	EntryPointTypeContainsFold *string  `json:"entryPointTypeContainsFold,omitempty"`
-
 	// "transaction_hash" field predicates.
 	TransactionHash             *string  `json:"transactionHash,omitempty"`
 	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
@@ -515,10 +500,6 @@ type TransactionWhereInput struct {
 	// "block" edge predicates.
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
-
-	// "receipts" edge predicates.
-	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
-	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
 }
 
 // Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
@@ -682,45 +663,6 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 	if i.EntryPointSelectorContainsFold != nil {
 		predicates = append(predicates, transaction.EntryPointSelectorContainsFold(*i.EntryPointSelectorContainsFold))
 	}
-	if i.EntryPointType != nil {
-		predicates = append(predicates, transaction.EntryPointTypeEQ(*i.EntryPointType))
-	}
-	if i.EntryPointTypeNEQ != nil {
-		predicates = append(predicates, transaction.EntryPointTypeNEQ(*i.EntryPointTypeNEQ))
-	}
-	if len(i.EntryPointTypeIn) > 0 {
-		predicates = append(predicates, transaction.EntryPointTypeIn(i.EntryPointTypeIn...))
-	}
-	if len(i.EntryPointTypeNotIn) > 0 {
-		predicates = append(predicates, transaction.EntryPointTypeNotIn(i.EntryPointTypeNotIn...))
-	}
-	if i.EntryPointTypeGT != nil {
-		predicates = append(predicates, transaction.EntryPointTypeGT(*i.EntryPointTypeGT))
-	}
-	if i.EntryPointTypeGTE != nil {
-		predicates = append(predicates, transaction.EntryPointTypeGTE(*i.EntryPointTypeGTE))
-	}
-	if i.EntryPointTypeLT != nil {
-		predicates = append(predicates, transaction.EntryPointTypeLT(*i.EntryPointTypeLT))
-	}
-	if i.EntryPointTypeLTE != nil {
-		predicates = append(predicates, transaction.EntryPointTypeLTE(*i.EntryPointTypeLTE))
-	}
-	if i.EntryPointTypeContains != nil {
-		predicates = append(predicates, transaction.EntryPointTypeContains(*i.EntryPointTypeContains))
-	}
-	if i.EntryPointTypeHasPrefix != nil {
-		predicates = append(predicates, transaction.EntryPointTypeHasPrefix(*i.EntryPointTypeHasPrefix))
-	}
-	if i.EntryPointTypeHasSuffix != nil {
-		predicates = append(predicates, transaction.EntryPointTypeHasSuffix(*i.EntryPointTypeHasSuffix))
-	}
-	if i.EntryPointTypeEqualFold != nil {
-		predicates = append(predicates, transaction.EntryPointTypeEqualFold(*i.EntryPointTypeEqualFold))
-	}
-	if i.EntryPointTypeContainsFold != nil {
-		predicates = append(predicates, transaction.EntryPointTypeContainsFold(*i.EntryPointTypeContainsFold))
-	}
 	if i.TransactionHash != nil {
 		predicates = append(predicates, transaction.TransactionHashEQ(*i.TransactionHash))
 	}
@@ -830,24 +772,6 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 		}
 		predicates = append(predicates, transaction.HasBlockWith(with...))
 	}
-	if i.HasReceipts != nil {
-		p := transaction.HasReceipts()
-		if !*i.HasReceipts {
-			p = transaction.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasReceiptsWith) > 0 {
-		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptsWith))
-		for _, w := range i.HasReceiptsWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, transaction.HasReceiptsWith(with...))
-	}
 	switch len(predicates) {
 	case 0:
 		return nil, fmt.Errorf("empty predicate TransactionWhereInput")
@@ -874,16 +798,6 @@ type TransactionReceiptWhereInput struct {
 	IDLT    *string  `json:"idLT,omitempty"`
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
-	// "transaction_index" field predicates.
-	TransactionIndex      *int32  `json:"transactionIndex,omitempty"`
-	TransactionIndexNEQ   *int32  `json:"transactionIndexNEQ,omitempty"`
-	TransactionIndexIn    []int32 `json:"transactionIndexIn,omitempty"`
-	TransactionIndexNotIn []int32 `json:"transactionIndexNotIn,omitempty"`
-	TransactionIndexGT    *int32  `json:"transactionIndexGT,omitempty"`
-	TransactionIndexGTE   *int32  `json:"transactionIndexGTE,omitempty"`
-	TransactionIndexLT    *int32  `json:"transactionIndexLT,omitempty"`
-	TransactionIndexLTE   *int32  `json:"transactionIndexLTE,omitempty"`
-
 	// "transaction_hash" field predicates.
 	TransactionHash             *string  `json:"transactionHash,omitempty"`
 	TransactionHashNEQ          *string  `json:"transactionHashNEQ,omitempty"`
@@ -899,13 +813,30 @@ type TransactionReceiptWhereInput struct {
 	TransactionHashEqualFold    *string  `json:"transactionHashEqualFold,omitempty"`
 	TransactionHashContainsFold *string  `json:"transactionHashContainsFold,omitempty"`
 
+	// "status" field predicates.
+	Status      *transactionreceipt.Status  `json:"status,omitempty"`
+	StatusNEQ   *transactionreceipt.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []transactionreceipt.Status `json:"statusIn,omitempty"`
+	StatusNotIn []transactionreceipt.Status `json:"statusNotIn,omitempty"`
+
+	// "status_data" field predicates.
+	StatusData             *string  `json:"statusData,omitempty"`
+	StatusDataNEQ          *string  `json:"statusDataNEQ,omitempty"`
+	StatusDataIn           []string `json:"statusDataIn,omitempty"`
+	StatusDataNotIn        []string `json:"statusDataNotIn,omitempty"`
+	StatusDataGT           *string  `json:"statusDataGT,omitempty"`
+	StatusDataGTE          *string  `json:"statusDataGTE,omitempty"`
+	StatusDataLT           *string  `json:"statusDataLT,omitempty"`
+	StatusDataLTE          *string  `json:"statusDataLTE,omitempty"`
+	StatusDataContains     *string  `json:"statusDataContains,omitempty"`
+	StatusDataHasPrefix    *string  `json:"statusDataHasPrefix,omitempty"`
+	StatusDataHasSuffix    *string  `json:"statusDataHasSuffix,omitempty"`
+	StatusDataEqualFold    *string  `json:"statusDataEqualFold,omitempty"`
+	StatusDataContainsFold *string  `json:"statusDataContainsFold,omitempty"`
+
 	// "block" edge predicates.
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
-
-	// "transaction" edge predicates.
-	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
-	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
 }
 
 // Filter applies the TransactionReceiptWhereInput filter on the TransactionReceiptQuery builder.
@@ -991,30 +922,6 @@ func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error)
 	if i.IDLTE != nil {
 		predicates = append(predicates, transactionreceipt.IDLTE(*i.IDLTE))
 	}
-	if i.TransactionIndex != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexEQ(*i.TransactionIndex))
-	}
-	if i.TransactionIndexNEQ != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexNEQ(*i.TransactionIndexNEQ))
-	}
-	if len(i.TransactionIndexIn) > 0 {
-		predicates = append(predicates, transactionreceipt.TransactionIndexIn(i.TransactionIndexIn...))
-	}
-	if len(i.TransactionIndexNotIn) > 0 {
-		predicates = append(predicates, transactionreceipt.TransactionIndexNotIn(i.TransactionIndexNotIn...))
-	}
-	if i.TransactionIndexGT != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexGT(*i.TransactionIndexGT))
-	}
-	if i.TransactionIndexGTE != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexGTE(*i.TransactionIndexGTE))
-	}
-	if i.TransactionIndexLT != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexLT(*i.TransactionIndexLT))
-	}
-	if i.TransactionIndexLTE != nil {
-		predicates = append(predicates, transactionreceipt.TransactionIndexLTE(*i.TransactionIndexLTE))
-	}
 	if i.TransactionHash != nil {
 		predicates = append(predicates, transactionreceipt.TransactionHashEQ(*i.TransactionHash))
 	}
@@ -1054,6 +961,57 @@ func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error)
 	if i.TransactionHashContainsFold != nil {
 		predicates = append(predicates, transactionreceipt.TransactionHashContainsFold(*i.TransactionHashContainsFold))
 	}
+	if i.Status != nil {
+		predicates = append(predicates, transactionreceipt.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, transactionreceipt.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, transactionreceipt.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.StatusNotIn(i.StatusNotIn...))
+	}
+	if i.StatusData != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataEQ(*i.StatusData))
+	}
+	if i.StatusDataNEQ != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataNEQ(*i.StatusDataNEQ))
+	}
+	if len(i.StatusDataIn) > 0 {
+		predicates = append(predicates, transactionreceipt.StatusDataIn(i.StatusDataIn...))
+	}
+	if len(i.StatusDataNotIn) > 0 {
+		predicates = append(predicates, transactionreceipt.StatusDataNotIn(i.StatusDataNotIn...))
+	}
+	if i.StatusDataGT != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataGT(*i.StatusDataGT))
+	}
+	if i.StatusDataGTE != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataGTE(*i.StatusDataGTE))
+	}
+	if i.StatusDataLT != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataLT(*i.StatusDataLT))
+	}
+	if i.StatusDataLTE != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataLTE(*i.StatusDataLTE))
+	}
+	if i.StatusDataContains != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataContains(*i.StatusDataContains))
+	}
+	if i.StatusDataHasPrefix != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataHasPrefix(*i.StatusDataHasPrefix))
+	}
+	if i.StatusDataHasSuffix != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataHasSuffix(*i.StatusDataHasSuffix))
+	}
+	if i.StatusDataEqualFold != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataEqualFold(*i.StatusDataEqualFold))
+	}
+	if i.StatusDataContainsFold != nil {
+		predicates = append(predicates, transactionreceipt.StatusDataContainsFold(*i.StatusDataContainsFold))
+	}
 
 	if i.HasBlock != nil {
 		p := transactionreceipt.HasBlock()
@@ -1072,24 +1030,6 @@ func (i *TransactionReceiptWhereInput) P() (predicate.TransactionReceipt, error)
 			with = append(with, p)
 		}
 		predicates = append(predicates, transactionreceipt.HasBlockWith(with...))
-	}
-	if i.HasTransaction != nil {
-		p := transactionreceipt.HasTransaction()
-		if !*i.HasTransaction {
-			p = transactionreceipt.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasTransactionWith) > 0 {
-		with := make([]predicate.Transaction, 0, len(i.HasTransactionWith))
-		for _, w := range i.HasTransactionWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, transactionreceipt.HasTransactionWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

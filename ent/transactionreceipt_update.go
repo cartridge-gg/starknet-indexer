@@ -4,17 +4,15 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
@@ -31,46 +29,39 @@ func (tru *TransactionReceiptUpdate) Where(ps ...predicate.TransactionReceipt) *
 	return tru
 }
 
-// SetTransactionIndex sets the "transaction_index" field.
-func (tru *TransactionReceiptUpdate) SetTransactionIndex(i int32) *TransactionReceiptUpdate {
-	tru.mutation.ResetTransactionIndex()
-	tru.mutation.SetTransactionIndex(i)
-	return tru
-}
-
-// AddTransactionIndex adds i to the "transaction_index" field.
-func (tru *TransactionReceiptUpdate) AddTransactionIndex(i int32) *TransactionReceiptUpdate {
-	tru.mutation.AddTransactionIndex(i)
-	return tru
-}
-
 // SetTransactionHash sets the "transaction_hash" field.
 func (tru *TransactionReceiptUpdate) SetTransactionHash(s string) *TransactionReceiptUpdate {
 	tru.mutation.SetTransactionHash(s)
 	return tru
 }
 
-// SetL1ToL2ConsumedMessage sets the "l1_to_l2_consumed_message" field.
-func (tru *TransactionReceiptUpdate) SetL1ToL2ConsumedMessage(slm schema.L1ToL2ConsumedMessage) *TransactionReceiptUpdate {
-	tru.mutation.SetL1ToL2ConsumedMessage(slm)
+// SetStatus sets the "status" field.
+func (tru *TransactionReceiptUpdate) SetStatus(t transactionreceipt.Status) *TransactionReceiptUpdate {
+	tru.mutation.SetStatus(t)
 	return tru
 }
 
-// SetExecutionResources sets the "execution_resources" field.
-func (tru *TransactionReceiptUpdate) SetExecutionResources(sr schema.ExecutionResources) *TransactionReceiptUpdate {
-	tru.mutation.SetExecutionResources(sr)
+// SetStatusData sets the "status_data" field.
+func (tru *TransactionReceiptUpdate) SetStatusData(s string) *TransactionReceiptUpdate {
+	tru.mutation.SetStatusData(s)
+	return tru
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (tru *TransactionReceiptUpdate) SetMessagesSent(t []types.L1Message) *TransactionReceiptUpdate {
+	tru.mutation.SetMessagesSent(t)
+	return tru
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (tru *TransactionReceiptUpdate) SetL1OriginMessage(t types.L2Message) *TransactionReceiptUpdate {
+	tru.mutation.SetL1OriginMessage(t)
 	return tru
 }
 
 // SetEvents sets the "events" field.
-func (tru *TransactionReceiptUpdate) SetEvents(jm json.RawMessage) *TransactionReceiptUpdate {
-	tru.mutation.SetEvents(jm)
-	return tru
-}
-
-// SetL2ToL1Messages sets the "l2_to_l1_messages" field.
-func (tru *TransactionReceiptUpdate) SetL2ToL1Messages(jm json.RawMessage) *TransactionReceiptUpdate {
-	tru.mutation.SetL2ToL1Messages(jm)
+func (tru *TransactionReceiptUpdate) SetEvents(t []types.Event) *TransactionReceiptUpdate {
+	tru.mutation.SetEvents(t)
 	return tru
 }
 
@@ -93,25 +84,6 @@ func (tru *TransactionReceiptUpdate) SetBlock(b *Block) *TransactionReceiptUpdat
 	return tru.SetBlockID(b.ID)
 }
 
-// SetTransactionID sets the "transaction" edge to the Transaction entity by ID.
-func (tru *TransactionReceiptUpdate) SetTransactionID(id string) *TransactionReceiptUpdate {
-	tru.mutation.SetTransactionID(id)
-	return tru
-}
-
-// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
-func (tru *TransactionReceiptUpdate) SetNillableTransactionID(id *string) *TransactionReceiptUpdate {
-	if id != nil {
-		tru = tru.SetTransactionID(*id)
-	}
-	return tru
-}
-
-// SetTransaction sets the "transaction" edge to the Transaction entity.
-func (tru *TransactionReceiptUpdate) SetTransaction(t *Transaction) *TransactionReceiptUpdate {
-	return tru.SetTransactionID(t.ID)
-}
-
 // Mutation returns the TransactionReceiptMutation object of the builder.
 func (tru *TransactionReceiptUpdate) Mutation() *TransactionReceiptMutation {
 	return tru.mutation
@@ -123,12 +95,6 @@ func (tru *TransactionReceiptUpdate) ClearBlock() *TransactionReceiptUpdate {
 	return tru
 }
 
-// ClearTransaction clears the "transaction" edge to the Transaction entity.
-func (tru *TransactionReceiptUpdate) ClearTransaction() *TransactionReceiptUpdate {
-	tru.mutation.ClearTransaction()
-	return tru
-}
-
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tru *TransactionReceiptUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -136,12 +102,18 @@ func (tru *TransactionReceiptUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(tru.hooks) == 0 {
+		if err = tru.check(); err != nil {
+			return 0, err
+		}
 		affected, err = tru.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TransactionReceiptMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = tru.check(); err != nil {
+				return 0, err
 			}
 			tru.mutation = mutation
 			affected, err = tru.sqlSave(ctx)
@@ -183,6 +155,16 @@ func (tru *TransactionReceiptUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (tru *TransactionReceiptUpdate) check() error {
+	if v, ok := tru.mutation.Status(); ok {
+		if err := transactionreceipt.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "TransactionReceipt.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -201,20 +183,6 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 		}
 	}
-	if value, ok := tru.mutation.TransactionIndex(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: transactionreceipt.FieldTransactionIndex,
-		})
-	}
-	if value, ok := tru.mutation.AddedTransactionIndex(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: transactionreceipt.FieldTransactionIndex,
-		})
-	}
 	if value, ok := tru.mutation.TransactionHash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -222,18 +190,32 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 			Column: transactionreceipt.FieldTransactionHash,
 		})
 	}
-	if value, ok := tru.mutation.L1ToL2ConsumedMessage(); ok {
+	if value, ok := tru.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: transactionreceipt.FieldL1ToL2ConsumedMessage,
+			Column: transactionreceipt.FieldStatus,
 		})
 	}
-	if value, ok := tru.mutation.ExecutionResources(); ok {
+	if value, ok := tru.mutation.StatusData(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: transactionreceipt.FieldStatusData,
+		})
+	}
+	if value, ok := tru.mutation.MessagesSent(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: transactionreceipt.FieldExecutionResources,
+			Column: transactionreceipt.FieldMessagesSent,
+		})
+	}
+	if value, ok := tru.mutation.L1OriginMessage(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transactionreceipt.FieldL1OriginMessage,
 		})
 	}
 	if value, ok := tru.mutation.Events(); ok {
@@ -241,13 +223,6 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: transactionreceipt.FieldEvents,
-		})
-	}
-	if value, ok := tru.mutation.L2ToL1Messages(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldL2ToL1Messages,
 		})
 	}
 	if tru.mutation.BlockCleared() {
@@ -285,41 +260,6 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tru.mutation.TransactionCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   transactionreceipt.TransactionTable,
-			Columns: []string{transactionreceipt.TransactionColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transaction.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tru.mutation.TransactionIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   transactionreceipt.TransactionTable,
-			Columns: []string{transactionreceipt.TransactionColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transaction.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{transactionreceipt.Label}
@@ -339,46 +279,39 @@ type TransactionReceiptUpdateOne struct {
 	mutation *TransactionReceiptMutation
 }
 
-// SetTransactionIndex sets the "transaction_index" field.
-func (truo *TransactionReceiptUpdateOne) SetTransactionIndex(i int32) *TransactionReceiptUpdateOne {
-	truo.mutation.ResetTransactionIndex()
-	truo.mutation.SetTransactionIndex(i)
-	return truo
-}
-
-// AddTransactionIndex adds i to the "transaction_index" field.
-func (truo *TransactionReceiptUpdateOne) AddTransactionIndex(i int32) *TransactionReceiptUpdateOne {
-	truo.mutation.AddTransactionIndex(i)
-	return truo
-}
-
 // SetTransactionHash sets the "transaction_hash" field.
 func (truo *TransactionReceiptUpdateOne) SetTransactionHash(s string) *TransactionReceiptUpdateOne {
 	truo.mutation.SetTransactionHash(s)
 	return truo
 }
 
-// SetL1ToL2ConsumedMessage sets the "l1_to_l2_consumed_message" field.
-func (truo *TransactionReceiptUpdateOne) SetL1ToL2ConsumedMessage(slm schema.L1ToL2ConsumedMessage) *TransactionReceiptUpdateOne {
-	truo.mutation.SetL1ToL2ConsumedMessage(slm)
+// SetStatus sets the "status" field.
+func (truo *TransactionReceiptUpdateOne) SetStatus(t transactionreceipt.Status) *TransactionReceiptUpdateOne {
+	truo.mutation.SetStatus(t)
 	return truo
 }
 
-// SetExecutionResources sets the "execution_resources" field.
-func (truo *TransactionReceiptUpdateOne) SetExecutionResources(sr schema.ExecutionResources) *TransactionReceiptUpdateOne {
-	truo.mutation.SetExecutionResources(sr)
+// SetStatusData sets the "status_data" field.
+func (truo *TransactionReceiptUpdateOne) SetStatusData(s string) *TransactionReceiptUpdateOne {
+	truo.mutation.SetStatusData(s)
+	return truo
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (truo *TransactionReceiptUpdateOne) SetMessagesSent(t []types.L1Message) *TransactionReceiptUpdateOne {
+	truo.mutation.SetMessagesSent(t)
+	return truo
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (truo *TransactionReceiptUpdateOne) SetL1OriginMessage(t types.L2Message) *TransactionReceiptUpdateOne {
+	truo.mutation.SetL1OriginMessage(t)
 	return truo
 }
 
 // SetEvents sets the "events" field.
-func (truo *TransactionReceiptUpdateOne) SetEvents(jm json.RawMessage) *TransactionReceiptUpdateOne {
-	truo.mutation.SetEvents(jm)
-	return truo
-}
-
-// SetL2ToL1Messages sets the "l2_to_l1_messages" field.
-func (truo *TransactionReceiptUpdateOne) SetL2ToL1Messages(jm json.RawMessage) *TransactionReceiptUpdateOne {
-	truo.mutation.SetL2ToL1Messages(jm)
+func (truo *TransactionReceiptUpdateOne) SetEvents(t []types.Event) *TransactionReceiptUpdateOne {
+	truo.mutation.SetEvents(t)
 	return truo
 }
 
@@ -401,25 +334,6 @@ func (truo *TransactionReceiptUpdateOne) SetBlock(b *Block) *TransactionReceiptU
 	return truo.SetBlockID(b.ID)
 }
 
-// SetTransactionID sets the "transaction" edge to the Transaction entity by ID.
-func (truo *TransactionReceiptUpdateOne) SetTransactionID(id string) *TransactionReceiptUpdateOne {
-	truo.mutation.SetTransactionID(id)
-	return truo
-}
-
-// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
-func (truo *TransactionReceiptUpdateOne) SetNillableTransactionID(id *string) *TransactionReceiptUpdateOne {
-	if id != nil {
-		truo = truo.SetTransactionID(*id)
-	}
-	return truo
-}
-
-// SetTransaction sets the "transaction" edge to the Transaction entity.
-func (truo *TransactionReceiptUpdateOne) SetTransaction(t *Transaction) *TransactionReceiptUpdateOne {
-	return truo.SetTransactionID(t.ID)
-}
-
 // Mutation returns the TransactionReceiptMutation object of the builder.
 func (truo *TransactionReceiptUpdateOne) Mutation() *TransactionReceiptMutation {
 	return truo.mutation
@@ -428,12 +342,6 @@ func (truo *TransactionReceiptUpdateOne) Mutation() *TransactionReceiptMutation 
 // ClearBlock clears the "block" edge to the Block entity.
 func (truo *TransactionReceiptUpdateOne) ClearBlock() *TransactionReceiptUpdateOne {
 	truo.mutation.ClearBlock()
-	return truo
-}
-
-// ClearTransaction clears the "transaction" edge to the Transaction entity.
-func (truo *TransactionReceiptUpdateOne) ClearTransaction() *TransactionReceiptUpdateOne {
-	truo.mutation.ClearTransaction()
 	return truo
 }
 
@@ -451,12 +359,18 @@ func (truo *TransactionReceiptUpdateOne) Save(ctx context.Context) (*Transaction
 		node *TransactionReceipt
 	)
 	if len(truo.hooks) == 0 {
+		if err = truo.check(); err != nil {
+			return nil, err
+		}
 		node, err = truo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TransactionReceiptMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = truo.check(); err != nil {
+				return nil, err
 			}
 			truo.mutation = mutation
 			node, err = truo.sqlSave(ctx)
@@ -498,6 +412,16 @@ func (truo *TransactionReceiptUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (truo *TransactionReceiptUpdateOne) check() error {
+	if v, ok := truo.mutation.Status(); ok {
+		if err := transactionreceipt.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "TransactionReceipt.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *TransactionReceipt, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -533,20 +457,6 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 			}
 		}
 	}
-	if value, ok := truo.mutation.TransactionIndex(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: transactionreceipt.FieldTransactionIndex,
-		})
-	}
-	if value, ok := truo.mutation.AddedTransactionIndex(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: transactionreceipt.FieldTransactionIndex,
-		})
-	}
 	if value, ok := truo.mutation.TransactionHash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -554,18 +464,32 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 			Column: transactionreceipt.FieldTransactionHash,
 		})
 	}
-	if value, ok := truo.mutation.L1ToL2ConsumedMessage(); ok {
+	if value, ok := truo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: transactionreceipt.FieldL1ToL2ConsumedMessage,
+			Column: transactionreceipt.FieldStatus,
 		})
 	}
-	if value, ok := truo.mutation.ExecutionResources(); ok {
+	if value, ok := truo.mutation.StatusData(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: transactionreceipt.FieldStatusData,
+		})
+	}
+	if value, ok := truo.mutation.MessagesSent(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: transactionreceipt.FieldExecutionResources,
+			Column: transactionreceipt.FieldMessagesSent,
+		})
+	}
+	if value, ok := truo.mutation.L1OriginMessage(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: transactionreceipt.FieldL1OriginMessage,
 		})
 	}
 	if value, ok := truo.mutation.Events(); ok {
@@ -573,13 +497,6 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: transactionreceipt.FieldEvents,
-		})
-	}
-	if value, ok := truo.mutation.L2ToL1Messages(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldL2ToL1Messages,
 		})
 	}
 	if truo.mutation.BlockCleared() {
@@ -609,41 +526,6 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if truo.mutation.TransactionCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   transactionreceipt.TransactionTable,
-			Columns: []string{transactionreceipt.TransactionColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transaction.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := truo.mutation.TransactionIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   transactionreceipt.TransactionTable,
-			Columns: []string{transactionreceipt.TransactionColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: transaction.FieldID,
 				},
 			},
 		}

@@ -125,8 +125,8 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Transaction",
-		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.ContractAddress); err != nil {
@@ -145,18 +145,10 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "entry_point_selector",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.EntryPointType); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "string",
-		Name:  "entry_point_type",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(t.TransactionHash); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "string",
 		Name:  "transaction_hash",
 		Value: string(buf),
@@ -164,7 +156,7 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.Calldata); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[3] = &Field{
 		Type:  "[]string",
 		Name:  "calldata",
 		Value: string(buf),
@@ -172,7 +164,7 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.Signature); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "[]string",
 		Name:  "signature",
 		Value: string(buf),
@@ -180,7 +172,7 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.Type); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "transaction.Type",
 		Name:  "type",
 		Value: string(buf),
@@ -188,7 +180,7 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.Nonce); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "string",
 		Name:  "nonce",
 		Value: string(buf),
@@ -203,16 +195,6 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
-		Type: "TransactionReceipt",
-		Name: "receipts",
-	}
-	err = t.QueryReceipts().
-		Select(transactionreceipt.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
-	if err != nil {
-		return nil, err
-	}
 	return node, nil
 }
 
@@ -220,56 +202,40 @@ func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) 
 	node = &Node{
 		ID:     tr.ID,
 		Type:   "TransactionReceipt",
-		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(tr.TransactionIndex); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "int32",
-		Name:  "transaction_index",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(tr.TransactionHash); err != nil {
 		return nil, err
 	}
-	node.Fields[1] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "string",
 		Name:  "transaction_hash",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(tr.L1ToL2ConsumedMessage); err != nil {
+	if buf, err = json.Marshal(tr.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "transactionreceipt.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tr.StatusData); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "schema.L1ToL2ConsumedMessage",
-		Name:  "l1_to_l2_consumed_message",
+		Type:  "string",
+		Name:  "status_data",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(tr.ExecutionResources); err != nil {
+	if buf, err = json.Marshal(tr.L1OriginMessage); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
-		Type:  "schema.ExecutionResources",
-		Name:  "execution_resources",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(tr.Events); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "json.RawMessage",
-		Name:  "events",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(tr.L2ToL1Messages); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "json.RawMessage",
-		Name:  "l2_to_l1_messages",
+		Type:  "types.L2Message",
+		Name:  "l1_origin_message",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -279,16 +245,6 @@ func (tr *TransactionReceipt) Node(ctx context.Context) (node *Node, err error) 
 	err = tr.QueryBlock().
 		Select(block.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[1] = &Edge{
-		Type: "Transaction",
-		Name: "transaction",
-	}
-	err = tr.QueryTransaction().
-		Select(transaction.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
