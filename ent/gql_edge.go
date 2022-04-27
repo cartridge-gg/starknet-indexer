@@ -20,6 +20,14 @@ func (b *Block) TransactionReceipts(ctx context.Context) ([]*TransactionReceipt,
 	return result, err
 }
 
+func (e *Event) Transaction(ctx context.Context) (*Transaction, error) {
+	result, err := e.Edges.TransactionOrErr()
+	if IsNotLoaded(err) {
+		result, err = e.QueryTransaction().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (t *Transaction) Block(ctx context.Context) (*Block, error) {
 	result, err := t.Edges.BlockOrErr()
 	if IsNotLoaded(err) {
@@ -28,10 +36,18 @@ func (t *Transaction) Block(ctx context.Context) (*Block, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Transaction) Receipts(ctx context.Context) ([]*TransactionReceipt, error) {
+func (t *Transaction) Receipts(ctx context.Context) (*TransactionReceipt, error) {
 	result, err := t.Edges.ReceiptsOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryReceipts().All(ctx)
+		result, err = t.QueryReceipts().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (t *Transaction) Events(ctx context.Context) ([]*Event, error) {
+	result, err := t.Edges.EventsOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryEvents().All(ctx)
 	}
 	return result, err
 }

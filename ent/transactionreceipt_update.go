@@ -60,12 +60,6 @@ func (tru *TransactionReceiptUpdate) SetL1OriginMessage(t *types.L2Message) *Tra
 	return tru
 }
 
-// SetEvents sets the "events" field.
-func (tru *TransactionReceiptUpdate) SetEvents(t []*types.Event) *TransactionReceiptUpdate {
-	tru.mutation.SetEvents(t)
-	return tru
-}
-
 // SetBlockID sets the "block" edge to the Block entity by ID.
 func (tru *TransactionReceiptUpdate) SetBlockID(id string) *TransactionReceiptUpdate {
 	tru.mutation.SetBlockID(id)
@@ -244,13 +238,6 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 			Column: transactionreceipt.FieldL1OriginMessage,
 		})
 	}
-	if value, ok := tru.mutation.Events(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldEvents,
-		})
-	}
 	if tru.mutation.BlockCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -288,7 +275,7 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 	}
 	if tru.mutation.TransactionCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},
@@ -304,7 +291,7 @@ func (tru *TransactionReceiptUpdate) sqlSave(ctx context.Context) (n int, err er
 	}
 	if nodes := tru.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},
@@ -367,12 +354,6 @@ func (truo *TransactionReceiptUpdateOne) SetMessagesSent(t []*types.L1Message) *
 // SetL1OriginMessage sets the "l1_origin_message" field.
 func (truo *TransactionReceiptUpdateOne) SetL1OriginMessage(t *types.L2Message) *TransactionReceiptUpdateOne {
 	truo.mutation.SetL1OriginMessage(t)
-	return truo
-}
-
-// SetEvents sets the "events" field.
-func (truo *TransactionReceiptUpdateOne) SetEvents(t []*types.Event) *TransactionReceiptUpdateOne {
-	truo.mutation.SetEvents(t)
 	return truo
 }
 
@@ -578,13 +559,6 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 			Column: transactionreceipt.FieldL1OriginMessage,
 		})
 	}
-	if value, ok := truo.mutation.Events(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldEvents,
-		})
-	}
 	if truo.mutation.BlockCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -622,7 +596,7 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 	}
 	if truo.mutation.TransactionCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},
@@ -638,7 +612,7 @@ func (truo *TransactionReceiptUpdateOne) sqlSave(ctx context.Context) (_node *Tr
 	}
 	if nodes := truo.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},

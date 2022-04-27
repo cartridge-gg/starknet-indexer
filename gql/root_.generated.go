@@ -9,6 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -31,6 +32,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -61,9 +63,22 @@ type ComplexityRoot struct {
 	}
 
 	Event struct {
-		FromAddress func(childComplexity int) int
-		Keys        func(childComplexity int) int
-		Values      func(childComplexity int) int
+		From        func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Key         func(childComplexity int) int
+		Transaction func(childComplexity int) int
+		Value       func(childComplexity int) int
+	}
+
+	EventConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	EventEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	L1Message struct {
@@ -85,9 +100,14 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Blocks       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.BlockOrder, where *BlockWhereInput) int
+		Events       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *EventWhereInput) int
 		Node         func(childComplexity int, id string) int
 		Nodes        func(childComplexity int, ids []string) int
 		Transactions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *TransactionWhereInput) int
+	}
+
+	Subscription struct {
+		WatchEvent func(childComplexity int, address string, keys []*types.Felt) int
 	}
 
 	Transaction struct {
@@ -95,6 +115,7 @@ type ComplexityRoot struct {
 		Calldata           func(childComplexity int) int
 		ContractAddress    func(childComplexity int) int
 		EntryPointSelector func(childComplexity int) int
+		Events             func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Nonce              func(childComplexity int) int
 		Receipts           func(childComplexity int) int
@@ -115,7 +136,6 @@ type ComplexityRoot struct {
 
 	TransactionReceipt struct {
 		Block           func(childComplexity int) int
-		Events          func(childComplexity int) int
 		ID              func(childComplexity int) int
 		L1OriginMessage func(childComplexity int) int
 		MessagesSent    func(childComplexity int) int
@@ -250,26 +270,75 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BlockEdge.Node(childComplexity), true
 
-	case "Event.fromAddress":
-		if e.complexity.Event.FromAddress == nil {
+	case "Event.from":
+		if e.complexity.Event.From == nil {
 			break
 		}
 
-		return e.complexity.Event.FromAddress(childComplexity), true
+		return e.complexity.Event.From(childComplexity), true
 
-	case "Event.keys":
-		if e.complexity.Event.Keys == nil {
+	case "Event.id":
+		if e.complexity.Event.ID == nil {
 			break
 		}
 
-		return e.complexity.Event.Keys(childComplexity), true
+		return e.complexity.Event.ID(childComplexity), true
 
-	case "Event.values":
-		if e.complexity.Event.Values == nil {
+	case "Event.key":
+		if e.complexity.Event.Key == nil {
 			break
 		}
 
-		return e.complexity.Event.Values(childComplexity), true
+		return e.complexity.Event.Key(childComplexity), true
+
+	case "Event.transaction":
+		if e.complexity.Event.Transaction == nil {
+			break
+		}
+
+		return e.complexity.Event.Transaction(childComplexity), true
+
+	case "Event.value":
+		if e.complexity.Event.Value == nil {
+			break
+		}
+
+		return e.complexity.Event.Value(childComplexity), true
+
+	case "EventConnection.edges":
+		if e.complexity.EventConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.EventConnection.Edges(childComplexity), true
+
+	case "EventConnection.pageInfo":
+		if e.complexity.EventConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.EventConnection.PageInfo(childComplexity), true
+
+	case "EventConnection.totalCount":
+		if e.complexity.EventConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EventConnection.TotalCount(childComplexity), true
+
+	case "EventEdge.cursor":
+		if e.complexity.EventEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.EventEdge.Cursor(childComplexity), true
+
+	case "EventEdge.node":
+		if e.complexity.EventEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.EventEdge.Node(childComplexity), true
 
 	case "L1Message.payload":
 		if e.complexity.L1Message.Payload == nil {
@@ -339,6 +408,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Blocks(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.BlockOrder), args["where"].(*BlockWhereInput)), true
 
+	case "Query.events":
+		if e.complexity.Query.Events == nil {
+			break
+		}
+
+		args, err := ec.field_Query_events_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Events(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["where"].(*EventWhereInput)), true
+
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
 			break
@@ -375,6 +456,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Transactions(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["where"].(*TransactionWhereInput)), true
 
+	case "Subscription.watchEvent":
+		if e.complexity.Subscription.WatchEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_watchEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.WatchEvent(childComplexity, args["address"].(string), args["keys"].([]*types.Felt)), true
+
 	case "Transaction.block":
 		if e.complexity.Transaction.Block == nil {
 			break
@@ -402,6 +495,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Transaction.EntryPointSelector(childComplexity), true
+
+	case "Transaction.events":
+		if e.complexity.Transaction.Events == nil {
+			break
+		}
+
+		return e.complexity.Transaction.Events(childComplexity), true
 
 	case "Transaction.id":
 		if e.complexity.Transaction.ID == nil {
@@ -479,13 +579,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TransactionReceipt.Block(childComplexity), true
-
-	case "TransactionReceipt.events":
-		if e.complexity.TransactionReceipt.Events == nil {
-			break
-		}
-
-		return e.complexity.TransactionReceipt.Events(childComplexity), true
 
 	case "TransactionReceipt.id":
 		if e.complexity.TransactionReceipt.ID == nil {
@@ -589,6 +682,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			first = false
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
 			data.MarshalGQL(&buf)
 
 			return &graphql.Response{
@@ -756,6 +866,81 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type Event implements Node {
+  id: ID!
+  from: String!
+  key: Felt!
+  value: Felt!
+  transaction: Transaction
+}
+"""A connection to a list of items."""
+type EventConnection {
+  """A list of edges."""
+  edges: [EventEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type EventEdge {
+  """The item at the end of the edge."""
+  node: Event
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
+EventWhereInput is used for filtering Event objects.
+Input was generated by ent.
+"""
+input EventWhereInput {
+  not: EventWhereInput
+  and: [EventWhereInput!]
+  or: [EventWhereInput!]
+  """from field predicates"""
+  from: String
+  fromNEQ: String
+  fromIn: [String!]
+  fromNotIn: [String!]
+  fromGT: String
+  fromGTE: String
+  fromLT: String
+  fromLTE: String
+  fromContains: String
+  fromHasPrefix: String
+  fromHasSuffix: String
+  fromEqualFold: String
+  fromContainsFold: String
+  """key field predicates"""
+  key: Felt
+  keyNEQ: Felt
+  keyIn: [Felt!]
+  keyNotIn: [Felt!]
+  keyGT: Felt
+  keyGTE: Felt
+  keyLT: Felt
+  keyLTE: Felt
+  """value field predicates"""
+  value: Felt
+  valueNEQ: Felt
+  valueIn: [Felt!]
+  valueNotIn: [Felt!]
+  valueGT: Felt
+  valueGTE: Felt
+  valueLT: Felt
+  valueLTE: Felt
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """transaction edge predicates"""
+  hasTransaction: Boolean
+  hasTransactionWith: [TransactionWhereInput!]
+}
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
@@ -800,7 +985,8 @@ type Transaction implements Node {
   signature: [String!]
   nonce: String!
   block: Block
-  receipts: [TransactionReceipt!]
+  receipts: TransactionReceipt
+  events: [Event!]
 }
 """A connection to a list of items."""
 type TransactionConnection {
@@ -988,6 +1174,9 @@ input TransactionWhereInput {
   """receipts edge predicates"""
   hasReceipts: Boolean
   hasReceiptsWith: [TransactionReceiptWhereInput!]
+  """events edge predicates"""
+  hasEvents: Boolean
+  hasEventsWith: [EventWhereInput!]
 }
 `, BuiltIn: false},
 	{Name: "schema.graphql", Input: `scalar Time
@@ -1005,15 +1194,8 @@ type L2Message {
   payload: [Felt!]
 }
 
-type Event {
-  fromAddress: String!
-  keys: [Felt!]
-  values: [Felt!]
-}
-
 extend type TransactionReceipt {
   messagesSent: [L1Message]!
-  events: [Event!]
 }
 
 type Query {
@@ -1034,6 +1216,17 @@ type Query {
     last: Int
     where: TransactionWhereInput
   ): TransactionConnection
+  events(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: EventWhereInput
+  ): EventConnection
+}
+
+type Subscription {
+  watchEvent(address: String!, keys: [Felt!]): Event
 }
 `, BuiltIn: false},
 }

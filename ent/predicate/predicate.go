@@ -9,6 +9,9 @@ import (
 // Block is the predicate function for block builders.
 type Block func(*sql.Selector)
 
+// Event is the predicate function for event builders.
+type Event func(*sql.Selector)
+
 // Transaction is the predicate function for transaction builders.
 type Transaction func(*sql.Selector)
 

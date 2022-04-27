@@ -395,6 +395,8 @@ func (ec *executionContext) fieldContext_Block_transactions(ctx context.Context,
 				return ec.fieldContext_Transaction_block(ctx, field)
 			case "receipts":
 				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "events":
+				return ec.fieldContext_Transaction_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
 		},
@@ -454,8 +456,6 @@ func (ec *executionContext) fieldContext_Block_transactionReceipts(ctx context.C
 				return ec.fieldContext_TransactionReceipt_transaction(ctx, field)
 			case "messagesSent":
 				return ec.fieldContext_TransactionReceipt_messagesSent(ctx, field)
-			case "events":
-				return ec.fieldContext_TransactionReceipt_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TransactionReceipt", field.Name)
 		},
@@ -703,6 +703,487 @@ func (ec *executionContext) _BlockEdge_cursor(ctx context.Context, field graphql
 func (ec *executionContext) fieldContext_BlockEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BlockEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_id(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_from(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_from(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.From, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_from(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_key(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*types.Felt)
+	fc.Result = res
+	return ec.marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_value(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*types.Felt)
+	fc.Result = res
+	return ec.marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Felt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_transaction(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_transaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Transaction(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Transaction)
+	fc.Result = res
+	return ec.marshalOTransaction2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransaction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_transaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Transaction_id(ctx, field)
+			case "contractAddress":
+				return ec.fieldContext_Transaction_contractAddress(ctx, field)
+			case "entryPointSelector":
+				return ec.fieldContext_Transaction_entryPointSelector(ctx, field)
+			case "transactionHash":
+				return ec.fieldContext_Transaction_transactionHash(ctx, field)
+			case "calldata":
+				return ec.fieldContext_Transaction_calldata(ctx, field)
+			case "signature":
+				return ec.fieldContext_Transaction_signature(ctx, field)
+			case "nonce":
+				return ec.fieldContext_Transaction_nonce(ctx, field)
+			case "block":
+				return ec.fieldContext_Transaction_block(ctx, field)
+			case "receipts":
+				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "events":
+				return ec.fieldContext_Transaction_events(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EventConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.EventEdge)
+	fc.Result = res
+	return ec.marshalOEventEdge2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_EventEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_EventEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EventEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EventConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EventConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EventEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Event)
+	fc.Result = res
+	return ec.marshalOEvent2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Event_id(ctx, field)
+			case "from":
+				return ec.fieldContext_Event_from(ctx, field)
+			case "key":
+				return ec.fieldContext_Event_key(ctx, field)
+			case "value":
+				return ec.fieldContext_Event_value(ctx, field)
+			case "transaction":
+				return ec.fieldContext_Event_transaction(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EventEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EventEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EventEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EventEdge",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1272,9 +1753,9 @@ func (ec *executionContext) _Transaction_receipts(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.TransactionReceipt)
+	res := resTmp.(*ent.TransactionReceipt)
 	fc.Result = res
-	return ec.marshalOTransactionReceipt2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionReceiptᚄ(ctx, field.Selections, res)
+	return ec.marshalOTransactionReceipt2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionReceipt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_receipts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1301,10 +1782,61 @@ func (ec *executionContext) fieldContext_Transaction_receipts(ctx context.Contex
 				return ec.fieldContext_TransactionReceipt_transaction(ctx, field)
 			case "messagesSent":
 				return ec.fieldContext_TransactionReceipt_messagesSent(ctx, field)
-			case "events":
-				return ec.fieldContext_TransactionReceipt_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TransactionReceipt", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Transaction_events(ctx context.Context, field graphql.CollectedField, obj *ent.Transaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Transaction_events(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Events(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Event)
+	fc.Result = res
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Transaction_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Transaction",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Event_id(ctx, field)
+			case "from":
+				return ec.fieldContext_Event_from(ctx, field)
+			case "key":
+				return ec.fieldContext_Event_key(ctx, field)
+			case "value":
+				return ec.fieldContext_Event_value(ctx, field)
+			case "transaction":
+				return ec.fieldContext_Event_transaction(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
 	}
 	return fc, nil
@@ -1509,6 +2041,8 @@ func (ec *executionContext) fieldContext_TransactionEdge_node(ctx context.Contex
 				return ec.fieldContext_Transaction_block(ctx, field)
 			case "receipts":
 				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "events":
+				return ec.fieldContext_Transaction_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
 		},
@@ -1901,6 +2435,8 @@ func (ec *executionContext) fieldContext_TransactionReceipt_transaction(ctx cont
 				return ec.fieldContext_Transaction_block(ctx, field)
 			case "receipts":
 				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "events":
+				return ec.fieldContext_Transaction_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Transaction", field.Name)
 		},
@@ -1953,55 +2489,6 @@ func (ec *executionContext) fieldContext_TransactionReceipt_messagesSent(ctx con
 				return ec.fieldContext_L1Message_payload(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type L1Message", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TransactionReceipt_events(ctx context.Context, field graphql.CollectedField, obj *ent.TransactionReceipt) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TransactionReceipt_events(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Events, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*types.Event)
-	fc.Result = res
-	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐEventᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TransactionReceipt_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TransactionReceipt",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "fromAddress":
-				return ec.fieldContext_Event_fromAddress(ctx, field)
-			case "keys":
-				return ec.fieldContext_Event_keys(ctx, field)
-			case "values":
-				return ec.fieldContext_Event_values(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
 	}
 	return fc, nil
@@ -2204,8 +2691,6 @@ func (ec *executionContext) fieldContext_TransactionReceiptEdge_node(ctx context
 				return ec.fieldContext_TransactionReceipt_transaction(ctx, field)
 			case "messagesSent":
 				return ec.fieldContext_TransactionReceipt_messagesSent(ctx, field)
-			case "events":
-				return ec.fieldContext_TransactionReceipt_events(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TransactionReceipt", field.Name)
 		},
@@ -2894,6 +3379,357 @@ func (ec *executionContext) unmarshalInputBlockWhereInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTransactionReceiptsWith"))
 			it.HasTransactionReceiptsWith, err = ec.unmarshalOTransactionReceiptWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionReceiptWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputEventWhereInput(ctx context.Context, obj interface{}) (EventWhereInput, error) {
+	var it EventWhereInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOEventWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOEventWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOEventWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
+			it.From, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromNEQ"))
+			it.FromNeq, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromIn"))
+			it.FromIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromNotIn"))
+			it.FromNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromGT"))
+			it.FromGt, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromGTE"))
+			it.FromGte, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromLT"))
+			it.FromLt, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromLTE"))
+			it.FromLte, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromContains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromContains"))
+			it.FromContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromHasPrefix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromHasPrefix"))
+			it.FromHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromHasSuffix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromHasSuffix"))
+			it.FromHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromEqualFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromEqualFold"))
+			it.FromEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromContainsFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromContainsFold"))
+			it.FromContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "key":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+			it.Key, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyNEQ"))
+			it.KeyNeq, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyIn"))
+			it.KeyIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyNotIn"))
+			it.KeyNotIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyGT"))
+			it.KeyGt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyGTE"))
+			it.KeyGte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyLT"))
+			it.KeyLt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "keyLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyLTE"))
+			it.KeyLte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNEQ"))
+			it.ValueNeq, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueIn"))
+			it.ValueIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNotIn"))
+			it.ValueNotIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGT"))
+			it.ValueGt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGTE"))
+			it.ValueGte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLT"))
+			it.ValueLt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "valueLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLTE"))
+			it.ValueLte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			it.IDNeq, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			it.IDIn, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			it.IDNotIn, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			it.IDGt, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			it.IDGte, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			it.IDLt, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			it.IDLte, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasTransaction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTransaction"))
+			it.HasTransaction, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasTransactionWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTransactionWith"))
+			it.HasTransactionWith, err = ec.unmarshalOTransactionWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3890,6 +4726,22 @@ func (ec *executionContext) unmarshalInputTransactionWhereInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "hasEvents":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasEvents"))
+			it.HasEvents, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasEventsWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasEventsWith"))
+			it.HasEventsWith, err = ec.unmarshalOEventWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3909,6 +4761,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Block(ctx, sel, obj)
+	case *ent.Event:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Event(ctx, sel, obj)
 	case *ent.Transaction:
 		if obj == nil {
 			return graphql.Null
@@ -4139,6 +4996,170 @@ func (ec *executionContext) _BlockEdge(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var eventImplementors = []string{"Event", "Node"}
+
+func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj *ent.Event) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Event")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "from":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_from(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "key":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_key(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "value":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Event_value(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "transaction":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_transaction(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var eventConnectionImplementors = []string{"EventConnection"}
+
+func (ec *executionContext) _EventConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EventConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EventConnection")
+		case "edges":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._EventConnection_edges(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageInfo":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._EventConnection_pageInfo(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._EventConnection_totalCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var eventEdgeImplementors = []string{"EventEdge"}
+
+func (ec *executionContext) _EventEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EventEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, eventEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EventEdge")
+		case "node":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._EventEdge_node(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "cursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._EventEdge_cursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var pageInfoImplementors = []string{"PageInfo"}
 
 func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *ent.PageInfo) graphql.Marshaler {
@@ -4298,6 +5319,23 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._Transaction_receipts(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "events":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Transaction_events(ctx, field, obj)
 				return res
 			}
 
@@ -4506,13 +5544,6 @@ func (ec *executionContext) _TransactionReceipt(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "events":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._TransactionReceipt_events(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4653,6 +5684,21 @@ func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋtarrencevᚋstarknet
 
 func (ec *executionContext) marshalNCursor2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEvent(ctx context.Context, sel ast.SelectionSet, v *ent.Event) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Event(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEventWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx context.Context, v interface{}) (*EventWhereInput, error) {
+	res, err := ec.unmarshalInputEventWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
@@ -4958,6 +6004,143 @@ func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarkne
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEvent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOEvent2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEvent(ctx context.Context, sel ast.SelectionSet, v *ent.Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Event(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOEventConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EventConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._EventConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOEventEdge2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.EventEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOEventEdge2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOEventEdge2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EventEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._EventEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOEventWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInputᚄ(ctx context.Context, v interface{}) ([]*EventWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*EventWhereInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNEventWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOEventWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx context.Context, v interface{}) (*EventWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputEventWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalONode2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {

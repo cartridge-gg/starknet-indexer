@@ -5,7 +5,9 @@ package indexer
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/gql"
 )
@@ -32,7 +34,22 @@ func (r *queryResolver) Transactions(ctx context.Context, after *ent.Cursor, fir
 		)
 }
 
+func (r *queryResolver) Events(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *gql.EventWhereInput) (*ent.EventConnection, error) {
+	return r.client.Event.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithEventOrder(nil),
+		)
+}
+
+func (r *subscriptionResolver) WatchEvent(ctx context.Context, address string, keys []*types.Felt) (<-chan *ent.Event, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Query returns gql.QueryResolver implementation.
 func (r *Resolver) Query() gql.QueryResolver { return &queryResolver{r} }
 
+// Subscription returns gql.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() gql.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

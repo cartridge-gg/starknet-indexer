@@ -23,8 +23,6 @@ const (
 	FieldMessagesSent = "messages_sent"
 	// FieldL1OriginMessage holds the string denoting the l1_origin_message field in the database.
 	FieldL1OriginMessage = "l1_origin_message"
-	// FieldEvents holds the string denoting the events field in the database.
-	FieldEvents = "events"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
 	// EdgeTransaction holds the string denoting the transaction edge name in mutations.
@@ -55,7 +53,6 @@ var Columns = []string{
 	FieldStatusData,
 	FieldMessagesSent,
 	FieldL1OriginMessage,
-	FieldEvents,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "transaction_receipts"

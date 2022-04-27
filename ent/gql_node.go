@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -121,12 +122,57 @@ func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (e *Event) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     e.ID,
+		Type:   "Event",
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(e.From); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "from",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(e.Key); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "*types.Felt",
+		Name:  "key",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(e.Value); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "*types.Felt",
+		Name:  "value",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Transaction",
+		Name: "transaction",
+	}
+	err = e.QueryTransaction().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Transaction",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.ContractAddress); err != nil {
@@ -194,6 +240,16 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	err = t.QueryReceipts().
 		Select(transactionreceipt.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Event",
+		Name: "events",
+	}
+	err = t.QueryEvents().
+		Select(event.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -342,6 +398,18 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
+	case event.Table:
+		query := c.Event.Query().
+			Where(event.ID(id))
+		query, err := query.CollectFields(ctx, "Event")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case transaction.Table:
 		query := c.Transaction.Query().
 			Where(transaction.ID(id))
@@ -443,6 +511,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		query := c.Block.Query().
 			Where(block.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Block")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case event.Table:
+		query := c.Event.Query().
+			Where(event.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Event")
 		if err != nil {
 			return nil, err
 		}

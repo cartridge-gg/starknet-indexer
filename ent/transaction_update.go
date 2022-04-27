@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -118,19 +119,38 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
-// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by IDs.
-func (tu *TransactionUpdate) AddReceiptIDs(ids ...string) *TransactionUpdate {
-	tu.mutation.AddReceiptIDs(ids...)
+// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
+func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
+	tu.mutation.SetReceiptsID(id)
 	return tu
 }
 
-// AddReceipts adds the "receipts" edges to the TransactionReceipt entity.
-func (tu *TransactionUpdate) AddReceipts(t ...*TransactionReceipt) *TransactionUpdate {
-	ids := make([]string, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tu *TransactionUpdate) SetNillableReceiptsID(id *string) *TransactionUpdate {
+	if id != nil {
+		tu = tu.SetReceiptsID(*id)
 	}
-	return tu.AddReceiptIDs(ids...)
+	return tu
+}
+
+// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
+func (tu *TransactionUpdate) SetReceipts(t *TransactionReceipt) *TransactionUpdate {
+	return tu.SetReceiptsID(t.ID)
+}
+
+// AddEventIDs adds the "events" edge to the Event entity by IDs.
+func (tu *TransactionUpdate) AddEventIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.AddEventIDs(ids...)
+	return tu
+}
+
+// AddEvents adds the "events" edges to the Event entity.
+func (tu *TransactionUpdate) AddEvents(e ...*Event) *TransactionUpdate {
+	ids := make([]string, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return tu.AddEventIDs(ids...)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -144,25 +164,31 @@ func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	return tu
 }
 
-// ClearReceipts clears all "receipts" edges to the TransactionReceipt entity.
+// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
 func (tu *TransactionUpdate) ClearReceipts() *TransactionUpdate {
 	tu.mutation.ClearReceipts()
 	return tu
 }
 
-// RemoveReceiptIDs removes the "receipts" edge to TransactionReceipt entities by IDs.
-func (tu *TransactionUpdate) RemoveReceiptIDs(ids ...string) *TransactionUpdate {
-	tu.mutation.RemoveReceiptIDs(ids...)
+// ClearEvents clears all "events" edges to the Event entity.
+func (tu *TransactionUpdate) ClearEvents() *TransactionUpdate {
+	tu.mutation.ClearEvents()
 	return tu
 }
 
-// RemoveReceipts removes "receipts" edges to TransactionReceipt entities.
-func (tu *TransactionUpdate) RemoveReceipts(t ...*TransactionReceipt) *TransactionUpdate {
-	ids := make([]string, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveEventIDs removes the "events" edge to Event entities by IDs.
+func (tu *TransactionUpdate) RemoveEventIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.RemoveEventIDs(ids...)
+	return tu
+}
+
+// RemoveEvents removes "events" edges to Event entities.
+func (tu *TransactionUpdate) RemoveEvents(e ...*Event) *TransactionUpdate {
+	ids := make([]string, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return tu.RemoveReceiptIDs(ids...)
+	return tu.RemoveEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -334,7 +360,7 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.ReceiptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -348,9 +374,9 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.RemovedReceiptsIDs(); len(nodes) > 0 && !tu.mutation.ReceiptsCleared() {
+	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -365,19 +391,54 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if tu.mutation.EventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
+					Column: event.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedEventsIDs(); len(nodes) > 0 && !tu.mutation.EventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: event.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.EventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: event.FieldID,
 				},
 			},
 		}
@@ -494,19 +555,38 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
-// AddReceiptIDs adds the "receipts" edge to the TransactionReceipt entity by IDs.
-func (tuo *TransactionUpdateOne) AddReceiptIDs(ids ...string) *TransactionUpdateOne {
-	tuo.mutation.AddReceiptIDs(ids...)
+// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
+func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
+	tuo.mutation.SetReceiptsID(id)
 	return tuo
 }
 
-// AddReceipts adds the "receipts" edges to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) AddReceipts(t ...*TransactionReceipt) *TransactionUpdateOne {
-	ids := make([]string, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tuo *TransactionUpdateOne) SetNillableReceiptsID(id *string) *TransactionUpdateOne {
+	if id != nil {
+		tuo = tuo.SetReceiptsID(*id)
 	}
-	return tuo.AddReceiptIDs(ids...)
+	return tuo
+}
+
+// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) SetReceipts(t *TransactionReceipt) *TransactionUpdateOne {
+	return tuo.SetReceiptsID(t.ID)
+}
+
+// AddEventIDs adds the "events" edge to the Event entity by IDs.
+func (tuo *TransactionUpdateOne) AddEventIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.AddEventIDs(ids...)
+	return tuo
+}
+
+// AddEvents adds the "events" edges to the Event entity.
+func (tuo *TransactionUpdateOne) AddEvents(e ...*Event) *TransactionUpdateOne {
+	ids := make([]string, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return tuo.AddEventIDs(ids...)
 }
 
 // Mutation returns the TransactionMutation object of the builder.
@@ -520,25 +600,31 @@ func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	return tuo
 }
 
-// ClearReceipts clears all "receipts" edges to the TransactionReceipt entity.
+// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
 func (tuo *TransactionUpdateOne) ClearReceipts() *TransactionUpdateOne {
 	tuo.mutation.ClearReceipts()
 	return tuo
 }
 
-// RemoveReceiptIDs removes the "receipts" edge to TransactionReceipt entities by IDs.
-func (tuo *TransactionUpdateOne) RemoveReceiptIDs(ids ...string) *TransactionUpdateOne {
-	tuo.mutation.RemoveReceiptIDs(ids...)
+// ClearEvents clears all "events" edges to the Event entity.
+func (tuo *TransactionUpdateOne) ClearEvents() *TransactionUpdateOne {
+	tuo.mutation.ClearEvents()
 	return tuo
 }
 
-// RemoveReceipts removes "receipts" edges to TransactionReceipt entities.
-func (tuo *TransactionUpdateOne) RemoveReceipts(t ...*TransactionReceipt) *TransactionUpdateOne {
-	ids := make([]string, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveEventIDs removes the "events" edge to Event entities by IDs.
+func (tuo *TransactionUpdateOne) RemoveEventIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.RemoveEventIDs(ids...)
+	return tuo
+}
+
+// RemoveEvents removes "events" edges to Event entities.
+func (tuo *TransactionUpdateOne) RemoveEvents(e ...*Event) *TransactionUpdateOne {
+	ids := make([]string, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return tuo.RemoveReceiptIDs(ids...)
+	return tuo.RemoveEventIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -734,7 +820,7 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 	}
 	if tuo.mutation.ReceiptsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -748,9 +834,9 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.RemovedReceiptsIDs(); len(nodes) > 0 && !tuo.mutation.ReceiptsCleared() {
+	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   transaction.ReceiptsTable,
 			Columns: []string{transaction.ReceiptsColumn},
@@ -765,19 +851,54 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if tuo.mutation.EventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: transactionreceipt.FieldID,
+					Column: event.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedEventsIDs(); len(nodes) > 0 && !tuo.mutation.EventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: event.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.EventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   transaction.EventsTable,
+			Columns: []string{transaction.EventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: event.FieldID,
 				},
 			},
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 
@@ -25,6 +26,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Block is the client for interacting with the Block builders.
 	Block *BlockClient
+	// Event is the client for interacting with the Event builders.
+	Event *EventClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Block = NewBlockClient(c.config)
+	c.Event = NewEventClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
 	c.TransactionReceipt = NewTransactionReceiptClient(c.config)
 }
@@ -79,6 +83,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                ctx,
 		config:             cfg,
 		Block:              NewBlockClient(cfg),
+		Event:              NewEventClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
@@ -101,6 +106,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                ctx,
 		config:             cfg,
 		Block:              NewBlockClient(cfg),
+		Event:              NewEventClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
@@ -133,6 +139,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Block.Use(hooks...)
+	c.Event.Use(hooks...)
 	c.Transaction.Use(hooks...)
 	c.TransactionReceipt.Use(hooks...)
 }
@@ -259,6 +266,112 @@ func (c *BlockClient) Hooks() []Hook {
 	return c.hooks.Block
 }
 
+// EventClient is a client for the Event schema.
+type EventClient struct {
+	config
+}
+
+// NewEventClient returns a client for the Event from the given config.
+func NewEventClient(c config) *EventClient {
+	return &EventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `event.Hooks(f(g(h())))`.
+func (c *EventClient) Use(hooks ...Hook) {
+	c.hooks.Event = append(c.hooks.Event, hooks...)
+}
+
+// Create returns a create builder for Event.
+func (c *EventClient) Create() *EventCreate {
+	mutation := newEventMutation(c.config, OpCreate)
+	return &EventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Event entities.
+func (c *EventClient) CreateBulk(builders ...*EventCreate) *EventCreateBulk {
+	return &EventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Event.
+func (c *EventClient) Update() *EventUpdate {
+	mutation := newEventMutation(c.config, OpUpdate)
+	return &EventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventClient) UpdateOne(e *Event) *EventUpdateOne {
+	mutation := newEventMutation(c.config, OpUpdateOne, withEvent(e))
+	return &EventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EventClient) UpdateOneID(id string) *EventUpdateOne {
+	mutation := newEventMutation(c.config, OpUpdateOne, withEventID(id))
+	return &EventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Event.
+func (c *EventClient) Delete() *EventDelete {
+	mutation := newEventMutation(c.config, OpDelete)
+	return &EventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *EventClient) DeleteOne(e *Event) *EventDeleteOne {
+	return c.DeleteOneID(e.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *EventClient) DeleteOneID(id string) *EventDeleteOne {
+	builder := c.Delete().Where(event.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EventDeleteOne{builder}
+}
+
+// Query returns a query builder for Event.
+func (c *EventClient) Query() *EventQuery {
+	return &EventQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Event entity by its id.
+func (c *EventClient) Get(ctx context.Context, id string) (*Event, error) {
+	return c.Query().Where(event.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EventClient) GetX(ctx context.Context, id string) *Event {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTransaction queries the transaction edge of a Event.
+func (c *EventClient) QueryTransaction(e *Event) *TransactionQuery {
+	query := &TransactionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, event.TransactionTable, event.TransactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EventClient) Hooks() []Hook {
+	return c.hooks.Event
+}
+
 // TransactionClient is a client for the Transaction schema.
 type TransactionClient struct {
 	config
@@ -368,7 +481,23 @@ func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQue
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, id),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEvents queries the events edge of a Transaction.
+func (c *TransactionClient) QueryEvents(t *Transaction) *EventQuery {
+	query := &EventQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, id),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, transaction.EventsTable, transaction.EventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -490,7 +619,7 @@ func (c *TransactionReceiptClient) QueryTransaction(tr *TransactionReceipt) *Tra
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
 		return fromV, nil

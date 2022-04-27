@@ -35,6 +35,3 @@ models:
   L2Message:
     model:
       - github.com/dontpanicdao/caigo/types.L2Message
-  Event:
-    model:
-      - github.com/dontpanicdao/caigo/types.Event

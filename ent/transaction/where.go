@@ -639,7 +639,7 @@ func HasReceipts() predicate.Transaction {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ReceiptsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ReceiptsTable, ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -651,7 +651,35 @@ func HasReceiptsWith(preds ...predicate.TransactionReceipt) predicate.Transactio
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ReceiptsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ReceiptsTable, ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEvents applies the HasEdge predicate on the "events" edge.
+func HasEvents() predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EventsTable, EventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEventsWith applies the HasEdge predicate on the "events" edge with a given conditions (other predicates).
+func HasEventsWith(preds ...predicate.Event) predicate.Transaction {
+	return predicate.Transaction(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EventsTable, EventsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

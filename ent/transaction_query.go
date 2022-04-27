@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -29,6 +30,7 @@ type TransactionQuery struct {
 	// eager-loading edges.
 	withBlock    *BlockQuery
 	withReceipts *TransactionReceiptQuery
+	withEvents   *EventQuery
 	withFKs      bool
 	modifiers    []func(*sql.Selector)
 	loadTotal    []func(context.Context, []*Transaction) error
@@ -104,7 +106,29 @@ func (tq *TransactionQuery) QueryReceipts() *TransactionReceiptQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEvents chains the current query on the "events" edge.
+func (tq *TransactionQuery) QueryEvents() *EventQuery {
+	query := &EventQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, transaction.EventsTable, transaction.EventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,6 +319,7 @@ func (tq *TransactionQuery) Clone() *TransactionQuery {
 		predicates:   append([]predicate.Transaction{}, tq.predicates...),
 		withBlock:    tq.withBlock.Clone(),
 		withReceipts: tq.withReceipts.Clone(),
+		withEvents:   tq.withEvents.Clone(),
 		// clone intermediate query.
 		sql:    tq.sql.Clone(),
 		path:   tq.path,
@@ -321,6 +346,17 @@ func (tq *TransactionQuery) WithReceipts(opts ...func(*TransactionReceiptQuery))
 		opt(query)
 	}
 	tq.withReceipts = query
+	return tq
+}
+
+// WithEvents tells the query-builder to eager-load the nodes that are connected to
+// the "events" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TransactionQuery) WithEvents(opts ...func(*EventQuery)) *TransactionQuery {
+	query := &EventQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withEvents = query
 	return tq
 }
 
@@ -395,9 +431,10 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*Transaction{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			tq.withBlock != nil,
 			tq.withReceipts != nil,
+			tq.withEvents != nil,
 		}
 	)
 	if tq.withBlock != nil {
@@ -463,7 +500,6 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Receipts = []*TransactionReceipt{}
 		}
 		query.withFKs = true
 		query.Where(predicate.TransactionReceipt(func(s *sql.Selector) {
@@ -482,7 +518,36 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			if !ok {
 				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Receipts = append(node.Edges.Receipts, n)
+			node.Edges.Receipts = n
+		}
+	}
+
+	if query := tq.withEvents; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Transaction)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Events = []*Event{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Event(func(s *sql.Selector) {
+			s.Where(sql.InValues(transaction.EventsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.transaction_events
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "transaction_events" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "transaction_events" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Events = append(node.Edges.Events, n)
 		}
 	}
 

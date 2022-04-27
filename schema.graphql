@@ -13,15 +13,8 @@ type L2Message {
   payload: [Felt!]
 }
 
-type Event {
-  fromAddress: String!
-  keys: [Felt!]
-  values: [Felt!]
-}
-
 extend type TransactionReceipt {
   messagesSent: [L1Message]!
-  events: [Event!]
 }
 
 type Query {
@@ -35,6 +28,13 @@ type Query {
     orderBy: BlockOrder
     where: BlockWhereInput
   ): BlockConnection
+  events(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: EventWhereInput
+  ): EventConnection
   transactions(
     after: Cursor
     first: Int
@@ -42,4 +42,8 @@ type Query {
     last: Int
     where: TransactionWhereInput
   ): TransactionConnection
+}
+
+type Subscription {
+  watchEvent(address: String!, keys: [Felt!]): Event
 }

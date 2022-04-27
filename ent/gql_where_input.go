@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -415,6 +417,261 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 	}
 }
 
+// EventWhereInput represents a where input for filtering Event queries.
+type EventWhereInput struct {
+	Not *EventWhereInput   `json:"not,omitempty"`
+	Or  []*EventWhereInput `json:"or,omitempty"`
+	And []*EventWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "from" field predicates.
+	From             *string  `json:"from,omitempty"`
+	FromNEQ          *string  `json:"fromNEQ,omitempty"`
+	FromIn           []string `json:"fromIn,omitempty"`
+	FromNotIn        []string `json:"fromNotIn,omitempty"`
+	FromGT           *string  `json:"fromGT,omitempty"`
+	FromGTE          *string  `json:"fromGTE,omitempty"`
+	FromLT           *string  `json:"fromLT,omitempty"`
+	FromLTE          *string  `json:"fromLTE,omitempty"`
+	FromContains     *string  `json:"fromContains,omitempty"`
+	FromHasPrefix    *string  `json:"fromHasPrefix,omitempty"`
+	FromHasSuffix    *string  `json:"fromHasSuffix,omitempty"`
+	FromEqualFold    *string  `json:"fromEqualFold,omitempty"`
+	FromContainsFold *string  `json:"fromContainsFold,omitempty"`
+
+	// "key" field predicates.
+	Key      *types.Felt   `json:"key,omitempty"`
+	KeyNEQ   *types.Felt   `json:"keyNEQ,omitempty"`
+	KeyIn    []*types.Felt `json:"keyIn,omitempty"`
+	KeyNotIn []*types.Felt `json:"keyNotIn,omitempty"`
+	KeyGT    *types.Felt   `json:"keyGT,omitempty"`
+	KeyGTE   *types.Felt   `json:"keyGTE,omitempty"`
+	KeyLT    *types.Felt   `json:"keyLT,omitempty"`
+	KeyLTE   *types.Felt   `json:"keyLTE,omitempty"`
+
+	// "value" field predicates.
+	Value      *types.Felt   `json:"value,omitempty"`
+	ValueNEQ   *types.Felt   `json:"valueNEQ,omitempty"`
+	ValueIn    []*types.Felt `json:"valueIn,omitempty"`
+	ValueNotIn []*types.Felt `json:"valueNotIn,omitempty"`
+	ValueGT    *types.Felt   `json:"valueGT,omitempty"`
+	ValueGTE   *types.Felt   `json:"valueGTE,omitempty"`
+	ValueLT    *types.Felt   `json:"valueLT,omitempty"`
+	ValueLTE   *types.Felt   `json:"valueLTE,omitempty"`
+
+	// "transaction" edge predicates.
+	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
+	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
+}
+
+// Filter applies the EventWhereInput filter on the EventQuery builder.
+func (i *EventWhereInput) Filter(q *EventQuery) (*EventQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering events.
+// An error is returned if the input is empty or invalid.
+func (i *EventWhereInput) P() (predicate.Event, error) {
+	var predicates []predicate.Event
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, event.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Event, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, event.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Event, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, event.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, event.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, event.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, event.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, event.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, event.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, event.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, event.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, event.IDLTE(*i.IDLTE))
+	}
+	if i.From != nil {
+		predicates = append(predicates, event.FromEQ(*i.From))
+	}
+	if i.FromNEQ != nil {
+		predicates = append(predicates, event.FromNEQ(*i.FromNEQ))
+	}
+	if len(i.FromIn) > 0 {
+		predicates = append(predicates, event.FromIn(i.FromIn...))
+	}
+	if len(i.FromNotIn) > 0 {
+		predicates = append(predicates, event.FromNotIn(i.FromNotIn...))
+	}
+	if i.FromGT != nil {
+		predicates = append(predicates, event.FromGT(*i.FromGT))
+	}
+	if i.FromGTE != nil {
+		predicates = append(predicates, event.FromGTE(*i.FromGTE))
+	}
+	if i.FromLT != nil {
+		predicates = append(predicates, event.FromLT(*i.FromLT))
+	}
+	if i.FromLTE != nil {
+		predicates = append(predicates, event.FromLTE(*i.FromLTE))
+	}
+	if i.FromContains != nil {
+		predicates = append(predicates, event.FromContains(*i.FromContains))
+	}
+	if i.FromHasPrefix != nil {
+		predicates = append(predicates, event.FromHasPrefix(*i.FromHasPrefix))
+	}
+	if i.FromHasSuffix != nil {
+		predicates = append(predicates, event.FromHasSuffix(*i.FromHasSuffix))
+	}
+	if i.FromEqualFold != nil {
+		predicates = append(predicates, event.FromEqualFold(*i.FromEqualFold))
+	}
+	if i.FromContainsFold != nil {
+		predicates = append(predicates, event.FromContainsFold(*i.FromContainsFold))
+	}
+	if i.Key != nil {
+		predicates = append(predicates, event.KeyEQ(i.Key))
+	}
+	if i.KeyNEQ != nil {
+		predicates = append(predicates, event.KeyNEQ(i.KeyNEQ))
+	}
+	if len(i.KeyIn) > 0 {
+		predicates = append(predicates, event.KeyIn(i.KeyIn...))
+	}
+	if len(i.KeyNotIn) > 0 {
+		predicates = append(predicates, event.KeyNotIn(i.KeyNotIn...))
+	}
+	if i.KeyGT != nil {
+		predicates = append(predicates, event.KeyGT(i.KeyGT))
+	}
+	if i.KeyGTE != nil {
+		predicates = append(predicates, event.KeyGTE(i.KeyGTE))
+	}
+	if i.KeyLT != nil {
+		predicates = append(predicates, event.KeyLT(i.KeyLT))
+	}
+	if i.KeyLTE != nil {
+		predicates = append(predicates, event.KeyLTE(i.KeyLTE))
+	}
+	if i.Value != nil {
+		predicates = append(predicates, event.ValueEQ(i.Value))
+	}
+	if i.ValueNEQ != nil {
+		predicates = append(predicates, event.ValueNEQ(i.ValueNEQ))
+	}
+	if len(i.ValueIn) > 0 {
+		predicates = append(predicates, event.ValueIn(i.ValueIn...))
+	}
+	if len(i.ValueNotIn) > 0 {
+		predicates = append(predicates, event.ValueNotIn(i.ValueNotIn...))
+	}
+	if i.ValueGT != nil {
+		predicates = append(predicates, event.ValueGT(i.ValueGT))
+	}
+	if i.ValueGTE != nil {
+		predicates = append(predicates, event.ValueGTE(i.ValueGTE))
+	}
+	if i.ValueLT != nil {
+		predicates = append(predicates, event.ValueLT(i.ValueLT))
+	}
+	if i.ValueLTE != nil {
+		predicates = append(predicates, event.ValueLTE(i.ValueLTE))
+	}
+
+	if i.HasTransaction != nil {
+		p := event.HasTransaction()
+		if !*i.HasTransaction {
+			p = event.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionWith))
+		for _, w := range i.HasTransactionWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, event.HasTransactionWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate EventWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return event.And(predicates...), nil
+	}
+}
+
 // TransactionWhereInput represents a where input for filtering Transaction queries.
 type TransactionWhereInput struct {
 	Not *TransactionWhereInput   `json:"not,omitempty"`
@@ -502,6 +759,10 @@ type TransactionWhereInput struct {
 	// "receipts" edge predicates.
 	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
 	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
+
+	// "events" edge predicates.
+	HasEvents     *bool              `json:"hasEvents,omitempty"`
+	HasEventsWith []*EventWhereInput `json:"hasEventsWith,omitempty"`
 }
 
 // Filter applies the TransactionWhereInput filter on the TransactionQuery builder.
@@ -791,6 +1052,24 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, transaction.HasReceiptsWith(with...))
+	}
+	if i.HasEvents != nil {
+		p := transaction.HasEvents()
+		if !*i.HasEvents {
+			p = transaction.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasEventsWith) > 0 {
+		with := make([]predicate.Event, 0, len(i.HasEventsWith))
+		for _, w := range i.HasEventsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, transaction.HasEventsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

@@ -24,6 +24,28 @@ var (
 		Columns:    BlocksColumns,
 		PrimaryKey: []*schema.Column{BlocksColumns[0]},
 	}
+	// EventsColumns holds the columns for the "events" table.
+	EventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "from", Type: field.TypeString},
+		{Name: "key", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "value", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "transaction_events", Type: field.TypeString, Nullable: true},
+	}
+	// EventsTable holds the schema information for the "events" table.
+	EventsTable = &schema.Table{
+		Name:       "events",
+		Columns:    EventsColumns,
+		PrimaryKey: []*schema.Column{EventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "events_transactions_events",
+				Columns:    []*schema.Column{EventsColumns[4]},
+				RefColumns: []*schema.Column{TransactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TransactionsColumns holds the columns for the "transactions" table.
 	TransactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -57,9 +79,8 @@ var (
 		{Name: "status_data", Type: field.TypeString},
 		{Name: "messages_sent", Type: field.TypeJSON},
 		{Name: "l1_origin_message", Type: field.TypeJSON},
-		{Name: "events", Type: field.TypeJSON},
 		{Name: "block_transaction_receipts", Type: field.TypeString, Nullable: true},
-		{Name: "transaction_receipts", Type: field.TypeString, Nullable: true},
+		{Name: "transaction_receipts", Type: field.TypeString, Unique: true, Nullable: true},
 	}
 	// TransactionReceiptsTable holds the schema information for the "transaction_receipts" table.
 	TransactionReceiptsTable = &schema.Table{
@@ -69,13 +90,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "transaction_receipts_blocks_transaction_receipts",
-				Columns:    []*schema.Column{TransactionReceiptsColumns[7]},
+				Columns:    []*schema.Column{TransactionReceiptsColumns[6]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "transaction_receipts_transactions_receipts",
-				Columns:    []*schema.Column{TransactionReceiptsColumns[8]},
+				Columns:    []*schema.Column{TransactionReceiptsColumns[7]},
 				RefColumns: []*schema.Column{TransactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -84,12 +105,14 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlocksTable,
+		EventsTable,
 		TransactionsTable,
 		TransactionReceiptsTable,
 	}
 )
 
 func init() {
+	EventsTable.ForeignKeys[0].RefTable = TransactionsTable
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable

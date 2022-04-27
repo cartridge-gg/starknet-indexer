@@ -30,9 +30,6 @@ func (TransactionReceipt) Fields() []ent.Field {
 			entgql.Skip(),
 		),
 		field.JSON("l1_origin_message", &types.L2Message{}),
-		field.JSON("events", []*types.Event{}).Annotations(
-			entgql.Skip(),
-		),
 	}
 }
 

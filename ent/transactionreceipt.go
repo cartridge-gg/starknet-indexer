@@ -29,8 +29,6 @@ type TransactionReceipt struct {
 	MessagesSent []*types.L1Message `json:"messages_sent,omitempty"`
 	// L1OriginMessage holds the value of the "l1_origin_message" field.
 	L1OriginMessage *types.L2Message `json:"l1_origin_message,omitempty"`
-	// Events holds the value of the "events" field.
-	Events []*types.Event `json:"events,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TransactionReceiptQuery when eager-loading is set.
 	Edges                      TransactionReceiptEdges `json:"edges"`
@@ -84,7 +82,7 @@ func (*TransactionReceipt) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case transactionreceipt.FieldMessagesSent, transactionreceipt.FieldL1OriginMessage, transactionreceipt.FieldEvents:
+		case transactionreceipt.FieldMessagesSent, transactionreceipt.FieldL1OriginMessage:
 			values[i] = new([]byte)
 		case transactionreceipt.FieldID, transactionreceipt.FieldTransactionHash, transactionreceipt.FieldStatus, transactionreceipt.FieldStatusData:
 			values[i] = new(sql.NullString)
@@ -145,14 +143,6 @@ func (tr *TransactionReceipt) assignValues(columns []string, values []interface{
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &tr.L1OriginMessage); err != nil {
 					return fmt.Errorf("unmarshal field l1_origin_message: %w", err)
-				}
-			}
-		case transactionreceipt.FieldEvents:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field events", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tr.Events); err != nil {
-					return fmt.Errorf("unmarshal field events: %w", err)
 				}
 			}
 		case transactionreceipt.ForeignKeys[0]:
@@ -217,8 +207,6 @@ func (tr *TransactionReceipt) String() string {
 	builder.WriteString(fmt.Sprintf("%v", tr.MessagesSent))
 	builder.WriteString(", l1_origin_message=")
 	builder.WriteString(fmt.Sprintf("%v", tr.L1OriginMessage))
-	builder.WriteString(", events=")
-	builder.WriteString(fmt.Sprintf("%v", tr.Events))
 	builder.WriteByte(')')
 	return builder.String()
 }

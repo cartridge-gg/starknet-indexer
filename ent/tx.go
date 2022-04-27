@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Block is the client for interacting with the Block builders.
 	Block *BlockClient
+	// Event is the client for interacting with the Event builders.
+	Event *EventClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
@@ -154,6 +156,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Block = NewBlockClient(tx.config)
+	tx.Event = NewEventClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)
 	tx.TransactionReceipt = NewTransactionReceiptClient(tx.config)
 }

@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -79,6 +80,10 @@ func (e *Engine) Start(ctx context.Context) {
 	}
 }
 
+func (e *Engine) Subscribe(ctx context.Context) {
+
+}
+
 func (e *Engine) process(ctx context.Context) error {
 	worker := make(chan concurrently.WorkFunction, parallelism)
 
@@ -153,9 +158,21 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 				SetStatusData(t.TransactionReceipt.StatusData).
 				SetMessagesSent(t.TransactionReceipt.MessagesSent).
 				SetL1OriginMessage(t.TransactionReceipt.L1OriginMessage).
-				SetEvents(t.TransactionReceipt.Events).
 				Exec(ctx); err != nil {
 				return err
+			}
+
+			for i, e := range t.TransactionReceipt.Events {
+				for j, k := range e.Keys {
+					if err := tx.Event.Create().
+						SetID(fmt.Sprintf("%s-%d-%d", t.TransactionHash, i, j)).
+						SetFrom(e.FromAddress).
+						SetKey(k).
+						SetValue(e.Values[j]).
+						Exec(ctx); err != nil {
+						return err
+					}
+				}
 			}
 		}
 

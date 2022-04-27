@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Transaction is the model entity for the Transaction schema.
@@ -40,12 +41,14 @@ type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
 	// Receipts holds the value of the receipts edge.
-	Receipts []*TransactionReceipt `json:"receipts,omitempty"`
+	Receipts *TransactionReceipt `json:"receipts,omitempty"`
+	// Events holds the value of the events edge.
+	Events []*Event `json:"events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]*int
+	totalCount [3]*int
 }
 
 // BlockOrErr returns the Block value or an error if the edge
@@ -63,12 +66,26 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 }
 
 // ReceiptsOrErr returns the Receipts value or an error if the edge
-// was not loaded in eager-loading.
-func (e TransactionEdges) ReceiptsOrErr() ([]*TransactionReceipt, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
 	if e.loadedTypes[1] {
+		if e.Receipts == nil {
+			// The edge receipts was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: transactionreceipt.Label}
+		}
 		return e.Receipts, nil
 	}
 	return nil, &NotLoadedError{edge: "receipts"}
+}
+
+// EventsOrErr returns the Events value or an error if the edge
+// was not loaded in eager-loading.
+func (e TransactionEdges) EventsOrErr() ([]*Event, error) {
+	if e.loadedTypes[2] {
+		return e.Events, nil
+	}
+	return nil, &NotLoadedError{edge: "events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -163,6 +180,11 @@ func (t *Transaction) QueryBlock() *BlockQuery {
 // QueryReceipts queries the "receipts" edge of the Transaction entity.
 func (t *Transaction) QueryReceipts() *TransactionReceiptQuery {
 	return (&TransactionClient{config: t.config}).QueryReceipts(t)
+}
+
+// QueryEvents queries the "events" edge of the Transaction entity.
+func (t *Transaction) QueryEvents() *EventQuery {
+	return (&TransactionClient{config: t.config}).QueryEvents(t)
 }
 
 // Update returns a builder for updating this Transaction.

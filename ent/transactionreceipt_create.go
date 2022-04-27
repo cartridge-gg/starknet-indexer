@@ -52,12 +52,6 @@ func (trc *TransactionReceiptCreate) SetL1OriginMessage(t *types.L2Message) *Tra
 	return trc
 }
 
-// SetEvents sets the "events" field.
-func (trc *TransactionReceiptCreate) SetEvents(t []*types.Event) *TransactionReceiptCreate {
-	trc.mutation.SetEvents(t)
-	return trc
-}
-
 // SetID sets the "id" field.
 func (trc *TransactionReceiptCreate) SetID(s string) *TransactionReceiptCreate {
 	trc.mutation.SetID(s)
@@ -192,9 +186,6 @@ func (trc *TransactionReceiptCreate) check() error {
 	if _, ok := trc.mutation.L1OriginMessage(); !ok {
 		return &ValidationError{Name: "l1_origin_message", err: errors.New(`ent: missing required field "TransactionReceipt.l1_origin_message"`)}
 	}
-	if _, ok := trc.mutation.Events(); !ok {
-		return &ValidationError{Name: "events", err: errors.New(`ent: missing required field "TransactionReceipt.events"`)}
-	}
 	return nil
 }
 
@@ -271,14 +262,6 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 		})
 		_node.L1OriginMessage = value
 	}
-	if value, ok := trc.mutation.Events(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: transactionreceipt.FieldEvents,
-		})
-		_node.Events = value
-	}
 	if nodes := trc.mutation.BlockIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -301,7 +284,7 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 	}
 	if nodes := trc.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   transactionreceipt.TransactionTable,
 			Columns: []string{transactionreceipt.TransactionColumn},

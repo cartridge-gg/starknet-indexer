@@ -103,7 +103,7 @@ func (trq *TransactionReceiptQuery) QueryTransaction() *TransactionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, selector),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, transactionreceipt.TransactionTable, transactionreceipt.TransactionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(trq.driver.Dialect(), step)
 		return fromU, nil
