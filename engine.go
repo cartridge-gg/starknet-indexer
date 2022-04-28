@@ -124,6 +124,8 @@ func (e *Engine) process(ctx context.Context) error {
 }
 
 func (e *Engine) write(ctx context.Context, b *types.Block) error {
+	log.Info().Msgf("Processing block: %d", b.BlockNumber)
+
 	if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
 		if err := tx.Block.Create().
 			SetID(b.BlockHash).
@@ -154,7 +156,7 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 			if err := tx.TransactionReceipt.Create().
 				SetID(t.TransactionHash).
 				SetBlockID(b.BlockHash).
-				SetTransactionID(t.TransactionHash).
+				SetTransactionID(t.TransactionReceipt.TransactionHash).
 				SetTransactionHash(t.TransactionReceipt.TransactionHash).
 				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
 				SetStatusData(t.TransactionReceipt.StatusData).
