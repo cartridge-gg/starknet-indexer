@@ -124,6 +124,8 @@ func (e *Engine) process(ctx context.Context) error {
 }
 
 func (e *Engine) write(ctx context.Context, b *types.Block) error {
+	log.Info().Msgf("Processing block: %d", b.BlockNumber)
+
 	if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
 		if err := tx.Block.Create().
 			SetID(b.BlockHash).
@@ -153,7 +155,8 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 
 			if err := tx.TransactionReceipt.Create().
 				SetID(t.TransactionHash).
-				SetTransactionHash(t.TransactionReceipt.TransactionHash).
+				SetTransactionHash(t.TransactionHash).
+				SetTransactionID(t.TransactionHash).
 				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
 				SetStatusData(t.TransactionReceipt.StatusData).
 				SetMessagesSent(t.TransactionReceipt.MessagesSent).
@@ -163,12 +166,15 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 			}
 
 			for i, e := range t.TransactionReceipt.Events {
+				log.Info().Msgf("Got event: %s", e.FromAddress)
+
 				for j, k := range e.Keys {
 					if err := tx.Event.Create().
 						SetID(fmt.Sprintf("%s-%d-%d", t.TransactionHash, i, j)).
 						SetFrom(e.FromAddress).
 						SetKey(k).
 						SetValue(e.Values[j]).
+						SetTransactionID(t.TransactionHash).
 						Exec(ctx); err != nil {
 						return err
 					}
