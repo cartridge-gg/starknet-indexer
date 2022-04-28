@@ -138,7 +138,7 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 		}
 
 		for _, t := range b.Transactions {
-			txEnt, err := tx.Transaction.Create().
+			if err := tx.Transaction.Create().
 				SetID(t.TransactionHash).
 				SetTransactionHash(t.TransactionHash).
 				SetBlockID(b.BlockHash).
@@ -147,15 +147,14 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 				SetNonce(t.Nonce).
 				SetCalldata(t.Calldata).
 				SetSignature(t.Signature).
-				Save(ctx)
-			if err != nil {
+				Exec(ctx); err != nil {
 				return err
 			}
 
 			if err := tx.TransactionReceipt.Create().
 				SetID(t.TransactionHash).
 				SetBlockID(b.BlockHash).
-				SetTransaction(txEnt).
+				SetTransactionID(t.TransactionHash).
 				SetTransactionHash(t.TransactionReceipt.TransactionHash).
 				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
 				SetStatusData(t.TransactionReceipt.StatusData).
@@ -169,7 +168,7 @@ func (e *Engine) write(ctx context.Context, b *types.Block) error {
 				for j, k := range e.Keys {
 					if err := tx.Event.Create().
 						SetID(fmt.Sprintf("%s-%d-%d", t.TransactionHash, i, j)).
-						SetTransaction(txEnt).
+						SetTransactionID(t.TransactionHash).
 						SetFrom(e.FromAddress).
 						SetKey(k).
 						SetValue(e.Values[j]).
