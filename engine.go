@@ -18,7 +18,7 @@ import (
 
 const parallelism = 5
 
-type WriteHandler func(ctx context.Context, block *types.Block) error
+type WriteHandler *func(ctx context.Context, block *types.Block) error
 
 type Contract struct {
 	Address    string
@@ -27,41 +27,38 @@ type Contract struct {
 }
 
 type Config struct {
-	Head         uint64
-	Interval     time.Duration
-	Contracts    []Contract
-	WriteHandler *WriteHandler
+	Head      uint64
+	Interval  time.Duration
+	Contracts []Contract
 }
 
 type Engine struct {
 	sync.Mutex
-	latest       uint64
-	ent          *ent.Client
-	provider     types.Provider
-	ticker       *time.Ticker
-	writeHandler *WriteHandler
+	latest   uint64
+	ent      *ent.Client
+	provider types.Provider
+	ticker   *time.Ticker
 }
 
 func NewEngine(ctx context.Context, client *ent.Client, provider types.Provider, config Config) (*Engine, error) {
 	e := &Engine{
-		ent:          client,
-		provider:     provider,
-		ticker:       time.NewTicker(config.Interval),
-		latest:       config.Head,
-		writeHandler: config.WriteHandler,
+		ent:      client,
+		provider: provider,
+		ticker:   time.NewTicker(config.Interval),
+		latest:   config.Head,
 	}
 
 	return e, nil
 }
 
-func (e *Engine) Start(ctx context.Context) {
+func (e *Engine) Start(ctx context.Context, writeHandler WriteHandler) {
 	defer e.ticker.Stop()
 
 	for {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			if err := e.process(ctx); err != nil {
+			if err := e.process(ctx, writeHandler); err != nil {
 				log.Err(err).Msg("Processing block.")
 			}
 			e.Unlock()
@@ -76,7 +73,7 @@ func (e *Engine) Subscribe(ctx context.Context) {
 
 }
 
-func (e *Engine) process(ctx context.Context) error {
+func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 	worker := make(chan concurrently.WorkFunction, parallelism)
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
@@ -107,8 +104,8 @@ func (e *Engine) process(ctx context.Context) error {
 			return v.err
 		}
 
-		if e.writeHandler != nil {
-			if err := (*e.writeHandler)(ctx, v.block); err != nil {
+		if writeHandler != nil {
+			if err := (*writeHandler)(ctx, v.block); err != nil {
 				log.Err(err).Msg("Writing block.")
 				return err
 			}

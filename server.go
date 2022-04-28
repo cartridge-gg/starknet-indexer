@@ -10,8 +10,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 )
 
 func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
@@ -44,14 +46,26 @@ func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 	http.Handle("/query", srv)
 
 	ctx := context.Background()
-	e, err := NewEngine(ctx, client, Config{
+
+	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		log.Fatal().Err(err).Msg("Getting head block")
+	}
+
+	provider, err := jsonrpc.DialContext(ctx, "http://localhost:9545")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Dialing provider")
+	}
+
+	e, err := NewEngine(ctx, client, provider, Config{
+		Head:     head.BlockNumber,
 		Interval: 1 * time.Second,
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("Initializing engine.")
 	}
 
-	go e.Start(ctx)
+	go e.Start(ctx, nil)
 
 	log.Info().Str("address", addr).Msg("listening on")
 	if err := http.ListenAndServe(addr, nil); err != nil {
