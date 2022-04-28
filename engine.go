@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
@@ -19,6 +18,8 @@ import (
 
 const parallelism = 5
 
+type WriteHandler func(ctx context.Context, block *types.Block) error
+
 type Contract struct {
 	Address    string
 	StartBlock uint64
@@ -26,37 +27,28 @@ type Contract struct {
 }
 
 type Config struct {
-	Interval  time.Duration
-	Contracts []Contract
+	Head         uint64
+	Interval     time.Duration
+	Contracts    []Contract
+	WriteHandler *WriteHandler
 }
 
 type Engine struct {
 	sync.Mutex
-	latest   uint64
-	ent      *ent.Client
-	provider types.Provider
-	ticker   *time.Ticker
+	latest       uint64
+	ent          *ent.Client
+	provider     types.Provider
+	ticker       *time.Ticker
+	writeHandler *WriteHandler
 }
 
-func NewEngine(ctx context.Context, client *ent.Client, config Config) (*Engine, error) {
-	provider, err := jsonrpc.DialContext(ctx, "http://localhost:9545")
-	if err != nil {
-		return nil, err
-	}
-
+func NewEngine(ctx context.Context, client *ent.Client, provider types.Provider, config Config) (*Engine, error) {
 	e := &Engine{
-		ent:      client,
-		provider: provider,
-		ticker:   time.NewTicker(config.Interval),
-	}
-
-	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, err
-	}
-
-	if head != nil {
-		e.latest = head.BlockNumber
+		ent:          client,
+		provider:     provider,
+		ticker:       time.NewTicker(config.Interval),
+		latest:       config.Head,
+		writeHandler: config.WriteHandler,
 	}
 
 	return e, nil
@@ -115,8 +107,16 @@ func (e *Engine) process(ctx context.Context) error {
 			return v.err
 		}
 
-		if err := e.write(ctx, v.block); err != nil {
-			return err
+		if e.writeHandler != nil {
+			if err := (*e.writeHandler)(ctx, v.block); err != nil {
+				log.Err(err).Msg("Writing block.")
+				return err
+			}
+		} else {
+			if err := e.write(ctx, v.block); err != nil {
+				log.Err(err).Msg("Writing block.")
+				return err
+			}
 		}
 	}
 
