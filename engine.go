@@ -2,22 +2,20 @@ package indexer
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"sync"
 	"time"
 
-	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
 
 	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 const parallelism = 5
+
+type WriteHandler func(ctx context.Context, block *types.Block) error
 
 type Contract struct {
 	Address    string
@@ -26,6 +24,7 @@ type Contract struct {
 }
 
 type Config struct {
+	Head      uint64
 	Interval  time.Duration
 	Contracts []Contract
 }
@@ -38,38 +37,24 @@ type Engine struct {
 	ticker   *time.Ticker
 }
 
-func NewEngine(ctx context.Context, client *ent.Client, config Config) (*Engine, error) {
-	provider, err := jsonrpc.DialContext(ctx, "http://localhost:9545")
-	if err != nil {
-		return nil, err
-	}
-
+func NewEngine(ctx context.Context, provider types.Provider, config Config) (*Engine, error) {
 	e := &Engine{
-		ent:      client,
 		provider: provider,
 		ticker:   time.NewTicker(config.Interval),
-	}
-
-	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, err
-	}
-
-	if head != nil {
-		e.latest = head.BlockNumber
+		latest:   config.Head,
 	}
 
 	return e, nil
 }
 
-func (e *Engine) Start(ctx context.Context) {
+func (e *Engine) Start(ctx context.Context, writeHandler WriteHandler) {
 	defer e.ticker.Stop()
 
 	for {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			if err := e.process(ctx); err != nil {
+			if err := e.process(ctx, writeHandler); err != nil {
 				log.Err(err).Msg("Processing block.")
 			}
 			e.Unlock()
@@ -84,7 +69,7 @@ func (e *Engine) Subscribe(ctx context.Context) {
 
 }
 
-func (e *Engine) process(ctx context.Context) error {
+func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 	worker := make(chan concurrently.WorkFunction, parallelism)
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
@@ -115,75 +100,10 @@ func (e *Engine) process(ctx context.Context) error {
 			return v.err
 		}
 
-		if err := e.write(ctx, v.block); err != nil {
+		if err := writeHandler(ctx, v.block); err != nil {
+			log.Err(err).Msg("Writing block.")
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (e *Engine) write(ctx context.Context, b *types.Block) error {
-	log.Info().Msgf("Processing block: %d", b.BlockNumber)
-
-	if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
-		if err := tx.Block.Create().
-			SetID(b.BlockHash).
-			SetBlockHash(b.BlockHash).
-			SetBlockNumber(uint64(b.BlockNumber)).
-			SetParentBlockHash(b.ParentBlockHash).
-			SetStateRoot(b.NewRoot).
-			SetTimestamp(time.Unix(int64(b.AcceptedTime), 0).UTC()).
-			SetStatus(block.Status(b.Status)).
-			Exec(ctx); err != nil {
-			return err
-		}
-
-		for _, t := range b.Transactions {
-			if err := tx.Transaction.Create().
-				SetID(t.TransactionHash).
-				SetTransactionHash(t.TransactionHash).
-				SetBlockID(b.BlockHash).
-				SetContractAddress(t.ContractAddress).
-				SetEntryPointSelector(t.EntryPointSelector).
-				SetNonce(t.Nonce).
-				SetCalldata(t.Calldata).
-				SetSignature(t.Signature).
-				Exec(ctx); err != nil {
-				return err
-			}
-
-			if err := tx.TransactionReceipt.Create().
-				SetID(t.TransactionHash).
-				SetBlockID(b.BlockHash).
-				SetTransactionID(t.TransactionReceipt.TransactionHash).
-				SetTransactionHash(t.TransactionReceipt.TransactionHash).
-				SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
-				SetStatusData(t.TransactionReceipt.StatusData).
-				SetMessagesSent(t.TransactionReceipt.MessagesSent).
-				SetL1OriginMessage(t.TransactionReceipt.L1OriginMessage).
-				Exec(ctx); err != nil {
-				return err
-			}
-
-			for i, e := range t.TransactionReceipt.Events {
-				for j, k := range e.Keys {
-					if err := tx.Event.Create().
-						SetID(fmt.Sprintf("%s-%d-%d", t.TransactionHash, i, j)).
-						SetTransactionID(t.TransactionHash).
-						SetFrom(e.FromAddress).
-						SetKey(k).
-						SetValue(e.Values[j]).
-						Exec(ctx); err != nil {
-						return err
-					}
-				}
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return err
 	}
 
 	return nil
