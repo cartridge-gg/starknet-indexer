@@ -17,6 +17,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
+	"github.com/tarrencev/starknet-indexer/processor"
 )
 
 func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
@@ -121,6 +122,18 @@ func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 							SetValue(e.Values[j]).
 							Exec(ctx); err != nil {
 							return err
+						}
+					}
+				}
+
+				if t.Type == "deploy" && t.Status != "REJECTED" {
+					contract, err := provider.CodeAt(ctx, t.ContractAddress)
+					if err == nil {
+						matchedContract := processor.Match(t.ContractAddress, contract)
+						if matchedContract != nil {
+							// entry in db
+						} else {
+							// entry in db
 						}
 					}
 				}
