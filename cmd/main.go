@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/alecthomas/kong"
+	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
@@ -27,7 +29,12 @@ func main() {
 		log.Fatal().Err(err).Msg("opening ent client")
 	}
 
-	indexer.New(cli.Addr, drv, indexer.Config{
+	provider, err := jsonrpc.DialContext(context.Background(), "http://localhost:9545")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Dialing provider")
+	}
+
+	indexer.New(cli.Addr, drv, provider, indexer.Config{
 		Interval: 2 * time.Second,
 		Contracts: []indexer.Contract{{
 			Address:    "0x",

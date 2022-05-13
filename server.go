@@ -11,7 +11,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
@@ -20,7 +19,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/processor"
 )
 
-func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, provider types.Provider, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,
@@ -54,11 +53,6 @@ func New(addr string, drv *sql.Driver, config Config, opts ...IndexerOption) {
 	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		log.Fatal().Err(err).Msg("Getting head block")
-	}
-
-	provider, err := jsonrpc.DialContext(ctx, "http://localhost:9545")
-	if err != nil {
-		log.Fatal().Err(err).Msg("Dialing provider")
 	}
 
 	e, err := NewEngine(ctx, provider, Config{
