@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -97,6 +98,21 @@ func (tc *TransactionCreate) SetNillableBlockID(id *string) *TransactionCreate {
 // SetBlock sets the "block" edge to the Block entity.
 func (tc *TransactionCreate) SetBlock(b *Block) *TransactionCreate {
 	return tc.SetBlockID(b.ID)
+}
+
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (tc *TransactionCreate) AddContractIDs(ids ...string) *TransactionCreate {
+	tc.mutation.AddContractIDs(ids...)
+	return tc
+}
+
+// AddContract adds the "contract" edges to the Contract entity.
+func (tc *TransactionCreate) AddContract(c ...*Contract) *TransactionCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tc.AddContractIDs(ids...)
 }
 
 // SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
@@ -314,6 +330,25 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.block_transactions = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := tc.mutation.ReceiptsIDs(); len(nodes) > 0 {

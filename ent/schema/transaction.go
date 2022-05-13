@@ -34,6 +34,7 @@ func (Transaction) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("block", Block.Type).Ref("transactions").
 			Unique(),
+		edge.From("contract", Contract.Type).Ref("transactions"),
 		edge.To("receipts", TransactionReceipt.Type).Unique(),
 		edge.To("events", Event.Type)}
 }

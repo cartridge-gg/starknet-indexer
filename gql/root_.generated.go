@@ -62,6 +62,25 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	Contract struct {
+		CreatedAt    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Transactions func(childComplexity int) int
+		Type         func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+	}
+
+	ContractConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	ContractEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Event struct {
 		From        func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -113,6 +132,7 @@ type ComplexityRoot struct {
 	Transaction struct {
 		Block              func(childComplexity int) int
 		Calldata           func(childComplexity int) int
+		Contract           func(childComplexity int) int
 		ContractAddress    func(childComplexity int) int
 		EntryPointSelector func(childComplexity int) int
 		Events             func(childComplexity int) int
@@ -135,7 +155,6 @@ type ComplexityRoot struct {
 	}
 
 	TransactionReceipt struct {
-		Block           func(childComplexity int) int
 		ID              func(childComplexity int) int
 		L1OriginMessage func(childComplexity int) int
 		MessagesSent    func(childComplexity int) int
@@ -269,6 +288,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BlockEdge.Node(childComplexity), true
+
+	case "Contract.createdAt":
+		if e.complexity.Contract.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Contract.CreatedAt(childComplexity), true
+
+	case "Contract.id":
+		if e.complexity.Contract.ID == nil {
+			break
+		}
+
+		return e.complexity.Contract.ID(childComplexity), true
+
+	case "Contract.transactions":
+		if e.complexity.Contract.Transactions == nil {
+			break
+		}
+
+		return e.complexity.Contract.Transactions(childComplexity), true
+
+	case "Contract.type":
+		if e.complexity.Contract.Type == nil {
+			break
+		}
+
+		return e.complexity.Contract.Type(childComplexity), true
+
+	case "Contract.updatedAt":
+		if e.complexity.Contract.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Contract.UpdatedAt(childComplexity), true
+
+	case "ContractConnection.edges":
+		if e.complexity.ContractConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.ContractConnection.Edges(childComplexity), true
+
+	case "ContractConnection.pageInfo":
+		if e.complexity.ContractConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.ContractConnection.PageInfo(childComplexity), true
+
+	case "ContractConnection.totalCount":
+		if e.complexity.ContractConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ContractConnection.TotalCount(childComplexity), true
+
+	case "ContractEdge.cursor":
+		if e.complexity.ContractEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.ContractEdge.Cursor(childComplexity), true
+
+	case "ContractEdge.node":
+		if e.complexity.ContractEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.ContractEdge.Node(childComplexity), true
 
 	case "Event.from":
 		if e.complexity.Event.From == nil {
@@ -482,6 +571,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Calldata(childComplexity), true
 
+	case "Transaction.contract":
+		if e.complexity.Transaction.Contract == nil {
+			break
+		}
+
+		return e.complexity.Transaction.Contract(childComplexity), true
+
 	case "Transaction.contractAddress":
 		if e.complexity.Transaction.ContractAddress == nil {
 			break
@@ -572,13 +668,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TransactionEdge.Node(childComplexity), true
-
-	case "TransactionReceipt.block":
-		if e.complexity.TransactionReceipt.Block == nil {
-			break
-		}
-
-		return e.complexity.TransactionReceipt.Block(childComplexity), true
 
 	case "TransactionReceipt.id":
 		if e.complexity.TransactionReceipt.ID == nil {
@@ -671,6 +760,16 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputBlockOrder,
+		ec.unmarshalInputBlockWhereInput,
+		ec.unmarshalInputContractOrder,
+		ec.unmarshalInputContractWhereInput,
+		ec.unmarshalInputEventWhereInput,
+		ec.unmarshalInputTransactionOrder,
+		ec.unmarshalInputTransactionReceiptWhereInput,
+		ec.unmarshalInputTransactionWhereInput,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -680,6 +779,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				return nil
 			}
 			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
@@ -694,7 +794,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		var buf bytes.Buffer
 		return func(ctx context.Context) *graphql.Response {
 			buf.Reset()
-			data := next()
+			data := next(ctx)
 
 			if data == nil {
 				return nil
@@ -861,6 +961,79 @@ input BlockWhereInput {
   hasTransactionReceipts: Boolean
   hasTransactionReceiptsWith: [TransactionReceiptWhereInput!]
 }
+type Contract implements Node {
+  id: ID!
+  type: Type!
+  createdAt: Time!
+  updatedAt: Time!
+  transactions: [Transaction!]
+}
+"""A connection to a list of items."""
+type ContractConnection {
+  """A list of edges."""
+  edges: [ContractEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type ContractEdge {
+  """The item at the end of the edge."""
+  node: Contract
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+input ContractOrder {
+  direction: OrderDirection! = ASC
+  field: ContractOrderField!
+}
+enum ContractOrderField {
+  CREATED_AT
+}
+"""
+ContractWhereInput is used for filtering Contract objects.
+Input was generated by ent.
+"""
+input ContractWhereInput {
+  not: ContractWhereInput
+  and: [ContractWhereInput!]
+  or: [ContractWhereInput!]
+  """type field predicates"""
+  type: Type
+  typeNEQ: Type
+  typeIn: [Type!]
+  typeNotIn: [Type!]
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """transactions edge predicates"""
+  hasTransactions: Boolean
+  hasTransactionsWith: [TransactionWhereInput!]
+}
 """
 Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
@@ -985,6 +1158,7 @@ type Transaction implements Node {
   signature: [String!]
   nonce: String!
   block: Block
+  contract: [Contract!]
   receipts: TransactionReceipt
   events: [Event!]
 }
@@ -1016,7 +1190,6 @@ type TransactionReceipt implements Node {
   status: Status!
   statusData: String!
   l1OriginMessage: L2Message!
-  block: Block
   transaction: Transaction
 }
 """A connection to a list of items."""
@@ -1084,9 +1257,6 @@ input TransactionReceiptWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """block edge predicates"""
-  hasBlock: Boolean
-  hasBlockWith: [BlockWhereInput!]
   """transaction edge predicates"""
   hasTransaction: Boolean
   hasTransactionWith: [TransactionWhereInput!]
@@ -1171,12 +1341,21 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
+  """contract edge predicates"""
+  hasContract: Boolean
+  hasContractWith: [ContractWhereInput!]
   """receipts edge predicates"""
   hasReceipts: Boolean
   hasReceiptsWith: [TransactionReceiptWhereInput!]
   """events edge predicates"""
   hasEvents: Boolean
   hasEventsWith: [EventWhereInput!]
+}
+"""Type is enum for the field type"""
+enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/contract.Type") {
+  UNKNOWN
+  ERC20
+  ERC721
 }
 `, BuiltIn: false},
 	{Name: "schema.graphql", Input: `scalar Time
@@ -1209,13 +1388,6 @@ type Query {
     orderBy: BlockOrder
     where: BlockWhereInput
   ): BlockConnection
-  transactions(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    where: TransactionWhereInput
-  ): TransactionConnection
   events(
     after: Cursor
     first: Int
@@ -1223,6 +1395,13 @@ type Query {
     last: Int
     where: EventWhereInput
   ): EventConnection
+  transactions(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: TransactionWhereInput
+  ): TransactionConnection
 }
 
 type Subscription {

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
@@ -33,11 +34,11 @@ type Engine struct {
 	sync.Mutex
 	latest   uint64
 	ent      *ent.Client
-	provider types.Provider
+	provider jsonrpc.Client
 	ticker   *time.Ticker
 }
 
-func NewEngine(ctx context.Context, provider types.Provider, config Config) (*Engine, error) {
+func NewEngine(ctx context.Context, provider jsonrpc.Client, config Config) (*Engine, error) {
 	e := &Engine{
 		provider: provider,
 		ticker:   time.NewTicker(config.Interval),
@@ -111,7 +112,7 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 
 // Create a type based on your input to the work function
 type fetcher struct {
-	provider    types.Provider
+	provider    jsonrpc.Client
 	blockNumber uint64
 }
 

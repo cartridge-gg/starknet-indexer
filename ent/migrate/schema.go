@@ -24,6 +24,19 @@ var (
 		Columns:    BlocksColumns,
 		PrimaryKey: []*schema.Column{BlocksColumns[0]},
 	}
+	// ContractsColumns holds the columns for the "contracts" table.
+	ContractsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ERC20", "ERC721"}, Default: "UNKNOWN"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ContractsTable holds the schema information for the "contracts" table.
+	ContractsTable = &schema.Table{
+		Name:       "contracts",
+		Columns:    ContractsColumns,
+		PrimaryKey: []*schema.Column{ContractsColumns[0]},
+	}
 	// EventsColumns holds the columns for the "events" table.
 	EventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -102,12 +115,39 @@ var (
 			},
 		},
 	}
+	// ContractTransactionsColumns holds the columns for the "contract_transactions" table.
+	ContractTransactionsColumns = []*schema.Column{
+		{Name: "contract_id", Type: field.TypeString},
+		{Name: "transaction_id", Type: field.TypeString},
+	}
+	// ContractTransactionsTable holds the schema information for the "contract_transactions" table.
+	ContractTransactionsTable = &schema.Table{
+		Name:       "contract_transactions",
+		Columns:    ContractTransactionsColumns,
+		PrimaryKey: []*schema.Column{ContractTransactionsColumns[0], ContractTransactionsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "contract_transactions_contract_id",
+				Columns:    []*schema.Column{ContractTransactionsColumns[0]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "contract_transactions_transaction_id",
+				Columns:    []*schema.Column{ContractTransactionsColumns[1]},
+				RefColumns: []*schema.Column{TransactionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlocksTable,
+		ContractsTable,
 		EventsTable,
 		TransactionsTable,
 		TransactionReceiptsTable,
+		ContractTransactionsTable,
 	}
 )
 
@@ -116,4 +156,6 @@ func init() {
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable
+	ContractTransactionsTable.ForeignKeys[0].RefTable = ContractsTable
+	ContractTransactionsTable.ForeignKeys[1].RefTable = TransactionsTable
 }

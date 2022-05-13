@@ -40,15 +40,17 @@ type Transaction struct {
 type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
+	// Contract holds the value of the contract edge.
+	Contract []*Contract `json:"contract,omitempty"`
 	// Receipts holds the value of the receipts edge.
 	Receipts *TransactionReceipt `json:"receipts,omitempty"`
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]*int
+	totalCount [4]*int
 }
 
 // BlockOrErr returns the Block value or an error if the edge
@@ -65,10 +67,19 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 	return nil, &NotLoadedError{edge: "block"}
 }
 
+// ContractOrErr returns the Contract value or an error if the edge
+// was not loaded in eager-loading.
+func (e TransactionEdges) ContractOrErr() ([]*Contract, error) {
+	if e.loadedTypes[1] {
+		return e.Contract, nil
+	}
+	return nil, &NotLoadedError{edge: "contract"}
+}
+
 // ReceiptsOrErr returns the Receipts value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Receipts == nil {
 			// The edge receipts was loaded in eager-loading,
 			// but was not found.
@@ -82,7 +93,7 @@ func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
 // EventsOrErr returns the Events value or an error if the edge
 // was not loaded in eager-loading.
 func (e TransactionEdges) EventsOrErr() ([]*Event, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Events, nil
 	}
 	return nil, &NotLoadedError{edge: "events"}
@@ -175,6 +186,11 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 // QueryBlock queries the "block" edge of the Transaction entity.
 func (t *Transaction) QueryBlock() *BlockQuery {
 	return (&TransactionClient{config: t.config}).QueryBlock(t)
+}
+
+// QueryContract queries the "contract" edge of the Transaction entity.
+func (t *Transaction) QueryContract() *ContractQuery {
+	return (&TransactionClient{config: t.config}).QueryContract(t)
 }
 
 // QueryReceipts queries the "receipts" edge of the Transaction entity.

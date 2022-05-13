@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -26,7 +25,6 @@ type TransactionReceiptQuery struct {
 	fields     []string
 	predicates []predicate.TransactionReceipt
 	// eager-loading edges.
-	withBlock       *BlockQuery
 	withTransaction *TransactionQuery
 	withFKs         bool
 	modifiers       []func(*sql.Selector)
@@ -65,28 +63,6 @@ func (trq *TransactionReceiptQuery) Unique(unique bool) *TransactionReceiptQuery
 func (trq *TransactionReceiptQuery) Order(o ...OrderFunc) *TransactionReceiptQuery {
 	trq.order = append(trq.order, o...)
 	return trq
-}
-
-// QueryBlock chains the current query on the "block" edge.
-func (trq *TransactionReceiptQuery) QueryBlock() *BlockQuery {
-	query := &BlockQuery{config: trq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := trq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := trq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, selector),
-			sqlgraph.To(block.Table, block.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(trq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryTransaction chains the current query on the "transaction" edge.
@@ -292,24 +268,12 @@ func (trq *TransactionReceiptQuery) Clone() *TransactionReceiptQuery {
 		offset:          trq.offset,
 		order:           append([]OrderFunc{}, trq.order...),
 		predicates:      append([]predicate.TransactionReceipt{}, trq.predicates...),
-		withBlock:       trq.withBlock.Clone(),
 		withTransaction: trq.withTransaction.Clone(),
 		// clone intermediate query.
 		sql:    trq.sql.Clone(),
 		path:   trq.path,
 		unique: trq.unique,
 	}
-}
-
-// WithBlock tells the query-builder to eager-load the nodes that are connected to
-// the "block" edge. The optional arguments are used to configure the query builder of the edge.
-func (trq *TransactionReceiptQuery) WithBlock(opts ...func(*BlockQuery)) *TransactionReceiptQuery {
-	query := &BlockQuery{config: trq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	trq.withBlock = query
-	return trq
 }
 
 // WithTransaction tells the query-builder to eager-load the nodes that are connected to
@@ -394,12 +358,11 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		nodes       = []*TransactionReceipt{}
 		withFKs     = trq.withFKs
 		_spec       = trq.querySpec()
-		loadedTypes = [2]bool{
-			trq.withBlock != nil,
+		loadedTypes = [1]bool{
 			trq.withTransaction != nil,
 		}
 	)
-	if trq.withBlock != nil || trq.withTransaction != nil {
+	if trq.withTransaction != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -425,35 +388,6 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
-	}
-
-	if query := trq.withBlock; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*TransactionReceipt)
-		for i := range nodes {
-			if nodes[i].block_transaction_receipts == nil {
-				continue
-			}
-			fk := *nodes[i].block_transaction_receipts
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(block.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "block_transaction_receipts" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Block = n
-			}
-		}
 	}
 
 	if query := trq.withTransaction; query != nil {

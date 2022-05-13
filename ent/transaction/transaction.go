@@ -21,6 +21,8 @@ const (
 	FieldNonce = "nonce"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
+	// EdgeContract holds the string denoting the contract edge name in mutations.
+	EdgeContract = "contract"
 	// EdgeReceipts holds the string denoting the receipts edge name in mutations.
 	EdgeReceipts = "receipts"
 	// EdgeEvents holds the string denoting the events edge name in mutations.
@@ -34,6 +36,11 @@ const (
 	BlockInverseTable = "blocks"
 	// BlockColumn is the table column denoting the block relation/edge.
 	BlockColumn = "block_transactions"
+	// ContractTable is the table that holds the contract relation/edge. The primary key declared below.
+	ContractTable = "contract_transactions"
+	// ContractInverseTable is the table name for the Contract entity.
+	// It exists in this package in order to avoid circular dependency with the "contract" package.
+	ContractInverseTable = "contracts"
 	// ReceiptsTable is the table that holds the receipts relation/edge.
 	ReceiptsTable = "transaction_receipts"
 	// ReceiptsInverseTable is the table name for the TransactionReceipt entity.
@@ -66,6 +73,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"block_transactions",
 }
+
+var (
+	// ContractPrimaryKey and ContractColumn2 are the table columns denoting the
+	// primary key for the contract relation (M2M).
+	ContractPrimaryKey = []string{"contract_id", "transaction_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

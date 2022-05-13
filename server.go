@@ -11,15 +11,17 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 	"github.com/tarrencev/starknet-indexer/processor"
 )
 
-func New(addr string, drv *sql.Driver, provider types.Provider, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, provider jsonrpc.Client, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,
@@ -95,7 +97,6 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 
 				if err := tx.TransactionReceipt.Create().
 					SetID(t.TransactionHash).
-					SetBlockID(b.BlockHash).
 					SetTransactionID(t.TransactionReceipt.TransactionHash).
 					SetTransactionHash(t.TransactionReceipt.TransactionHash).
 					SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
@@ -121,13 +122,23 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 				}
 
 				if t.Type == "deploy" && t.Status != "REJECTED" {
-					contract, err := provider.CodeAt(ctx, t.ContractAddress)
+					contractCode, err := provider.CodeAt(ctx, t.ContractAddress)
 					if err == nil {
-						matchedContract := processor.Match(t.ContractAddress, contract)
+						matchedContract := processor.Match(ctx, t.ContractAddress, contractCode, provider)
 						if matchedContract != nil {
-							// entry in db
+							if err := tx.Contract.Create().
+								SetID(t.ContractAddress).
+								SetType(contract.Type(matchedContract.Type())).
+								Exec(ctx); err != nil {
+								return err
+							}
 						} else {
-							// entry in db
+							if err := tx.Contract.Create().
+								SetID(t.ContractAddress).
+								SetType(contract.TypeUNKNOWN).
+								Exec(ctx); err != nil {
+								return err
+							}
 						}
 					}
 				}

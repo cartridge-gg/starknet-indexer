@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
@@ -119,6 +120,21 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (tu *TransactionUpdate) AddContractIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.AddContractIDs(ids...)
+	return tu
+}
+
+// AddContract adds the "contract" edges to the Contract entity.
+func (tu *TransactionUpdate) AddContract(c ...*Contract) *TransactionUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tu.AddContractIDs(ids...)
+}
+
 // SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
 func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
 	tu.mutation.SetReceiptsID(id)
@@ -162,6 +178,27 @@ func (tu *TransactionUpdate) Mutation() *TransactionMutation {
 func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	tu.mutation.ClearBlock()
 	return tu
+}
+
+// ClearContract clears all "contract" edges to the Contract entity.
+func (tu *TransactionUpdate) ClearContract() *TransactionUpdate {
+	tu.mutation.ClearContract()
+	return tu
+}
+
+// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
+func (tu *TransactionUpdate) RemoveContractIDs(ids ...string) *TransactionUpdate {
+	tu.mutation.RemoveContractIDs(ids...)
+	return tu
+}
+
+// RemoveContract removes "contract" edges to Contract entities.
+func (tu *TransactionUpdate) RemoveContract(c ...*Contract) *TransactionUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tu.RemoveContractIDs(ids...)
 }
 
 // ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
@@ -350,6 +387,60 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tu.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedContractIDs(); len(nodes) > 0 && !tu.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
 				},
 			},
 		}
@@ -555,6 +646,21 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (tuo *TransactionUpdateOne) AddContractIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.AddContractIDs(ids...)
+	return tuo
+}
+
+// AddContract adds the "contract" edges to the Contract entity.
+func (tuo *TransactionUpdateOne) AddContract(c ...*Contract) *TransactionUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tuo.AddContractIDs(ids...)
+}
+
 // SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
 func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
 	tuo.mutation.SetReceiptsID(id)
@@ -598,6 +704,27 @@ func (tuo *TransactionUpdateOne) Mutation() *TransactionMutation {
 func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	tuo.mutation.ClearBlock()
 	return tuo
+}
+
+// ClearContract clears all "contract" edges to the Contract entity.
+func (tuo *TransactionUpdateOne) ClearContract() *TransactionUpdateOne {
+	tuo.mutation.ClearContract()
+	return tuo
+}
+
+// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
+func (tuo *TransactionUpdateOne) RemoveContractIDs(ids ...string) *TransactionUpdateOne {
+	tuo.mutation.RemoveContractIDs(ids...)
+	return tuo
+}
+
+// RemoveContract removes "contract" edges to Contract entities.
+func (tuo *TransactionUpdateOne) RemoveContract(c ...*Contract) *TransactionUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tuo.RemoveContractIDs(ids...)
 }
 
 // ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
@@ -810,6 +937,60 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedContractIDs(); len(nodes) > 0 && !tuo.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   transaction.ContractTable,
+			Columns: transaction.ContractPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: contract.FieldID,
 				},
 			},
 		}
