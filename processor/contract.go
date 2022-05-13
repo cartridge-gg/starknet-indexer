@@ -67,7 +67,15 @@ func (c *ERC721Contract) Type() string {
 func (c *ERC721Contract) Match(ctx context.Context, provider jsonrpc.Client) bool {
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc721/ERC721_Mintable_Burnable.cairo
 	// supportsInterface
-	return false
+	if res, err := provider.Call(ctx, jsonrpc.FunctionCall{
+		ContractAddress:    c.Address,
+		EntryPointSelector: "supportsInterface",
+		Calldata:           []string{"0x01ffc9a7"},
+	}, "latest"); err != nil || res[0] != "0x01" {
+		return false
+	}
+
+	return true
 }
 
 func Match(ctx context.Context, address string, code *types.Code, provider jsonrpc.Client) MatchableContract {
