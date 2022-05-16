@@ -9,8 +9,6 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
-
-	"github.com/tarrencev/starknet-indexer/ent"
 )
 
 const parallelism = 5
@@ -32,7 +30,6 @@ type Config struct {
 type Engine struct {
 	sync.Mutex
 	latest   uint64
-	ent      *ent.Client
 	provider types.Provider
 	ticker   *time.Ticker
 }
@@ -85,7 +82,6 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 	go func() {
 		for i := e.latest; i < head; i++ {
 			worker <- fetcher{e.provider, i}
-			e.latest += 1
 		}
 	}()
 
@@ -104,6 +100,8 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 			log.Err(err).Msg("Writing block.")
 			return err
 		}
+
+		e.latest = uint64(v.block.BlockNumber)
 	}
 
 	return nil

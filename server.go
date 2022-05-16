@@ -49,13 +49,16 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 
 	ctx := context.Background()
 
+	var n uint64
 	head, err := client.Block.Query().Order(ent.Desc(block.FieldBlockNumber)).First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		log.Fatal().Err(err).Msg("Getting head block")
+	} else if head != nil {
+		n = head.BlockNumber
 	}
 
 	e, err := NewEngine(ctx, provider, Config{
-		Head:     head.BlockNumber,
+		Head:     n,
 		Interval: 1 * time.Second,
 	})
 	if err != nil {
@@ -64,8 +67,7 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 
 	go e.Start(ctx, func(ctx context.Context, b *types.Block) error {
 		log.Info().Msgf("Processing block: %d", b.BlockNumber)
-
-		if err := ent.WithTx(ctx, e.ent, func(tx *ent.Tx) error {
+		if err := ent.WithTx(ctx, client, func(tx *ent.Tx) error {
 			if err := tx.Block.Create().
 				SetID(b.BlockHash).
 				SetBlockHash(b.BlockHash).
@@ -95,8 +97,8 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 				if err := tx.TransactionReceipt.Create().
 					SetID(t.TransactionHash).
 					SetBlockID(b.BlockHash).
-					SetTransactionID(t.TransactionReceipt.TransactionHash).
-					SetTransactionHash(t.TransactionReceipt.TransactionHash).
+					SetTransactionID(t.TransactionHash).
+					SetTransactionHash(t.TransactionHash).
 					SetStatus(transactionreceipt.Status(t.TransactionReceipt.Status)).
 					SetStatusData(t.TransactionReceipt.StatusData).
 					SetMessagesSent(t.TransactionReceipt.MessagesSent).
