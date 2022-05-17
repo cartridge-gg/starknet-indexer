@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
@@ -448,26 +447,6 @@ type EventWhereInput struct {
 	FromEqualFold    *string  `json:"fromEqualFold,omitempty"`
 	FromContainsFold *string  `json:"fromContainsFold,omitempty"`
 
-	// "key" field predicates.
-	Key      *types.Felt   `json:"key,omitempty"`
-	KeyNEQ   *types.Felt   `json:"keyNEQ,omitempty"`
-	KeyIn    []*types.Felt `json:"keyIn,omitempty"`
-	KeyNotIn []*types.Felt `json:"keyNotIn,omitempty"`
-	KeyGT    *types.Felt   `json:"keyGT,omitempty"`
-	KeyGTE   *types.Felt   `json:"keyGTE,omitempty"`
-	KeyLT    *types.Felt   `json:"keyLT,omitempty"`
-	KeyLTE   *types.Felt   `json:"keyLTE,omitempty"`
-
-	// "value" field predicates.
-	Value      *types.Felt   `json:"value,omitempty"`
-	ValueNEQ   *types.Felt   `json:"valueNEQ,omitempty"`
-	ValueIn    []*types.Felt `json:"valueIn,omitempty"`
-	ValueNotIn []*types.Felt `json:"valueNotIn,omitempty"`
-	ValueGT    *types.Felt   `json:"valueGT,omitempty"`
-	ValueGTE   *types.Felt   `json:"valueGTE,omitempty"`
-	ValueLT    *types.Felt   `json:"valueLT,omitempty"`
-	ValueLTE   *types.Felt   `json:"valueLTE,omitempty"`
-
 	// "transaction" edge predicates.
 	HasTransaction     *bool                    `json:"hasTransaction,omitempty"`
 	HasTransactionWith []*TransactionWhereInput `json:"hasTransactionWith,omitempty"`
@@ -595,54 +574,6 @@ func (i *EventWhereInput) P() (predicate.Event, error) {
 	if i.FromContainsFold != nil {
 		predicates = append(predicates, event.FromContainsFold(*i.FromContainsFold))
 	}
-	if i.Key != nil {
-		predicates = append(predicates, event.KeyEQ(i.Key))
-	}
-	if i.KeyNEQ != nil {
-		predicates = append(predicates, event.KeyNEQ(i.KeyNEQ))
-	}
-	if len(i.KeyIn) > 0 {
-		predicates = append(predicates, event.KeyIn(i.KeyIn...))
-	}
-	if len(i.KeyNotIn) > 0 {
-		predicates = append(predicates, event.KeyNotIn(i.KeyNotIn...))
-	}
-	if i.KeyGT != nil {
-		predicates = append(predicates, event.KeyGT(i.KeyGT))
-	}
-	if i.KeyGTE != nil {
-		predicates = append(predicates, event.KeyGTE(i.KeyGTE))
-	}
-	if i.KeyLT != nil {
-		predicates = append(predicates, event.KeyLT(i.KeyLT))
-	}
-	if i.KeyLTE != nil {
-		predicates = append(predicates, event.KeyLTE(i.KeyLTE))
-	}
-	if i.Value != nil {
-		predicates = append(predicates, event.ValueEQ(i.Value))
-	}
-	if i.ValueNEQ != nil {
-		predicates = append(predicates, event.ValueNEQ(i.ValueNEQ))
-	}
-	if len(i.ValueIn) > 0 {
-		predicates = append(predicates, event.ValueIn(i.ValueIn...))
-	}
-	if len(i.ValueNotIn) > 0 {
-		predicates = append(predicates, event.ValueNotIn(i.ValueNotIn...))
-	}
-	if i.ValueGT != nil {
-		predicates = append(predicates, event.ValueGT(i.ValueGT))
-	}
-	if i.ValueGTE != nil {
-		predicates = append(predicates, event.ValueGTE(i.ValueGTE))
-	}
-	if i.ValueLT != nil {
-		predicates = append(predicates, event.ValueLT(i.ValueLT))
-	}
-	if i.ValueLTE != nil {
-		predicates = append(predicates, event.ValueLTE(i.ValueLTE))
-	}
 
 	if i.HasTransaction != nil {
 		p := event.HasTransaction()
@@ -756,9 +687,9 @@ type TransactionWhereInput struct {
 	HasBlock     *bool              `json:"hasBlock,omitempty"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith,omitempty"`
 
-	// "receipts" edge predicates.
-	HasReceipts     *bool                           `json:"hasReceipts,omitempty"`
-	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith,omitempty"`
+	// "receipt" edge predicates.
+	HasReceipt     *bool                           `json:"hasReceipt,omitempty"`
+	HasReceiptWith []*TransactionReceiptWhereInput `json:"hasReceiptWith,omitempty"`
 
 	// "events" edge predicates.
 	HasEvents     *bool              `json:"hasEvents,omitempty"`
@@ -1035,23 +966,23 @@ func (i *TransactionWhereInput) P() (predicate.Transaction, error) {
 		}
 		predicates = append(predicates, transaction.HasBlockWith(with...))
 	}
-	if i.HasReceipts != nil {
-		p := transaction.HasReceipts()
-		if !*i.HasReceipts {
+	if i.HasReceipt != nil {
+		p := transaction.HasReceipt()
+		if !*i.HasReceipt {
 			p = transaction.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasReceiptsWith) > 0 {
-		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptsWith))
-		for _, w := range i.HasReceiptsWith {
+	if len(i.HasReceiptWith) > 0 {
+		with := make([]predicate.TransactionReceipt, 0, len(i.HasReceiptWith))
+		for _, w := range i.HasReceiptWith {
 			p, err := w.P()
 			if err != nil {
 				return nil, err
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, transaction.HasReceiptsWith(with...))
+		predicates = append(predicates, transaction.HasReceiptWith(with...))
 	}
 	if i.HasEvents != nil {
 		p := transaction.HasEvents()

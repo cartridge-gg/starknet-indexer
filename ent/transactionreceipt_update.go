@@ -85,14 +85,6 @@ func (tru *TransactionReceiptUpdate) SetTransactionID(id string) *TransactionRec
 	return tru
 }
 
-// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
-func (tru *TransactionReceiptUpdate) SetNillableTransactionID(id *string) *TransactionReceiptUpdate {
-	if id != nil {
-		tru = tru.SetTransactionID(*id)
-	}
-	return tru
-}
-
 // SetTransaction sets the "transaction" edge to the Transaction entity.
 func (tru *TransactionReceiptUpdate) SetTransaction(t *Transaction) *TransactionReceiptUpdate {
 	return tru.SetTransactionID(t.ID)
@@ -181,6 +173,9 @@ func (tru *TransactionReceiptUpdate) check() error {
 		if err := transactionreceipt.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "TransactionReceipt.status": %w`, err)}
 		}
+	}
+	if _, ok := tru.mutation.TransactionID(); tru.mutation.TransactionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "TransactionReceipt.transaction"`)
 	}
 	return nil
 }
@@ -382,14 +377,6 @@ func (truo *TransactionReceiptUpdateOne) SetTransactionID(id string) *Transactio
 	return truo
 }
 
-// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
-func (truo *TransactionReceiptUpdateOne) SetNillableTransactionID(id *string) *TransactionReceiptUpdateOne {
-	if id != nil {
-		truo = truo.SetTransactionID(*id)
-	}
-	return truo
-}
-
 // SetTransaction sets the "transaction" edge to the Transaction entity.
 func (truo *TransactionReceiptUpdateOne) SetTransaction(t *Transaction) *TransactionReceiptUpdateOne {
 	return truo.SetTransactionID(t.ID)
@@ -485,6 +472,9 @@ func (truo *TransactionReceiptUpdateOne) check() error {
 		if err := transactionreceipt.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "TransactionReceipt.status": %w`, err)}
 		}
+	}
+	if _, ok := truo.mutation.TransactionID(); truo.mutation.TransactionCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "TransactionReceipt.transaction"`)
 	}
 	return nil
 }

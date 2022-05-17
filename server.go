@@ -57,6 +57,8 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 		n = head.BlockNumber
 	}
 
+	n = 47377
+
 	e, err := NewEngine(ctx, provider, Config{
 		Head:     n,
 		Interval: 1 * time.Second,
@@ -108,16 +110,14 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 				}
 
 				for i, e := range t.TransactionReceipt.Events {
-					for j, k := range e.Keys {
-						if err := tx.Event.Create().
-							SetID(fmt.Sprintf("%s-%d-%d", t.TransactionHash, i, j)).
-							SetTransactionID(t.TransactionHash).
-							SetFrom(e.FromAddress).
-							SetKey(k).
-							SetValue(e.Values[j]).
-							Exec(ctx); err != nil {
-							return err
-						}
+					if err := tx.Event.Create().
+						SetID(fmt.Sprintf("%s-%d", t.TransactionHash, i)).
+						SetTransactionID(t.TransactionHash).
+						SetFrom(e.FromAddress).
+						SetKeys(e.Keys).
+						SetData(e.Values).
+						Exec(ctx); err != nil {
+						return err
 					}
 				}
 			}

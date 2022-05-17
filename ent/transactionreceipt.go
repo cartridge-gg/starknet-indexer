@@ -33,7 +33,7 @@ type TransactionReceipt struct {
 	// The values are being populated by the TransactionReceiptQuery when eager-loading is set.
 	Edges                      TransactionReceiptEdges `json:"edges"`
 	block_transaction_receipts *string
-	transaction_receipts       *string
+	transaction_receipt        *string
 }
 
 // TransactionReceiptEdges holds the relations/edges for other nodes in the graph.
@@ -88,7 +88,7 @@ func (*TransactionReceipt) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case transactionreceipt.ForeignKeys[0]: // block_transaction_receipts
 			values[i] = new(sql.NullString)
-		case transactionreceipt.ForeignKeys[1]: // transaction_receipts
+		case transactionreceipt.ForeignKeys[1]: // transaction_receipt
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type TransactionReceipt", columns[i])
@@ -154,10 +154,10 @@ func (tr *TransactionReceipt) assignValues(columns []string, values []interface{
 			}
 		case transactionreceipt.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field transaction_receipts", values[i])
+				return fmt.Errorf("unexpected type %T for field transaction_receipt", values[i])
 			} else if value.Valid {
-				tr.transaction_receipts = new(string)
-				*tr.transaction_receipts = value.String
+				tr.transaction_receipt = new(string)
+				*tr.transaction_receipt = value.String
 			}
 		}
 	}

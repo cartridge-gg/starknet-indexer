@@ -99,23 +99,23 @@ func (tc *TransactionCreate) SetBlock(b *Block) *TransactionCreate {
 	return tc.SetBlockID(b.ID)
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tc *TransactionCreate) SetReceiptsID(id string) *TransactionCreate {
-	tc.mutation.SetReceiptsID(id)
+// SetReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID.
+func (tc *TransactionCreate) SetReceiptID(id string) *TransactionCreate {
+	tc.mutation.SetReceiptID(id)
 	return tc
 }
 
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tc *TransactionCreate) SetNillableReceiptsID(id *string) *TransactionCreate {
+// SetNillableReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tc *TransactionCreate) SetNillableReceiptID(id *string) *TransactionCreate {
 	if id != nil {
-		tc = tc.SetReceiptsID(*id)
+		tc = tc.SetReceiptID(*id)
 	}
 	return tc
 }
 
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tc *TransactionCreate) SetReceipts(t *TransactionReceipt) *TransactionCreate {
-	return tc.SetReceiptsID(t.ID)
+// SetReceipt sets the "receipt" edge to the TransactionReceipt entity.
+func (tc *TransactionCreate) SetReceipt(t *TransactionReceipt) *TransactionCreate {
+	return tc.SetReceiptID(t.ID)
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
@@ -316,12 +316,12 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 		_node.block_transactions = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tc.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if nodes := tc.mutation.ReceiptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

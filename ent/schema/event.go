@@ -24,14 +24,8 @@ func (Event) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").Unique().Immutable(),
 		field.String("from"),
-		field.Int("key").
-			GoType(&types.Felt{}).
-			SchemaType(FeltSchemaType).
-			Annotations(entgql.Type("Felt")),
-		field.Int("value").
-			GoType(&types.Felt{}).
-			SchemaType(FeltSchemaType).
-			Annotations(entgql.Type("Felt")),
+		field.JSON("keys", []*types.Felt{}).Annotations(entgql.Type("[Felt]")),
+		field.JSON("data", []*types.Felt{}).Annotations(entgql.Type("[Felt]")),
 	}
 }
 

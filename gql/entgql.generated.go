@@ -393,8 +393,8 @@ func (ec *executionContext) fieldContext_Block_transactions(ctx context.Context,
 				return ec.fieldContext_Transaction_nonce(ctx, field)
 			case "block":
 				return ec.fieldContext_Transaction_block(ctx, field)
-			case "receipts":
-				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "receipt":
+				return ec.fieldContext_Transaction_receipt(ctx, field)
 			case "events":
 				return ec.fieldContext_Transaction_events(ctx, field)
 			}
@@ -801,8 +801,8 @@ func (ec *executionContext) fieldContext_Event_from(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Event_key(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Event_key(ctx, field)
+func (ec *executionContext) _Event_keys(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_keys(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -815,7 +815,7 @@ func (ec *executionContext) _Event_key(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Key, nil
+		return obj.Keys, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -827,12 +827,12 @@ func (ec *executionContext) _Event_key(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*types.Felt)
+	res := resTmp.([]*types.Felt)
 	fc.Result = res
-	return ec.marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
+	return ec.marshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Event_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Event_keys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Event",
 		Field:      field,
@@ -845,8 +845,8 @@ func (ec *executionContext) fieldContext_Event_key(ctx context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Event_value(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Event_value(ctx, field)
+func (ec *executionContext) _Event_data(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_data(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -859,7 +859,7 @@ func (ec *executionContext) _Event_value(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
+		return obj.Data, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -871,12 +871,12 @@ func (ec *executionContext) _Event_value(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*types.Felt)
+	res := resTmp.([]*types.Felt)
 	fc.Result = res
-	return ec.marshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
+	return ec.marshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Event_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Event_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Event",
 		Field:      field,
@@ -941,8 +941,8 @@ func (ec *executionContext) fieldContext_Event_transaction(ctx context.Context, 
 				return ec.fieldContext_Transaction_nonce(ctx, field)
 			case "block":
 				return ec.fieldContext_Transaction_block(ctx, field)
-			case "receipts":
-				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "receipt":
+				return ec.fieldContext_Transaction_receipt(ctx, field)
 			case "events":
 				return ec.fieldContext_Transaction_events(ctx, field)
 			}
@@ -1137,10 +1137,10 @@ func (ec *executionContext) fieldContext_EventEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Event_id(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
-			case "key":
-				return ec.fieldContext_Event_key(ctx, field)
-			case "value":
-				return ec.fieldContext_Event_value(ctx, field)
+			case "keys":
+				return ec.fieldContext_Event_keys(ctx, field)
+			case "data":
+				return ec.fieldContext_Event_data(ctx, field)
 			case "transaction":
 				return ec.fieldContext_Event_transaction(ctx, field)
 			}
@@ -1730,8 +1730,8 @@ func (ec *executionContext) fieldContext_Transaction_block(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Transaction_receipts(ctx context.Context, field graphql.CollectedField, obj *ent.Transaction) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Transaction_receipts(ctx, field)
+func (ec *executionContext) _Transaction_receipt(ctx context.Context, field graphql.CollectedField, obj *ent.Transaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Transaction_receipt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1744,7 +1744,7 @@ func (ec *executionContext) _Transaction_receipts(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Receipts(ctx)
+		return obj.Receipt(ctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1758,7 +1758,7 @@ func (ec *executionContext) _Transaction_receipts(ctx context.Context, field gra
 	return ec.marshalOTransactionReceipt2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionReceipt(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Transaction_receipts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Transaction_receipt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Transaction",
 		Field:      field,
@@ -1829,10 +1829,10 @@ func (ec *executionContext) fieldContext_Transaction_events(ctx context.Context,
 				return ec.fieldContext_Event_id(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
-			case "key":
-				return ec.fieldContext_Event_key(ctx, field)
-			case "value":
-				return ec.fieldContext_Event_value(ctx, field)
+			case "keys":
+				return ec.fieldContext_Event_keys(ctx, field)
+			case "data":
+				return ec.fieldContext_Event_data(ctx, field)
 			case "transaction":
 				return ec.fieldContext_Event_transaction(ctx, field)
 			}
@@ -2039,8 +2039,8 @@ func (ec *executionContext) fieldContext_TransactionEdge_node(ctx context.Contex
 				return ec.fieldContext_Transaction_nonce(ctx, field)
 			case "block":
 				return ec.fieldContext_Transaction_block(ctx, field)
-			case "receipts":
-				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "receipt":
+				return ec.fieldContext_Transaction_receipt(ctx, field)
 			case "events":
 				return ec.fieldContext_Transaction_events(ctx, field)
 			}
@@ -2402,11 +2402,14 @@ func (ec *executionContext) _TransactionReceipt_transaction(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Transaction)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransaction(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransaction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TransactionReceipt_transaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2433,8 +2436,8 @@ func (ec *executionContext) fieldContext_TransactionReceipt_transaction(ctx cont
 				return ec.fieldContext_Transaction_nonce(ctx, field)
 			case "block":
 				return ec.fieldContext_Transaction_block(ctx, field)
-			case "receipts":
-				return ec.fieldContext_Transaction_receipts(ctx, field)
+			case "receipt":
+				return ec.fieldContext_Transaction_receipt(ctx, field)
 			case "events":
 				return ec.fieldContext_Transaction_events(ctx, field)
 			}
@@ -3525,134 +3528,6 @@ func (ec *executionContext) unmarshalInputEventWhereInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "key":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
-			it.Key, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyNEQ":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyNEQ"))
-			it.KeyNeq, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyIn"))
-			it.KeyIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyNotIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyNotIn"))
-			it.KeyNotIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyGT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyGT"))
-			it.KeyGt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyGTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyGTE"))
-			it.KeyGte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyLT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyLT"))
-			it.KeyLt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "keyLTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyLTE"))
-			it.KeyLte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueNEQ":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNEQ"))
-			it.ValueNeq, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueIn"))
-			it.ValueIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueNotIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNotIn"))
-			it.ValueNotIn, err = ec.unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueGT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGT"))
-			it.ValueGt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueGTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGTE"))
-			it.ValueGte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueLT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLT"))
-			it.ValueLt, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "valueLTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLTE"))
-			it.ValueLte, err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "id":
 			var err error
 
@@ -4710,19 +4585,19 @@ func (ec *executionContext) unmarshalInputTransactionWhereInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
-		case "hasReceipts":
+		case "hasReceipt":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasReceipts"))
-			it.HasReceipts, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasReceipt"))
+			it.HasReceipt, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "hasReceiptsWith":
+		case "hasReceiptWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasReceiptsWith"))
-			it.HasReceiptsWith, err = ec.unmarshalOTransactionReceiptWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionReceiptWhereInputᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasReceiptWith"))
+			it.HasReceiptWith, err = ec.unmarshalOTransactionReceiptWhereInput2ᚕᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionReceiptWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5026,9 +4901,9 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "key":
+		case "keys":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Event_key(ctx, field, obj)
+				return ec._Event_keys(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5036,9 +4911,9 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "value":
+		case "data":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Event_value(ctx, field, obj)
+				return ec._Event_data(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5309,7 +5184,7 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 				return innerFunc(ctx)
 
 			})
-		case "receipts":
+		case "receipt":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5318,7 +5193,7 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Transaction_receipts(ctx, field, obj)
+				res = ec._Transaction_receipt(ctx, field, obj)
 				return res
 			}
 
@@ -5527,6 +5402,9 @@ func (ec *executionContext) _TransactionReceipt(ctx context.Context, sel ast.Sel
 					}
 				}()
 				res = ec._TransactionReceipt_transaction(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 

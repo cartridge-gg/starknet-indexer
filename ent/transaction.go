@@ -40,8 +40,8 @@ type Transaction struct {
 type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
-	// Receipts holds the value of the receipts edge.
-	Receipts *TransactionReceipt `json:"receipts,omitempty"`
+	// Receipt holds the value of the receipt edge.
+	Receipt *TransactionReceipt `json:"receipt,omitempty"`
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -65,18 +65,18 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 	return nil, &NotLoadedError{edge: "block"}
 }
 
-// ReceiptsOrErr returns the Receipts value or an error if the edge
+// ReceiptOrErr returns the Receipt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
+func (e TransactionEdges) ReceiptOrErr() (*TransactionReceipt, error) {
 	if e.loadedTypes[1] {
-		if e.Receipts == nil {
-			// The edge receipts was loaded in eager-loading,
+		if e.Receipt == nil {
+			// The edge receipt was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: transactionreceipt.Label}
 		}
-		return e.Receipts, nil
+		return e.Receipt, nil
 	}
-	return nil, &NotLoadedError{edge: "receipts"}
+	return nil, &NotLoadedError{edge: "receipt"}
 }
 
 // EventsOrErr returns the Events value or an error if the edge
@@ -177,9 +177,9 @@ func (t *Transaction) QueryBlock() *BlockQuery {
 	return (&TransactionClient{config: t.config}).QueryBlock(t)
 }
 
-// QueryReceipts queries the "receipts" edge of the Transaction entity.
-func (t *Transaction) QueryReceipts() *TransactionReceiptQuery {
-	return (&TransactionClient{config: t.config}).QueryReceipts(t)
+// QueryReceipt queries the "receipt" edge of the Transaction entity.
+func (t *Transaction) QueryReceipt() *TransactionReceiptQuery {
+	return (&TransactionClient{config: t.config}).QueryReceipt(t)
 }
 
 // QueryEvents queries the "events" edge of the Transaction entity.

@@ -11,7 +11,7 @@ import (
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
 )
 
-const parallelism = 5
+const concurrency = 5
 
 type WriteHandler func(ctx context.Context, block *types.Block) error
 
@@ -67,9 +67,9 @@ func (e *Engine) Subscribe(ctx context.Context) {
 }
 
 func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
-	worker := make(chan concurrently.WorkFunction, parallelism)
+	worker := make(chan concurrently.WorkFunction, concurrency)
 
-	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
+	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: concurrency, OutChannelBuffer: concurrency})
 
 	block, err := e.provider.BlockByNumber(ctx, nil, "FULL_TXN_AND_RECEIPTS")
 	if err != nil {

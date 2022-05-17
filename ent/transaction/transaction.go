@@ -21,8 +21,8 @@ const (
 	FieldNonce = "nonce"
 	// EdgeBlock holds the string denoting the block edge name in mutations.
 	EdgeBlock = "block"
-	// EdgeReceipts holds the string denoting the receipts edge name in mutations.
-	EdgeReceipts = "receipts"
+	// EdgeReceipt holds the string denoting the receipt edge name in mutations.
+	EdgeReceipt = "receipt"
 	// EdgeEvents holds the string denoting the events edge name in mutations.
 	EdgeEvents = "events"
 	// Table holds the table name of the transaction in the database.
@@ -34,13 +34,13 @@ const (
 	BlockInverseTable = "blocks"
 	// BlockColumn is the table column denoting the block relation/edge.
 	BlockColumn = "block_transactions"
-	// ReceiptsTable is the table that holds the receipts relation/edge.
-	ReceiptsTable = "transaction_receipts"
-	// ReceiptsInverseTable is the table name for the TransactionReceipt entity.
+	// ReceiptTable is the table that holds the receipt relation/edge.
+	ReceiptTable = "transaction_receipts"
+	// ReceiptInverseTable is the table name for the TransactionReceipt entity.
 	// It exists in this package in order to avoid circular dependency with the "transactionreceipt" package.
-	ReceiptsInverseTable = "transaction_receipts"
-	// ReceiptsColumn is the table column denoting the receipts relation/edge.
-	ReceiptsColumn = "transaction_receipts"
+	ReceiptInverseTable = "transaction_receipts"
+	// ReceiptColumn is the table column denoting the receipt relation/edge.
+	ReceiptColumn = "transaction_receipt"
 	// EventsTable is the table that holds the events relation/edge.
 	EventsTable = "events"
 	// EventsInverseTable is the table name for the Event entity.

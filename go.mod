@@ -4,23 +4,23 @@ go 1.17
 
 require (
 	entgo.io/contrib v0.2.1-0.20220421093944-3186275bff87
-	entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd
+	entgo.io/ent v0.10.2-0.20220502113020-4ac82f5bb3f0
 	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
 	github.com/alecthomas/kong v0.2.11
-	github.com/dontpanicdao/caigo v0.2.1-0.20220426164541-87056ea3b43b
+	github.com/dontpanicdao/caigo v0.2.1-0.20220517124357-974ebaf93d96
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1
 	github.com/tejzpr/ordered-concurrently/v3 v3.0.0
-	github.com/vektah/gqlparser/v2 v2.4.2-0.20220410124439-db38a01a2e29
+	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 )
 
 require (
-	ariga.io/atlas v0.3.8-0.20220324144249-d5d77d7dadfa // indirect
+	ariga.io/atlas v0.3.8-0.20220505085539-5ec35b058386 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
-	github.com/agnivade/levenshtein v1.1.0 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.17 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
