@@ -5,7 +5,6 @@ package gql
 import (
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -118,24 +117,6 @@ type EventWhereInput struct {
 	FromHasSuffix    *string  `json:"fromHasSuffix"`
 	FromEqualFold    *string  `json:"fromEqualFold"`
 	FromContainsFold *string  `json:"fromContainsFold"`
-	// key field predicates
-	Key      *types.Felt   `json:"key"`
-	KeyNeq   *types.Felt   `json:"keyNEQ"`
-	KeyIn    []*types.Felt `json:"keyIn"`
-	KeyNotIn []*types.Felt `json:"keyNotIn"`
-	KeyGt    *types.Felt   `json:"keyGT"`
-	KeyGte   *types.Felt   `json:"keyGTE"`
-	KeyLt    *types.Felt   `json:"keyLT"`
-	KeyLte   *types.Felt   `json:"keyLTE"`
-	// value field predicates
-	Value      *types.Felt   `json:"value"`
-	ValueNeq   *types.Felt   `json:"valueNEQ"`
-	ValueIn    []*types.Felt `json:"valueIn"`
-	ValueNotIn []*types.Felt `json:"valueNotIn"`
-	ValueGt    *types.Felt   `json:"valueGT"`
-	ValueGte   *types.Felt   `json:"valueGTE"`
-	ValueLt    *types.Felt   `json:"valueLT"`
-	ValueLte   *types.Felt   `json:"valueLTE"`
 	// id field predicates
 	ID      *string  `json:"id"`
 	IDNeq   *string  `json:"idNEQ"`
@@ -284,9 +265,9 @@ type TransactionWhereInput struct {
 	// block edge predicates
 	HasBlock     *bool              `json:"hasBlock"`
 	HasBlockWith []*BlockWhereInput `json:"hasBlockWith"`
-	// receipts edge predicates
-	HasReceipts     *bool                           `json:"hasReceipts"`
-	HasReceiptsWith []*TransactionReceiptWhereInput `json:"hasReceiptsWith"`
+	// receipt edge predicates
+	HasReceipt     *bool                           `json:"hasReceipt"`
+	HasReceiptWith []*TransactionReceiptWhereInput `json:"hasReceiptWith"`
 	// events edge predicates
 	HasEvents     *bool              `json:"hasEvents"`
 	HasEventsWith []*EventWhereInput `json:"hasEventsWith"`

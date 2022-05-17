@@ -28,8 +28,8 @@ var (
 	EventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "from", Type: field.TypeString},
-		{Name: "key", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
-		{Name: "value", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "keys", Type: field.TypeJSON},
+		{Name: "data", Type: field.TypeJSON},
 		{Name: "transaction_events", Type: field.TypeString, Nullable: true},
 	}
 	// EventsTable holds the schema information for the "events" table.
@@ -80,7 +80,7 @@ var (
 		{Name: "messages_sent", Type: field.TypeJSON},
 		{Name: "l1_origin_message", Type: field.TypeJSON},
 		{Name: "block_transaction_receipts", Type: field.TypeString, Nullable: true},
-		{Name: "transaction_receipts", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "transaction_receipt", Type: field.TypeString, Unique: true},
 	}
 	// TransactionReceiptsTable holds the schema information for the "transaction_receipts" table.
 	TransactionReceiptsTable = &schema.Table{
@@ -95,10 +95,10 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "transaction_receipts_transactions_receipts",
+				Symbol:     "transaction_receipts_transactions_receipt",
 				Columns:    []*schema.Column{TransactionReceiptsColumns[7]},
 				RefColumns: []*schema.Column{TransactionsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}

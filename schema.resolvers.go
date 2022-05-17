@@ -27,17 +27,17 @@ func (r *queryResolver) Blocks(ctx context.Context, after *ent.Cursor, first *in
 		)
 }
 
-func (r *queryResolver) Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *gql.TransactionWhereInput) (*ent.TransactionConnection, error) {
-	return r.client.Transaction.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithTransactionOrder(nil),
-		)
-}
-
 func (r *queryResolver) Events(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *gql.EventWhereInput) (*ent.EventConnection, error) {
 	return r.client.Event.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithEventOrder(nil),
+		)
+}
+
+func (r *queryResolver) Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *gql.TransactionWhereInput) (*ent.TransactionConnection, error) {
+	return r.client.Transaction.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithTransactionOrder(nil),
 		)
 }
 

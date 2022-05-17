@@ -63,11 +63,11 @@ type ComplexityRoot struct {
 	}
 
 	Event struct {
+		Data        func(childComplexity int) int
 		From        func(childComplexity int) int
 		ID          func(childComplexity int) int
-		Key         func(childComplexity int) int
+		Keys        func(childComplexity int) int
 		Transaction func(childComplexity int) int
-		Value       func(childComplexity int) int
 	}
 
 	EventConnection struct {
@@ -118,7 +118,7 @@ type ComplexityRoot struct {
 		Events             func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Nonce              func(childComplexity int) int
-		Receipts           func(childComplexity int) int
+		Receipt            func(childComplexity int) int
 		Signature          func(childComplexity int) int
 		TransactionHash    func(childComplexity int) int
 	}
@@ -270,6 +270,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BlockEdge.Node(childComplexity), true
 
+	case "Event.data":
+		if e.complexity.Event.Data == nil {
+			break
+		}
+
+		return e.complexity.Event.Data(childComplexity), true
+
 	case "Event.from":
 		if e.complexity.Event.From == nil {
 			break
@@ -284,12 +291,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Event.ID(childComplexity), true
 
-	case "Event.key":
-		if e.complexity.Event.Key == nil {
+	case "Event.keys":
+		if e.complexity.Event.Keys == nil {
 			break
 		}
 
-		return e.complexity.Event.Key(childComplexity), true
+		return e.complexity.Event.Keys(childComplexity), true
 
 	case "Event.transaction":
 		if e.complexity.Event.Transaction == nil {
@@ -297,13 +304,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Transaction(childComplexity), true
-
-	case "Event.value":
-		if e.complexity.Event.Value == nil {
-			break
-		}
-
-		return e.complexity.Event.Value(childComplexity), true
 
 	case "EventConnection.edges":
 		if e.complexity.EventConnection.Edges == nil {
@@ -517,12 +517,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Nonce(childComplexity), true
 
-	case "Transaction.receipts":
-		if e.complexity.Transaction.Receipts == nil {
+	case "Transaction.receipt":
+		if e.complexity.Transaction.Receipt == nil {
 			break
 		}
 
-		return e.complexity.Transaction.Receipts(childComplexity), true
+		return e.complexity.Transaction.Receipt(childComplexity), true
 
 	case "Transaction.signature":
 		if e.complexity.Transaction.Signature == nil {
@@ -869,8 +869,8 @@ scalar Cursor
 type Event implements Node {
   id: ID!
   from: String!
-  key: Felt!
-  value: Felt!
+  keys: [Felt]!
+  data: [Felt]!
   transaction: Transaction
 }
 """A connection to a list of items."""
@@ -910,24 +910,6 @@ input EventWhereInput {
   fromHasSuffix: String
   fromEqualFold: String
   fromContainsFold: String
-  """key field predicates"""
-  key: Felt
-  keyNEQ: Felt
-  keyIn: [Felt!]
-  keyNotIn: [Felt!]
-  keyGT: Felt
-  keyGTE: Felt
-  keyLT: Felt
-  keyLTE: Felt
-  """value field predicates"""
-  value: Felt
-  valueNEQ: Felt
-  valueIn: [Felt!]
-  valueNotIn: [Felt!]
-  valueGT: Felt
-  valueGTE: Felt
-  valueLT: Felt
-  valueLTE: Felt
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -985,7 +967,7 @@ type Transaction implements Node {
   signature: [String!]
   nonce: String!
   block: Block
-  receipts: TransactionReceipt
+  receipt: TransactionReceipt
   events: [Event!]
 }
 """A connection to a list of items."""
@@ -1017,7 +999,7 @@ type TransactionReceipt implements Node {
   statusData: String!
   l1OriginMessage: L2Message!
   block: Block
-  transaction: Transaction
+  transaction: Transaction!
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -1171,9 +1153,9 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-  """receipts edge predicates"""
-  hasReceipts: Boolean
-  hasReceiptsWith: [TransactionReceiptWhereInput!]
+  """receipt edge predicates"""
+  hasReceipt: Boolean
+  hasReceiptWith: [TransactionReceiptWhereInput!]
   """events edge predicates"""
   hasEvents: Boolean
   hasEventsWith: [EventWhereInput!]
@@ -1209,13 +1191,6 @@ type Query {
     orderBy: BlockOrder
     where: BlockWhereInput
   ): BlockConnection
-  transactions(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    where: TransactionWhereInput
-  ): TransactionConnection
   events(
     after: Cursor
     first: Int
@@ -1223,6 +1198,13 @@ type Query {
     last: Int
     where: EventWhereInput
   ): EventConnection
+  transactions(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: TransactionWhereInput
+  ): TransactionConnection
 }
 
 type Subscription {

@@ -840,8 +840,8 @@ type EventMutation struct {
 	typ                string
 	id                 *string
 	from               *string
-	key                **types.Felt
-	value              **types.Felt
+	keys               *[]*types.Felt
+	data               *[]*types.Felt
 	clearedFields      map[string]struct{}
 	transaction        *string
 	clearedtransaction bool
@@ -990,76 +990,76 @@ func (m *EventMutation) ResetFrom() {
 	m.from = nil
 }
 
-// SetKey sets the "key" field.
-func (m *EventMutation) SetKey(t *types.Felt) {
-	m.key = &t
+// SetKeys sets the "keys" field.
+func (m *EventMutation) SetKeys(t []*types.Felt) {
+	m.keys = &t
 }
 
-// Key returns the value of the "key" field in the mutation.
-func (m *EventMutation) Key() (r *types.Felt, exists bool) {
-	v := m.key
+// Keys returns the value of the "keys" field in the mutation.
+func (m *EventMutation) Keys() (r []*types.Felt, exists bool) {
+	v := m.keys
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldKey returns the old "key" field's value of the Event entity.
+// OldKeys returns the old "keys" field's value of the Event entity.
 // If the Event object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EventMutation) OldKey(ctx context.Context) (v *types.Felt, err error) {
+func (m *EventMutation) OldKeys(ctx context.Context) (v []*types.Felt, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKey is only allowed on UpdateOne operations")
+		return v, errors.New("OldKeys is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKey requires an ID field in the mutation")
+		return v, errors.New("OldKeys requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKey: %w", err)
+		return v, fmt.Errorf("querying old value for OldKeys: %w", err)
 	}
-	return oldValue.Key, nil
+	return oldValue.Keys, nil
 }
 
-// ResetKey resets all changes to the "key" field.
-func (m *EventMutation) ResetKey() {
-	m.key = nil
+// ResetKeys resets all changes to the "keys" field.
+func (m *EventMutation) ResetKeys() {
+	m.keys = nil
 }
 
-// SetValue sets the "value" field.
-func (m *EventMutation) SetValue(t *types.Felt) {
-	m.value = &t
+// SetData sets the "data" field.
+func (m *EventMutation) SetData(t []*types.Felt) {
+	m.data = &t
 }
 
-// Value returns the value of the "value" field in the mutation.
-func (m *EventMutation) Value() (r *types.Felt, exists bool) {
-	v := m.value
+// Data returns the value of the "data" field in the mutation.
+func (m *EventMutation) Data() (r []*types.Felt, exists bool) {
+	v := m.data
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldValue returns the old "value" field's value of the Event entity.
+// OldData returns the old "data" field's value of the Event entity.
 // If the Event object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EventMutation) OldValue(ctx context.Context) (v *types.Felt, err error) {
+func (m *EventMutation) OldData(ctx context.Context) (v []*types.Felt, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+		return v, errors.New("OldData is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldValue requires an ID field in the mutation")
+		return v, errors.New("OldData requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+		return v, fmt.Errorf("querying old value for OldData: %w", err)
 	}
-	return oldValue.Value, nil
+	return oldValue.Data, nil
 }
 
-// ResetValue resets all changes to the "value" field.
-func (m *EventMutation) ResetValue() {
-	m.value = nil
+// ResetData resets all changes to the "data" field.
+func (m *EventMutation) ResetData() {
+	m.data = nil
 }
 
 // SetTransactionID sets the "transaction" edge to the Transaction entity by id.
@@ -1124,11 +1124,11 @@ func (m *EventMutation) Fields() []string {
 	if m.from != nil {
 		fields = append(fields, event.FieldFrom)
 	}
-	if m.key != nil {
-		fields = append(fields, event.FieldKey)
+	if m.keys != nil {
+		fields = append(fields, event.FieldKeys)
 	}
-	if m.value != nil {
-		fields = append(fields, event.FieldValue)
+	if m.data != nil {
+		fields = append(fields, event.FieldData)
 	}
 	return fields
 }
@@ -1140,10 +1140,10 @@ func (m *EventMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case event.FieldFrom:
 		return m.From()
-	case event.FieldKey:
-		return m.Key()
-	case event.FieldValue:
-		return m.Value()
+	case event.FieldKeys:
+		return m.Keys()
+	case event.FieldData:
+		return m.Data()
 	}
 	return nil, false
 }
@@ -1155,10 +1155,10 @@ func (m *EventMutation) OldField(ctx context.Context, name string) (ent.Value, e
 	switch name {
 	case event.FieldFrom:
 		return m.OldFrom(ctx)
-	case event.FieldKey:
-		return m.OldKey(ctx)
-	case event.FieldValue:
-		return m.OldValue(ctx)
+	case event.FieldKeys:
+		return m.OldKeys(ctx)
+	case event.FieldData:
+		return m.OldData(ctx)
 	}
 	return nil, fmt.Errorf("unknown Event field %s", name)
 }
@@ -1175,19 +1175,19 @@ func (m *EventMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFrom(v)
 		return nil
-	case event.FieldKey:
-		v, ok := value.(*types.Felt)
+	case event.FieldKeys:
+		v, ok := value.([]*types.Felt)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetKey(v)
+		m.SetKeys(v)
 		return nil
-	case event.FieldValue:
-		v, ok := value.(*types.Felt)
+	case event.FieldData:
+		v, ok := value.([]*types.Felt)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetValue(v)
+		m.SetData(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Event field %s", name)
@@ -1196,16 +1196,13 @@ func (m *EventMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *EventMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *EventMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 
@@ -1244,11 +1241,11 @@ func (m *EventMutation) ResetField(name string) error {
 	case event.FieldFrom:
 		m.ResetFrom()
 		return nil
-	case event.FieldKey:
-		m.ResetKey()
+	case event.FieldKeys:
+		m.ResetKeys()
 		return nil
-	case event.FieldValue:
-		m.ResetValue()
+	case event.FieldData:
+		m.ResetData()
 		return nil
 	}
 	return fmt.Errorf("unknown Event field %s", name)
@@ -1345,8 +1342,8 @@ type TransactionMutation struct {
 	clearedFields        map[string]struct{}
 	block                *string
 	clearedblock         bool
-	receipts             *string
-	clearedreceipts      bool
+	receipt              *string
+	clearedreceipt       bool
 	events               map[string]struct{}
 	removedevents        map[string]struct{}
 	clearedevents        bool
@@ -1753,43 +1750,43 @@ func (m *TransactionMutation) ResetBlock() {
 	m.clearedblock = false
 }
 
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by id.
-func (m *TransactionMutation) SetReceiptsID(id string) {
-	m.receipts = &id
+// SetReceiptID sets the "receipt" edge to the TransactionReceipt entity by id.
+func (m *TransactionMutation) SetReceiptID(id string) {
+	m.receipt = &id
 }
 
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
-func (m *TransactionMutation) ClearReceipts() {
-	m.clearedreceipts = true
+// ClearReceipt clears the "receipt" edge to the TransactionReceipt entity.
+func (m *TransactionMutation) ClearReceipt() {
+	m.clearedreceipt = true
 }
 
-// ReceiptsCleared reports if the "receipts" edge to the TransactionReceipt entity was cleared.
-func (m *TransactionMutation) ReceiptsCleared() bool {
-	return m.clearedreceipts
+// ReceiptCleared reports if the "receipt" edge to the TransactionReceipt entity was cleared.
+func (m *TransactionMutation) ReceiptCleared() bool {
+	return m.clearedreceipt
 }
 
-// ReceiptsID returns the "receipts" edge ID in the mutation.
-func (m *TransactionMutation) ReceiptsID() (id string, exists bool) {
-	if m.receipts != nil {
-		return *m.receipts, true
+// ReceiptID returns the "receipt" edge ID in the mutation.
+func (m *TransactionMutation) ReceiptID() (id string, exists bool) {
+	if m.receipt != nil {
+		return *m.receipt, true
 	}
 	return
 }
 
-// ReceiptsIDs returns the "receipts" edge IDs in the mutation.
+// ReceiptIDs returns the "receipt" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ReceiptsID instead. It exists only for internal usage by the builders.
-func (m *TransactionMutation) ReceiptsIDs() (ids []string) {
-	if id := m.receipts; id != nil {
+// ReceiptID instead. It exists only for internal usage by the builders.
+func (m *TransactionMutation) ReceiptIDs() (ids []string) {
+	if id := m.receipt; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetReceipts resets all changes to the "receipts" edge.
-func (m *TransactionMutation) ResetReceipts() {
-	m.receipts = nil
-	m.clearedreceipts = false
+// ResetReceipt resets all changes to the "receipt" edge.
+func (m *TransactionMutation) ResetReceipt() {
+	m.receipt = nil
+	m.clearedreceipt = false
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by ids.
@@ -2074,8 +2071,8 @@ func (m *TransactionMutation) AddedEdges() []string {
 	if m.block != nil {
 		edges = append(edges, transaction.EdgeBlock)
 	}
-	if m.receipts != nil {
-		edges = append(edges, transaction.EdgeReceipts)
+	if m.receipt != nil {
+		edges = append(edges, transaction.EdgeReceipt)
 	}
 	if m.events != nil {
 		edges = append(edges, transaction.EdgeEvents)
@@ -2091,8 +2088,8 @@ func (m *TransactionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.block; id != nil {
 			return []ent.Value{*id}
 		}
-	case transaction.EdgeReceipts:
-		if id := m.receipts; id != nil {
+	case transaction.EdgeReceipt:
+		if id := m.receipt; id != nil {
 			return []ent.Value{*id}
 		}
 	case transaction.EdgeEvents:
@@ -2134,8 +2131,8 @@ func (m *TransactionMutation) ClearedEdges() []string {
 	if m.clearedblock {
 		edges = append(edges, transaction.EdgeBlock)
 	}
-	if m.clearedreceipts {
-		edges = append(edges, transaction.EdgeReceipts)
+	if m.clearedreceipt {
+		edges = append(edges, transaction.EdgeReceipt)
 	}
 	if m.clearedevents {
 		edges = append(edges, transaction.EdgeEvents)
@@ -2149,8 +2146,8 @@ func (m *TransactionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case transaction.EdgeBlock:
 		return m.clearedblock
-	case transaction.EdgeReceipts:
-		return m.clearedreceipts
+	case transaction.EdgeReceipt:
+		return m.clearedreceipt
 	case transaction.EdgeEvents:
 		return m.clearedevents
 	}
@@ -2164,8 +2161,8 @@ func (m *TransactionMutation) ClearEdge(name string) error {
 	case transaction.EdgeBlock:
 		m.ClearBlock()
 		return nil
-	case transaction.EdgeReceipts:
-		m.ClearReceipts()
+	case transaction.EdgeReceipt:
+		m.ClearReceipt()
 		return nil
 	}
 	return fmt.Errorf("unknown Transaction unique edge %s", name)
@@ -2178,8 +2175,8 @@ func (m *TransactionMutation) ResetEdge(name string) error {
 	case transaction.EdgeBlock:
 		m.ResetBlock()
 		return nil
-	case transaction.EdgeReceipts:
-		m.ResetReceipts()
+	case transaction.EdgeReceipt:
+		m.ResetReceipt()
 		return nil
 	case transaction.EdgeEvents:
 		m.ResetEvents()

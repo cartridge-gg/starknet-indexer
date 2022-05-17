@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -19,10 +20,10 @@ type Event struct {
 	ID string `json:"id,omitempty"`
 	// From holds the value of the "from" field.
 	From string `json:"from,omitempty"`
-	// Key holds the value of the "key" field.
-	Key *types.Felt `json:"key,omitempty"`
-	// Value holds the value of the "value" field.
-	Value *types.Felt `json:"value,omitempty"`
+	// Keys holds the value of the "keys" field.
+	Keys []*types.Felt `json:"keys,omitempty"`
+	// Data holds the value of the "data" field.
+	Data []*types.Felt `json:"data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EventQuery when eager-loading is set.
 	Edges              EventEdges `json:"edges"`
@@ -59,10 +60,10 @@ func (*Event) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case event.FieldKeys, event.FieldData:
+			values[i] = new([]byte)
 		case event.FieldID, event.FieldFrom:
 			values[i] = new(sql.NullString)
-		case event.FieldKey, event.FieldValue:
-			values[i] = new(types.Felt)
 		case event.ForeignKeys[0]: // transaction_events
 			values[i] = new(sql.NullString)
 		default:
@@ -92,17 +93,21 @@ func (e *Event) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				e.From = value.String
 			}
-		case event.FieldKey:
-			if value, ok := values[i].(*types.Felt); !ok {
-				return fmt.Errorf("unexpected type %T for field key", values[i])
-			} else if value != nil {
-				e.Key = value
+		case event.FieldKeys:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field keys", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &e.Keys); err != nil {
+					return fmt.Errorf("unmarshal field keys: %w", err)
+				}
 			}
-		case event.FieldValue:
-			if value, ok := values[i].(*types.Felt); !ok {
-				return fmt.Errorf("unexpected type %T for field value", values[i])
-			} else if value != nil {
-				e.Value = value
+		case event.FieldData:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field data", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &e.Data); err != nil {
+					return fmt.Errorf("unmarshal field data: %w", err)
+				}
 			}
 		case event.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -146,10 +151,10 @@ func (e *Event) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", e.ID))
 	builder.WriteString(", from=")
 	builder.WriteString(e.From)
-	builder.WriteString(", key=")
-	builder.WriteString(fmt.Sprintf("%v", e.Key))
-	builder.WriteString(", value=")
-	builder.WriteString(fmt.Sprintf("%v", e.Value))
+	builder.WriteString(", keys=")
+	builder.WriteString(fmt.Sprintf("%v", e.Keys))
+	builder.WriteString(", data=")
+	builder.WriteString(fmt.Sprintf("%v", e.Data))
 	builder.WriteByte(')')
 	return builder.String()
 }

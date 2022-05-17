@@ -42,7 +42,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "transaction" package.
 	TransactionInverseTable = "transactions"
 	// TransactionColumn is the table column denoting the transaction relation/edge.
-	TransactionColumn = "transaction_receipts"
+	TransactionColumn = "transaction_receipt"
 )
 
 // Columns holds all SQL columns for transactionreceipt fields.
@@ -59,7 +59,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"block_transaction_receipts",
-	"transaction_receipts",
+	"transaction_receipt",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

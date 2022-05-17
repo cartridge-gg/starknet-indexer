@@ -5,7 +5,6 @@ package event
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 )
 
@@ -96,20 +95,6 @@ func IDLTE(id string) predicate.Event {
 func From(v string) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldFrom), v))
-	})
-}
-
-// Key applies equality check predicate on the "key" field. It's identical to KeyEQ.
-func Key(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKey), v))
-	})
-}
-
-// Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
-func Value(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldValue), v))
 	})
 }
 
@@ -221,158 +206,6 @@ func FromEqualFold(v string) predicate.Event {
 func FromContainsFold(v string) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldFrom), v))
-	})
-}
-
-// KeyEQ applies the EQ predicate on the "key" field.
-func KeyEQ(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldKey), v))
-	})
-}
-
-// KeyNEQ applies the NEQ predicate on the "key" field.
-func KeyNEQ(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldKey), v))
-	})
-}
-
-// KeyIn applies the In predicate on the "key" field.
-func KeyIn(vs ...*types.Felt) predicate.Event {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Event(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldKey), v...))
-	})
-}
-
-// KeyNotIn applies the NotIn predicate on the "key" field.
-func KeyNotIn(vs ...*types.Felt) predicate.Event {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Event(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldKey), v...))
-	})
-}
-
-// KeyGT applies the GT predicate on the "key" field.
-func KeyGT(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldKey), v))
-	})
-}
-
-// KeyGTE applies the GTE predicate on the "key" field.
-func KeyGTE(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldKey), v))
-	})
-}
-
-// KeyLT applies the LT predicate on the "key" field.
-func KeyLT(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldKey), v))
-	})
-}
-
-// KeyLTE applies the LTE predicate on the "key" field.
-func KeyLTE(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldKey), v))
-	})
-}
-
-// ValueEQ applies the EQ predicate on the "value" field.
-func ValueEQ(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldValue), v))
-	})
-}
-
-// ValueNEQ applies the NEQ predicate on the "value" field.
-func ValueNEQ(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldValue), v))
-	})
-}
-
-// ValueIn applies the In predicate on the "value" field.
-func ValueIn(vs ...*types.Felt) predicate.Event {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Event(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldValue), v...))
-	})
-}
-
-// ValueNotIn applies the NotIn predicate on the "value" field.
-func ValueNotIn(vs ...*types.Felt) predicate.Event {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Event(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldValue), v...))
-	})
-}
-
-// ValueGT applies the GT predicate on the "value" field.
-func ValueGT(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldValue), v))
-	})
-}
-
-// ValueGTE applies the GTE predicate on the "value" field.
-func ValueGTE(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldValue), v))
-	})
-}
-
-// ValueLT applies the LT predicate on the "value" field.
-func ValueLT(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldValue), v))
-	})
-}
-
-// ValueLTE applies the LTE predicate on the "value" field.
-func ValueLTE(v *types.Felt) predicate.Event {
-	return predicate.Event(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldValue), v))
 	})
 }
 

@@ -36,10 +36,10 @@ func (t *Transaction) Block(ctx context.Context) (*Block, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Transaction) Receipts(ctx context.Context) (*TransactionReceipt, error) {
-	result, err := t.Edges.ReceiptsOrErr()
+func (t *Transaction) Receipt(ctx context.Context) (*TransactionReceipt, error) {
+	result, err := t.Edges.ReceiptOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryReceipts().Only(ctx)
+		result, err = t.QueryReceipt().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
@@ -65,5 +65,5 @@ func (tr *TransactionReceipt) Transaction(ctx context.Context) (*Transaction, er
 	if IsNotLoaded(err) {
 		result, err = tr.QueryTransaction().Only(ctx)
 	}
-	return result, MaskNotFound(err)
+	return result, err
 }

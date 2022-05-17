@@ -25,8 +25,8 @@ type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []string) ([]ent.Noder, error)
 	Blocks(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.BlockOrder, where *BlockWhereInput) (*ent.BlockConnection, error)
-	Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *TransactionWhereInput) (*ent.TransactionConnection, error)
 	Events(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *EventWhereInput) (*ent.EventConnection, error)
+	Transactions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *TransactionWhereInput) (*ent.TransactionConnection, error)
 }
 type SubscriptionResolver interface {
 	WatchEvent(ctx context.Context, address string, keys []*types.Felt) (<-chan *ent.Event, error)
@@ -612,66 +612,6 @@ func (ec *executionContext) fieldContext_Query_blocks(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_transactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_transactions(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Transactions(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*TransactionWhereInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.TransactionConnection)
-	fc.Result = res
-	return ec.marshalOTransactionConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "edges":
-				return ec.fieldContext_TransactionConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_TransactionConnection_pageInfo(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_TransactionConnection_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TransactionConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_transactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_events(ctx, field)
 	if err != nil {
@@ -726,6 +666,66 @@ func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_events_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_transactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_transactions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Transactions(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*TransactionWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.TransactionConnection)
+	fc.Result = res
+	return ec.marshalOTransactionConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_TransactionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TransactionConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TransactionConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TransactionConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_transactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -911,10 +911,10 @@ func (ec *executionContext) fieldContext_Subscription_watchEvent(ctx context.Con
 				return ec.fieldContext_Event_id(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
-			case "key":
-				return ec.fieldContext_Event_key(ctx, field)
-			case "value":
-				return ec.fieldContext_Event_value(ctx, field)
+			case "keys":
+				return ec.fieldContext_Event_keys(ctx, field)
+			case "data":
+				return ec.fieldContext_Event_data(ctx, field)
 			case "transaction":
 				return ec.fieldContext_Event_transaction(ctx, field)
 			}
@@ -1105,26 +1105,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "transactions":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_transactions(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "events":
 			field := field
 
@@ -1135,6 +1115,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_events(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "transactions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_transactions(ctx, field)
 				return res
 			}
 
@@ -1193,6 +1193,32 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) ([]*types.Felt, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*types.Felt, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, sel ast.SelectionSet, v []*types.Felt) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, sel, v[i])
+	}
+
+	return ret
+}
 
 func (ec *executionContext) unmarshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) (*types.Felt, error) {
 	var res = new(types.Felt)

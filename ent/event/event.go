@@ -9,10 +9,10 @@ const (
 	FieldID = "id"
 	// FieldFrom holds the string denoting the from field in the database.
 	FieldFrom = "from"
-	// FieldKey holds the string denoting the key field in the database.
-	FieldKey = "key"
-	// FieldValue holds the string denoting the value field in the database.
-	FieldValue = "value"
+	// FieldKeys holds the string denoting the keys field in the database.
+	FieldKeys = "keys"
+	// FieldData holds the string denoting the data field in the database.
+	FieldData = "data"
 	// EdgeTransaction holds the string denoting the transaction edge name in mutations.
 	EdgeTransaction = "transaction"
 	// Table holds the table name of the event in the database.
@@ -30,8 +30,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldFrom,
-	FieldKey,
-	FieldValue,
+	FieldKeys,
+	FieldData,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "events"
