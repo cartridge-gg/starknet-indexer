@@ -7,7 +7,7 @@ require (
 	entgo.io/ent v0.10.2-0.20220502113020-4ac82f5bb3f0
 	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
 	github.com/alecthomas/kong v0.2.11
-	github.com/dontpanicdao/caigo v0.2.1-0.20220517124357-974ebaf93d96
+	github.com/dontpanicdao/caigo v0.2.1-0.20220517132056-e34006317632
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/rs/zerolog v1.26.1

@@ -83,6 +83,7 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 		for i := e.latest; i < head; i++ {
 			worker <- fetcher{e.provider, i}
 		}
+		close(worker)
 	}()
 
 	for output := range outputs {

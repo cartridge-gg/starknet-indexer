@@ -113,7 +113,7 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 						SetTransactionID(t.TransactionHash).
 						SetFrom(e.FromAddress).
 						SetKeys(e.Keys).
-						SetData(e.Values).
+						SetData(e.Data).
 						Exec(ctx); err != nil {
 						return err
 					}
