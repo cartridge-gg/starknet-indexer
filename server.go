@@ -57,8 +57,6 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 		n = head.BlockNumber
 	}
 
-	n = 47377
-
 	e, err := NewEngine(ctx, provider, Config{
 		Head:     n,
 		Interval: 1 * time.Second,
