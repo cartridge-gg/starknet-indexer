@@ -63,14 +63,6 @@ func (trc *TransactionReceiptCreate) SetTransactionID(id string) *TransactionRec
 	return trc
 }
 
-// SetNillableTransactionID sets the "transaction" edge to the Transaction entity by ID if the given value is not nil.
-func (trc *TransactionReceiptCreate) SetNillableTransactionID(id *string) *TransactionReceiptCreate {
-	if id != nil {
-		trc = trc.SetTransactionID(*id)
-	}
-	return trc
-}
-
 // SetTransaction sets the "transaction" edge to the Transaction entity.
 func (trc *TransactionReceiptCreate) SetTransaction(t *Transaction) *TransactionReceiptCreate {
 	return trc.SetTransactionID(t.ID)
@@ -166,6 +158,9 @@ func (trc *TransactionReceiptCreate) check() error {
 	if _, ok := trc.mutation.L1OriginMessage(); !ok {
 		return &ValidationError{Name: "l1_origin_message", err: errors.New(`ent: missing required field "TransactionReceipt.l1_origin_message"`)}
 	}
+	if _, ok := trc.mutation.TransactionID(); !ok {
+		return &ValidationError{Name: "transaction", err: errors.New(`ent: missing required edge "TransactionReceipt.transaction"`)}
+	}
 	return nil
 }
 
@@ -259,7 +254,7 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.transaction_receipts = &nodes[0]
+		_node.transaction_receipt = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

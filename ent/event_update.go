@@ -35,15 +35,15 @@ func (eu *EventUpdate) SetFrom(s string) *EventUpdate {
 	return eu
 }
 
-// SetKey sets the "key" field.
-func (eu *EventUpdate) SetKey(t *types.Felt) *EventUpdate {
-	eu.mutation.SetKey(t)
+// SetKeys sets the "keys" field.
+func (eu *EventUpdate) SetKeys(t []*types.Felt) *EventUpdate {
+	eu.mutation.SetKeys(t)
 	return eu
 }
 
-// SetValue sets the "value" field.
-func (eu *EventUpdate) SetValue(t *types.Felt) *EventUpdate {
-	eu.mutation.SetValue(t)
+// SetData sets the "data" field.
+func (eu *EventUpdate) SetData(t []*types.Felt) *EventUpdate {
+	eu.mutation.SetData(t)
 	return eu
 }
 
@@ -156,18 +156,18 @@ func (eu *EventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: event.FieldFrom,
 		})
 	}
-	if value, ok := eu.mutation.Key(); ok {
+	if value, ok := eu.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldKey,
+			Column: event.FieldKeys,
 		})
 	}
-	if value, ok := eu.mutation.Value(); ok {
+	if value, ok := eu.mutation.Data(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldValue,
+			Column: event.FieldData,
 		})
 	}
 	if eu.mutation.TransactionCleared() {
@@ -230,15 +230,15 @@ func (euo *EventUpdateOne) SetFrom(s string) *EventUpdateOne {
 	return euo
 }
 
-// SetKey sets the "key" field.
-func (euo *EventUpdateOne) SetKey(t *types.Felt) *EventUpdateOne {
-	euo.mutation.SetKey(t)
+// SetKeys sets the "keys" field.
+func (euo *EventUpdateOne) SetKeys(t []*types.Felt) *EventUpdateOne {
+	euo.mutation.SetKeys(t)
 	return euo
 }
 
-// SetValue sets the "value" field.
-func (euo *EventUpdateOne) SetValue(t *types.Felt) *EventUpdateOne {
-	euo.mutation.SetValue(t)
+// SetData sets the "data" field.
+func (euo *EventUpdateOne) SetData(t []*types.Felt) *EventUpdateOne {
+	euo.mutation.SetData(t)
 	return euo
 }
 
@@ -375,18 +375,18 @@ func (euo *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error
 			Column: event.FieldFrom,
 		})
 	}
-	if value, ok := euo.mutation.Key(); ok {
+	if value, ok := euo.mutation.Keys(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldKey,
+			Column: event.FieldKeys,
 		})
 	}
-	if value, ok := euo.mutation.Value(); ok {
+	if value, ok := euo.mutation.Data(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldValue,
+			Column: event.FieldData,
 		})
 	}
 	if euo.mutation.TransactionCleared() {

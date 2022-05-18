@@ -6,7 +6,7 @@ To learn more about the entql binding generation see: https://entgo.io/docs/tuto
 
 ## Quick start
 
-Standup the service using a sqlite db
+Start indexing
 
 ```sh
 go run cmd/main.go

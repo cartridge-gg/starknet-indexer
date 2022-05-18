@@ -10,11 +10,9 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
-
-	"github.com/tarrencev/starknet-indexer/ent"
 )
 
-const parallelism = 5
+const concurrency = 5
 
 type WriteHandler func(ctx context.Context, block *types.Block) error
 
@@ -33,8 +31,7 @@ type Config struct {
 type Engine struct {
 	sync.Mutex
 	latest   uint64
-	ent      *ent.Client
-	provider jsonrpc.Client
+	provider jsonrpc.Provider
 	ticker   *time.Ticker
 }
 
@@ -71,9 +68,9 @@ func (e *Engine) Subscribe(ctx context.Context) {
 }
 
 func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
-	worker := make(chan concurrently.WorkFunction, parallelism)
+	worker := make(chan concurrently.WorkFunction, concurrency)
 
-	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: parallelism, OutChannelBuffer: parallelism})
+	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: concurrency, OutChannelBuffer: concurrency})
 
 	block, err := e.provider.BlockByNumber(ctx, nil, "FULL_TXN_AND_RECEIPTS")
 	if err != nil {
@@ -86,8 +83,8 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 	go func() {
 		for i := e.latest; i < head; i++ {
 			worker <- fetcher{e.provider, i}
-			e.latest += 1
 		}
+		close(worker)
 	}()
 
 	for output := range outputs {
@@ -105,6 +102,8 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 			log.Err(err).Msg("Writing block.")
 			return err
 		}
+
+		e.latest = uint64(v.block.BlockNumber)
 	}
 
 	return nil
