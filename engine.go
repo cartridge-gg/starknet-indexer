@@ -31,7 +31,7 @@ type Config struct {
 type Engine struct {
 	sync.Mutex
 	latest   uint64
-	provider jsonrpc.Provider
+	provider jsonrpc.Client
 	ticker   *time.Ticker
 }
 

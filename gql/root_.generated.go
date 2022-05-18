@@ -82,11 +82,11 @@ type ComplexityRoot struct {
 	}
 
 	Event struct {
+		Data        func(childComplexity int) int
 		From        func(childComplexity int) int
 		ID          func(childComplexity int) int
-		Key         func(childComplexity int) int
+		Keys        func(childComplexity int) int
 		Transaction func(childComplexity int) int
-		Value       func(childComplexity int) int
 	}
 
 	EventConnection struct {
@@ -132,13 +132,12 @@ type ComplexityRoot struct {
 	Transaction struct {
 		Block              func(childComplexity int) int
 		Calldata           func(childComplexity int) int
-		Contract           func(childComplexity int) int
 		ContractAddress    func(childComplexity int) int
 		EntryPointSelector func(childComplexity int) int
 		Events             func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Nonce              func(childComplexity int) int
-		Receipts           func(childComplexity int) int
+		Receipt            func(childComplexity int) int
 		Signature          func(childComplexity int) int
 		TransactionHash    func(childComplexity int) int
 	}
@@ -155,6 +154,7 @@ type ComplexityRoot struct {
 	}
 
 	TransactionReceipt struct {
+		Block           func(childComplexity int) int
 		ID              func(childComplexity int) int
 		L1OriginMessage func(childComplexity int) int
 		MessagesSent    func(childComplexity int) int
@@ -359,6 +359,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ContractEdge.Node(childComplexity), true
 
+	case "Event.data":
+		if e.complexity.Event.Data == nil {
+			break
+		}
+
+		return e.complexity.Event.Data(childComplexity), true
+
 	case "Event.from":
 		if e.complexity.Event.From == nil {
 			break
@@ -373,12 +380,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Event.ID(childComplexity), true
 
-	case "Event.key":
-		if e.complexity.Event.Key == nil {
+	case "Event.keys":
+		if e.complexity.Event.Keys == nil {
 			break
 		}
 
-		return e.complexity.Event.Key(childComplexity), true
+		return e.complexity.Event.Keys(childComplexity), true
 
 	case "Event.transaction":
 		if e.complexity.Event.Transaction == nil {
@@ -386,13 +393,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Transaction(childComplexity), true
-
-	case "Event.value":
-		if e.complexity.Event.Value == nil {
-			break
-		}
-
-		return e.complexity.Event.Value(childComplexity), true
 
 	case "EventConnection.edges":
 		if e.complexity.EventConnection.Edges == nil {
@@ -571,13 +571,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Calldata(childComplexity), true
 
-	case "Transaction.contract":
-		if e.complexity.Transaction.Contract == nil {
-			break
-		}
-
-		return e.complexity.Transaction.Contract(childComplexity), true
-
 	case "Transaction.contractAddress":
 		if e.complexity.Transaction.ContractAddress == nil {
 			break
@@ -613,12 +606,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Nonce(childComplexity), true
 
-	case "Transaction.receipts":
-		if e.complexity.Transaction.Receipts == nil {
+	case "Transaction.receipt":
+		if e.complexity.Transaction.Receipt == nil {
 			break
 		}
 
-		return e.complexity.Transaction.Receipts(childComplexity), true
+		return e.complexity.Transaction.Receipt(childComplexity), true
 
 	case "Transaction.signature":
 		if e.complexity.Transaction.Signature == nil {
@@ -668,6 +661,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TransactionEdge.Node(childComplexity), true
+
+	case "TransactionReceipt.block":
+		if e.complexity.TransactionReceipt.Block == nil {
+			break
+		}
+
+		return e.complexity.TransactionReceipt.Block(childComplexity), true
 
 	case "TransactionReceipt.id":
 		if e.complexity.TransactionReceipt.ID == nil {
@@ -760,16 +760,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputBlockOrder,
-		ec.unmarshalInputBlockWhereInput,
-		ec.unmarshalInputContractOrder,
-		ec.unmarshalInputContractWhereInput,
-		ec.unmarshalInputEventWhereInput,
-		ec.unmarshalInputTransactionOrder,
-		ec.unmarshalInputTransactionReceiptWhereInput,
-		ec.unmarshalInputTransactionWhereInput,
-	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -779,7 +769,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				return nil
 			}
 			first = false
-			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
@@ -794,7 +783,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		var buf bytes.Buffer
 		return func(ctx context.Context) *graphql.Response {
 			buf.Reset()
-			data := next(ctx)
+			data := next()
 
 			if data == nil {
 				return nil
@@ -1042,8 +1031,8 @@ scalar Cursor
 type Event implements Node {
   id: ID!
   from: String!
-  key: Felt!
-  value: Felt!
+  keys: [Felt]!
+  data: [Felt]!
   transaction: Transaction
 }
 """A connection to a list of items."""
@@ -1083,24 +1072,6 @@ input EventWhereInput {
   fromHasSuffix: String
   fromEqualFold: String
   fromContainsFold: String
-  """key field predicates"""
-  key: Felt
-  keyNEQ: Felt
-  keyIn: [Felt!]
-  keyNotIn: [Felt!]
-  keyGT: Felt
-  keyGTE: Felt
-  keyLT: Felt
-  keyLTE: Felt
-  """value field predicates"""
-  value: Felt
-  valueNEQ: Felt
-  valueIn: [Felt!]
-  valueNotIn: [Felt!]
-  valueGT: Felt
-  valueGTE: Felt
-  valueLT: Felt
-  valueLTE: Felt
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -1158,8 +1129,7 @@ type Transaction implements Node {
   signature: [String!]
   nonce: String!
   block: Block
-  contract: [Contract!]
-  receipts: TransactionReceipt
+  receipt: TransactionReceipt
   events: [Event!]
 }
 """A connection to a list of items."""
@@ -1190,7 +1160,8 @@ type TransactionReceipt implements Node {
   status: Status!
   statusData: String!
   l1OriginMessage: L2Message!
-  transaction: Transaction
+  block: Block
+  transaction: Transaction!
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -1257,6 +1228,9 @@ input TransactionReceiptWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """block edge predicates"""
+  hasBlock: Boolean
+  hasBlockWith: [BlockWhereInput!]
   """transaction edge predicates"""
   hasTransaction: Boolean
   hasTransactionWith: [TransactionWhereInput!]
@@ -1341,12 +1315,9 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-  """contract edge predicates"""
-  hasContract: Boolean
-  hasContractWith: [ContractWhereInput!]
-  """receipts edge predicates"""
-  hasReceipts: Boolean
-  hasReceiptsWith: [TransactionReceiptWhereInput!]
+  """receipt edge predicates"""
+  hasReceipt: Boolean
+  hasReceiptWith: [TransactionReceiptWhereInput!]
   """events edge predicates"""
   hasEvents: Boolean
   hasEventsWith: [EventWhereInput!]

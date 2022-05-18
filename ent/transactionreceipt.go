@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/dontpanicdao/caigo/types"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -37,19 +38,35 @@ type TransactionReceipt struct {
 
 // TransactionReceiptEdges holds the relations/edges for other nodes in the graph.
 type TransactionReceiptEdges struct {
+	// Block holds the value of the block edge.
+	Block *Block `json:"block,omitempty"`
 	// Transaction holds the value of the transaction edge.
 	Transaction *Transaction `json:"transaction,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]*int
+	totalCount [2]*int
+}
+
+// BlockOrErr returns the Block value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TransactionReceiptEdges) BlockOrErr() (*Block, error) {
+	if e.loadedTypes[0] {
+		if e.Block == nil {
+			// The edge block was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: block.Label}
+		}
+		return e.Block, nil
+	}
+	return nil, &NotLoadedError{edge: "block"}
 }
 
 // TransactionOrErr returns the Transaction value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TransactionReceiptEdges) TransactionOrErr() (*Transaction, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.Transaction == nil {
 			// The edge transaction was loaded in eager-loading,
 			// but was not found.
@@ -145,6 +162,11 @@ func (tr *TransactionReceipt) assignValues(columns []string, values []interface{
 		}
 	}
 	return nil
+}
+
+// QueryBlock queries the "block" edge of the TransactionReceipt entity.
+func (tr *TransactionReceipt) QueryBlock() *BlockQuery {
+	return (&TransactionReceiptClient{config: tr.config}).QueryBlock(tr)
 }
 
 // QueryTransaction queries the "transaction" edge of the TransactionReceipt entity.

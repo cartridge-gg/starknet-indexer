@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
@@ -120,38 +119,23 @@ func (tu *TransactionUpdate) SetBlock(b *Block) *TransactionUpdate {
 	return tu.SetBlockID(b.ID)
 }
 
-// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
-func (tu *TransactionUpdate) AddContractIDs(ids ...string) *TransactionUpdate {
-	tu.mutation.AddContractIDs(ids...)
+// SetReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID.
+func (tu *TransactionUpdate) SetReceiptID(id string) *TransactionUpdate {
+	tu.mutation.SetReceiptID(id)
 	return tu
 }
 
-// AddContract adds the "contract" edges to the Contract entity.
-func (tu *TransactionUpdate) AddContract(c ...*Contract) *TransactionUpdate {
-	ids := make([]string, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return tu.AddContractIDs(ids...)
-}
-
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tu *TransactionUpdate) SetReceiptsID(id string) *TransactionUpdate {
-	tu.mutation.SetReceiptsID(id)
-	return tu
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tu *TransactionUpdate) SetNillableReceiptsID(id *string) *TransactionUpdate {
+// SetNillableReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tu *TransactionUpdate) SetNillableReceiptID(id *string) *TransactionUpdate {
 	if id != nil {
-		tu = tu.SetReceiptsID(*id)
+		tu = tu.SetReceiptID(*id)
 	}
 	return tu
 }
 
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tu *TransactionUpdate) SetReceipts(t *TransactionReceipt) *TransactionUpdate {
-	return tu.SetReceiptsID(t.ID)
+// SetReceipt sets the "receipt" edge to the TransactionReceipt entity.
+func (tu *TransactionUpdate) SetReceipt(t *TransactionReceipt) *TransactionUpdate {
+	return tu.SetReceiptID(t.ID)
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
@@ -180,30 +164,9 @@ func (tu *TransactionUpdate) ClearBlock() *TransactionUpdate {
 	return tu
 }
 
-// ClearContract clears all "contract" edges to the Contract entity.
-func (tu *TransactionUpdate) ClearContract() *TransactionUpdate {
-	tu.mutation.ClearContract()
-	return tu
-}
-
-// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
-func (tu *TransactionUpdate) RemoveContractIDs(ids ...string) *TransactionUpdate {
-	tu.mutation.RemoveContractIDs(ids...)
-	return tu
-}
-
-// RemoveContract removes "contract" edges to Contract entities.
-func (tu *TransactionUpdate) RemoveContract(c ...*Contract) *TransactionUpdate {
-	ids := make([]string, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return tu.RemoveContractIDs(ids...)
-}
-
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
-func (tu *TransactionUpdate) ClearReceipts() *TransactionUpdate {
-	tu.mutation.ClearReceipts()
+// ClearReceipt clears the "receipt" edge to the TransactionReceipt entity.
+func (tu *TransactionUpdate) ClearReceipt() *TransactionUpdate {
+	tu.mutation.ClearReceipt()
 	return tu
 }
 
@@ -395,66 +358,12 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tu.mutation.ContractCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.RemovedContractIDs(); len(nodes) > 0 && !tu.mutation.ContractCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.ContractIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if tu.mutation.ReceiptsCleared() {
+	if tu.mutation.ReceiptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -465,12 +374,12 @@ func (tu *TransactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if nodes := tu.mutation.ReceiptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -646,38 +555,23 @@ func (tuo *TransactionUpdateOne) SetBlock(b *Block) *TransactionUpdateOne {
 	return tuo.SetBlockID(b.ID)
 }
 
-// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
-func (tuo *TransactionUpdateOne) AddContractIDs(ids ...string) *TransactionUpdateOne {
-	tuo.mutation.AddContractIDs(ids...)
+// SetReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID.
+func (tuo *TransactionUpdateOne) SetReceiptID(id string) *TransactionUpdateOne {
+	tuo.mutation.SetReceiptID(id)
 	return tuo
 }
 
-// AddContract adds the "contract" edges to the Contract entity.
-func (tuo *TransactionUpdateOne) AddContract(c ...*Contract) *TransactionUpdateOne {
-	ids := make([]string, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return tuo.AddContractIDs(ids...)
-}
-
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tuo *TransactionUpdateOne) SetReceiptsID(id string) *TransactionUpdateOne {
-	tuo.mutation.SetReceiptsID(id)
-	return tuo
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tuo *TransactionUpdateOne) SetNillableReceiptsID(id *string) *TransactionUpdateOne {
+// SetNillableReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tuo *TransactionUpdateOne) SetNillableReceiptID(id *string) *TransactionUpdateOne {
 	if id != nil {
-		tuo = tuo.SetReceiptsID(*id)
+		tuo = tuo.SetReceiptID(*id)
 	}
 	return tuo
 }
 
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) SetReceipts(t *TransactionReceipt) *TransactionUpdateOne {
-	return tuo.SetReceiptsID(t.ID)
+// SetReceipt sets the "receipt" edge to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) SetReceipt(t *TransactionReceipt) *TransactionUpdateOne {
+	return tuo.SetReceiptID(t.ID)
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
@@ -706,30 +600,9 @@ func (tuo *TransactionUpdateOne) ClearBlock() *TransactionUpdateOne {
 	return tuo
 }
 
-// ClearContract clears all "contract" edges to the Contract entity.
-func (tuo *TransactionUpdateOne) ClearContract() *TransactionUpdateOne {
-	tuo.mutation.ClearContract()
-	return tuo
-}
-
-// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
-func (tuo *TransactionUpdateOne) RemoveContractIDs(ids ...string) *TransactionUpdateOne {
-	tuo.mutation.RemoveContractIDs(ids...)
-	return tuo
-}
-
-// RemoveContract removes "contract" edges to Contract entities.
-func (tuo *TransactionUpdateOne) RemoveContract(c ...*Contract) *TransactionUpdateOne {
-	ids := make([]string, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return tuo.RemoveContractIDs(ids...)
-}
-
-// ClearReceipts clears the "receipts" edge to the TransactionReceipt entity.
-func (tuo *TransactionUpdateOne) ClearReceipts() *TransactionUpdateOne {
-	tuo.mutation.ClearReceipts()
+// ClearReceipt clears the "receipt" edge to the TransactionReceipt entity.
+func (tuo *TransactionUpdateOne) ClearReceipt() *TransactionUpdateOne {
+	tuo.mutation.ClearReceipt()
 	return tuo
 }
 
@@ -945,66 +818,12 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tuo.mutation.ContractCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.RemovedContractIDs(); len(nodes) > 0 && !tuo.mutation.ContractCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.ContractIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if tuo.mutation.ReceiptsCleared() {
+	if tuo.mutation.ReceiptCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1015,12 +834,12 @@ func (tuo *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transactio
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if nodes := tuo.mutation.ReceiptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

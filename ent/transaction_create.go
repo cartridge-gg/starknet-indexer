@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -100,38 +99,23 @@ func (tc *TransactionCreate) SetBlock(b *Block) *TransactionCreate {
 	return tc.SetBlockID(b.ID)
 }
 
-// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
-func (tc *TransactionCreate) AddContractIDs(ids ...string) *TransactionCreate {
-	tc.mutation.AddContractIDs(ids...)
+// SetReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID.
+func (tc *TransactionCreate) SetReceiptID(id string) *TransactionCreate {
+	tc.mutation.SetReceiptID(id)
 	return tc
 }
 
-// AddContract adds the "contract" edges to the Contract entity.
-func (tc *TransactionCreate) AddContract(c ...*Contract) *TransactionCreate {
-	ids := make([]string, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return tc.AddContractIDs(ids...)
-}
-
-// SetReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID.
-func (tc *TransactionCreate) SetReceiptsID(id string) *TransactionCreate {
-	tc.mutation.SetReceiptsID(id)
-	return tc
-}
-
-// SetNillableReceiptsID sets the "receipts" edge to the TransactionReceipt entity by ID if the given value is not nil.
-func (tc *TransactionCreate) SetNillableReceiptsID(id *string) *TransactionCreate {
+// SetNillableReceiptID sets the "receipt" edge to the TransactionReceipt entity by ID if the given value is not nil.
+func (tc *TransactionCreate) SetNillableReceiptID(id *string) *TransactionCreate {
 	if id != nil {
-		tc = tc.SetReceiptsID(*id)
+		tc = tc.SetReceiptID(*id)
 	}
 	return tc
 }
 
-// SetReceipts sets the "receipts" edge to the TransactionReceipt entity.
-func (tc *TransactionCreate) SetReceipts(t *TransactionReceipt) *TransactionCreate {
-	return tc.SetReceiptsID(t.ID)
+// SetReceipt sets the "receipt" edge to the TransactionReceipt entity.
+func (tc *TransactionCreate) SetReceipt(t *TransactionReceipt) *TransactionCreate {
+	return tc.SetReceiptID(t.ID)
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
@@ -332,31 +316,12 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 		_node.block_transactions = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tc.mutation.ContractIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   transaction.ContractTable,
-			Columns: transaction.ContractPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contract.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := tc.mutation.ReceiptsIDs(); len(nodes) > 0 {
+	if nodes := tc.mutation.ReceiptIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   transaction.ReceiptsTable,
-			Columns: []string{transaction.ReceiptsColumn},
+			Table:   transaction.ReceiptTable,
+			Columns: []string{transaction.ReceiptColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

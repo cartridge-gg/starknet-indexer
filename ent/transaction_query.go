@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
@@ -29,13 +28,12 @@ type TransactionQuery struct {
 	fields     []string
 	predicates []predicate.Transaction
 	// eager-loading edges.
-	withBlock    *BlockQuery
-	withContract *ContractQuery
-	withReceipts *TransactionReceiptQuery
-	withEvents   *EventQuery
-	withFKs      bool
-	modifiers    []func(*sql.Selector)
-	loadTotal    []func(context.Context, []*Transaction) error
+	withBlock   *BlockQuery
+	withReceipt *TransactionReceiptQuery
+	withEvents  *EventQuery
+	withFKs     bool
+	modifiers   []func(*sql.Selector)
+	loadTotal   []func(context.Context, []*Transaction) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -94,30 +92,8 @@ func (tq *TransactionQuery) QueryBlock() *BlockQuery {
 	return query
 }
 
-// QueryContract chains the current query on the "contract" edge.
-func (tq *TransactionQuery) QueryContract() *ContractQuery {
-	query := &ContractQuery{config: tq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := tq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := tq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
-			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, transaction.ContractTable, transaction.ContractPrimaryKey...),
-		)
-		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryReceipts chains the current query on the "receipts" edge.
-func (tq *TransactionQuery) QueryReceipts() *TransactionReceiptQuery {
+// QueryReceipt chains the current query on the "receipt" edge.
+func (tq *TransactionQuery) QueryReceipt() *TransactionReceiptQuery {
 	query := &TransactionReceiptQuery{config: tq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := tq.prepareQuery(ctx); err != nil {
@@ -130,7 +106,7 @@ func (tq *TransactionQuery) QueryReceipts() *TransactionReceiptQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, selector),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptTable, transaction.ReceiptColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -336,15 +312,14 @@ func (tq *TransactionQuery) Clone() *TransactionQuery {
 		return nil
 	}
 	return &TransactionQuery{
-		config:       tq.config,
-		limit:        tq.limit,
-		offset:       tq.offset,
-		order:        append([]OrderFunc{}, tq.order...),
-		predicates:   append([]predicate.Transaction{}, tq.predicates...),
-		withBlock:    tq.withBlock.Clone(),
-		withContract: tq.withContract.Clone(),
-		withReceipts: tq.withReceipts.Clone(),
-		withEvents:   tq.withEvents.Clone(),
+		config:      tq.config,
+		limit:       tq.limit,
+		offset:      tq.offset,
+		order:       append([]OrderFunc{}, tq.order...),
+		predicates:  append([]predicate.Transaction{}, tq.predicates...),
+		withBlock:   tq.withBlock.Clone(),
+		withReceipt: tq.withReceipt.Clone(),
+		withEvents:  tq.withEvents.Clone(),
 		// clone intermediate query.
 		sql:    tq.sql.Clone(),
 		path:   tq.path,
@@ -363,25 +338,14 @@ func (tq *TransactionQuery) WithBlock(opts ...func(*BlockQuery)) *TransactionQue
 	return tq
 }
 
-// WithContract tells the query-builder to eager-load the nodes that are connected to
-// the "contract" edge. The optional arguments are used to configure the query builder of the edge.
-func (tq *TransactionQuery) WithContract(opts ...func(*ContractQuery)) *TransactionQuery {
-	query := &ContractQuery{config: tq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	tq.withContract = query
-	return tq
-}
-
-// WithReceipts tells the query-builder to eager-load the nodes that are connected to
-// the "receipts" edge. The optional arguments are used to configure the query builder of the edge.
-func (tq *TransactionQuery) WithReceipts(opts ...func(*TransactionReceiptQuery)) *TransactionQuery {
+// WithReceipt tells the query-builder to eager-load the nodes that are connected to
+// the "receipt" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TransactionQuery) WithReceipt(opts ...func(*TransactionReceiptQuery)) *TransactionQuery {
 	query := &TransactionReceiptQuery{config: tq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	tq.withReceipts = query
+	tq.withReceipt = query
 	return tq
 }
 
@@ -467,10 +431,9 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*Transaction{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [3]bool{
 			tq.withBlock != nil,
-			tq.withContract != nil,
-			tq.withReceipts != nil,
+			tq.withReceipt != nil,
 			tq.withEvents != nil,
 		}
 	)
@@ -531,60 +494,7 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		}
 	}
 
-	if query := tq.withContract; query != nil {
-		edgeids := make([]driver.Value, len(nodes))
-		byid := make(map[string]*Transaction)
-		nids := make(map[string]map[*Transaction]struct{})
-		for i, node := range nodes {
-			edgeids[i] = node.ID
-			byid[node.ID] = node
-			node.Edges.Contract = []*Contract{}
-		}
-		query.Where(func(s *sql.Selector) {
-			joinT := sql.Table(transaction.ContractTable)
-			s.Join(joinT).On(s.C(contract.FieldID), joinT.C(transaction.ContractPrimaryKey[0]))
-			s.Where(sql.InValues(joinT.C(transaction.ContractPrimaryKey[1]), edgeids...))
-			columns := s.SelectedColumns()
-			s.Select(joinT.C(transaction.ContractPrimaryKey[1]))
-			s.AppendSelect(columns...)
-			s.SetDistinct(false)
-		})
-		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]interface{}, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]interface{}{new(sql.NullString)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []interface{}) error {
-				outValue := values[0].(*sql.NullString).String
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Transaction]struct{}{byid[outValue]: struct{}{}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byid[outValue]] = struct{}{}
-				return nil
-			}
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := nids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected "contract" node returned %v`, n.ID)
-			}
-			for kn := range nodes {
-				kn.Edges.Contract = append(kn.Edges.Contract, n)
-			}
-		}
-	}
-
-	if query := tq.withReceipts; query != nil {
+	if query := tq.withReceipt; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[string]*Transaction)
 		for i := range nodes {
@@ -593,22 +503,22 @@ func (tq *TransactionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		}
 		query.withFKs = true
 		query.Where(predicate.TransactionReceipt(func(s *sql.Selector) {
-			s.Where(sql.InValues(transaction.ReceiptsColumn, fks...))
+			s.Where(sql.InValues(transaction.ReceiptColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.transaction_receipts
+			fk := n.transaction_receipt
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "transaction_receipts" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "transaction_receipt" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipt" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Receipts = n
+			node.Edges.Receipt = n
 		}
 	}
 

@@ -24,11 +24,13 @@ const (
 	EdgeTransactions = "transactions"
 	// Table holds the table name of the contract in the database.
 	Table = "contracts"
-	// TransactionsTable is the table that holds the transactions relation/edge. The primary key declared below.
-	TransactionsTable = "contract_transactions"
+	// TransactionsTable is the table that holds the transactions relation/edge.
+	TransactionsTable = "transactions"
 	// TransactionsInverseTable is the table name for the Transaction entity.
 	// It exists in this package in order to avoid circular dependency with the "transaction" package.
 	TransactionsInverseTable = "transactions"
+	// TransactionsColumn is the table column denoting the transactions relation/edge.
+	TransactionsColumn = "contract_transactions"
 )
 
 // Columns holds all SQL columns for contract fields.
@@ -38,12 +40,6 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
-
-var (
-	// TransactionsPrimaryKey and TransactionsColumn2 are the table columns denoting the
-	// primary key for the transactions relation (M2M).
-	TransactionsPrimaryKey = []string{"contract_id", "transaction_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

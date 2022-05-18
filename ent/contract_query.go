@@ -79,7 +79,7 @@ func (cq *ContractQuery) QueryTransactions() *TransactionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, selector),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, contract.TransactionsTable, contract.TransactionsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, contract.TransactionsTable, contract.TransactionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -384,55 +384,31 @@ func (cq *ContractQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Con
 	}
 
 	if query := cq.withTransactions; query != nil {
-		edgeids := make([]driver.Value, len(nodes))
-		byid := make(map[string]*Contract)
-		nids := make(map[string]map[*Contract]struct{})
-		for i, node := range nodes {
-			edgeids[i] = node.ID
-			byid[node.ID] = node
-			node.Edges.Transactions = []*Transaction{}
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Contract)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Transactions = []*Transaction{}
 		}
-		query.Where(func(s *sql.Selector) {
-			joinT := sql.Table(contract.TransactionsTable)
-			s.Join(joinT).On(s.C(transaction.FieldID), joinT.C(contract.TransactionsPrimaryKey[1]))
-			s.Where(sql.InValues(joinT.C(contract.TransactionsPrimaryKey[0]), edgeids...))
-			columns := s.SelectedColumns()
-			s.Select(joinT.C(contract.TransactionsPrimaryKey[0]))
-			s.AppendSelect(columns...)
-			s.SetDistinct(false)
-		})
-		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]interface{}, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]interface{}{new(sql.NullString)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []interface{}) error {
-				outValue := values[0].(*sql.NullString).String
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Contract]struct{}{byid[outValue]: struct{}{}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byid[outValue]] = struct{}{}
-				return nil
-			}
-		})
+		query.withFKs = true
+		query.Where(predicate.Transaction(func(s *sql.Selector) {
+			s.Where(sql.InValues(contract.TransactionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nids[n.ID]
+			fk := n.contract_transactions
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "contract_transactions" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "transactions" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "contract_transactions" returned %v for node %v`, *fk, n.ID)
 			}
-			for kn := range nodes {
-				kn.Edges.Transactions = append(kn.Edges.Transactions, n)
-			}
+			node.Edges.Transactions = append(node.Edges.Transactions, n)
 		}
 	}
 

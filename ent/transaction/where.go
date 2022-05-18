@@ -633,53 +633,25 @@ func HasBlockWith(preds ...predicate.Block) predicate.Transaction {
 	})
 }
 
-// HasContract applies the HasEdge predicate on the "contract" edge.
-func HasContract() predicate.Transaction {
+// HasReceipt applies the HasEdge predicate on the "receipt" edge.
+func HasReceipt() predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ContractTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ContractTable, ContractPrimaryKey...),
+			sqlgraph.To(ReceiptTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptTable, ReceiptColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasContractWith applies the HasEdge predicate on the "contract" edge with a given conditions (other predicates).
-func HasContractWith(preds ...predicate.Contract) predicate.Transaction {
+// HasReceiptWith applies the HasEdge predicate on the "receipt" edge with a given conditions (other predicates).
+func HasReceiptWith(preds ...predicate.TransactionReceipt) predicate.Transaction {
 	return predicate.Transaction(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ContractInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ContractTable, ContractPrimaryKey...),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasReceipts applies the HasEdge predicate on the "receipts" edge.
-func HasReceipts() predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiptsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasReceiptsWith applies the HasEdge predicate on the "receipts" edge with a given conditions (other predicates).
-func HasReceiptsWith(preds ...predicate.TransactionReceipt) predicate.Transaction {
-	return predicate.Transaction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiptsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptsTable, ReceiptsColumn),
+			sqlgraph.To(ReceiptInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ReceiptTable, ReceiptColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

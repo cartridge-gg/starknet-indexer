@@ -209,8 +209,8 @@ scalar Cursor
 type Event implements Node {
   id: ID!
   from: String!
-  key: Felt!
-  value: Felt!
+  keys: [Felt]!
+  data: [Felt]!
   transaction: Transaction
 }
 """A connection to a list of items."""
@@ -250,24 +250,6 @@ input EventWhereInput {
   fromHasSuffix: String
   fromEqualFold: String
   fromContainsFold: String
-  """key field predicates"""
-  key: Felt
-  keyNEQ: Felt
-  keyIn: [Felt!]
-  keyNotIn: [Felt!]
-  keyGT: Felt
-  keyGTE: Felt
-  keyLT: Felt
-  keyLTE: Felt
-  """value field predicates"""
-  value: Felt
-  valueNEQ: Felt
-  valueIn: [Felt!]
-  valueNotIn: [Felt!]
-  valueGT: Felt
-  valueGTE: Felt
-  valueLT: Felt
-  valueLTE: Felt
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -325,8 +307,7 @@ type Transaction implements Node {
   signature: [String!]
   nonce: String!
   block: Block
-  contract: [Contract!]
-  receipts: TransactionReceipt
+  receipt: TransactionReceipt
   events: [Event!]
 }
 """A connection to a list of items."""
@@ -357,7 +338,8 @@ type TransactionReceipt implements Node {
   status: Status!
   statusData: String!
   l1OriginMessage: L2Message!
-  transaction: Transaction
+  block: Block
+  transaction: Transaction!
 }
 """A connection to a list of items."""
 type TransactionReceiptConnection {
@@ -424,6 +406,9 @@ input TransactionReceiptWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """block edge predicates"""
+  hasBlock: Boolean
+  hasBlockWith: [BlockWhereInput!]
   """transaction edge predicates"""
   hasTransaction: Boolean
   hasTransactionWith: [TransactionWhereInput!]
@@ -508,12 +493,9 @@ input TransactionWhereInput {
   """block edge predicates"""
   hasBlock: Boolean
   hasBlockWith: [BlockWhereInput!]
-  """contract edge predicates"""
-  hasContract: Boolean
-  hasContractWith: [ContractWhereInput!]
-  """receipts edge predicates"""
-  hasReceipts: Boolean
-  hasReceiptsWith: [TransactionReceiptWhereInput!]
+  """receipt edge predicates"""
+  hasReceipt: Boolean
+  hasReceiptWith: [TransactionReceiptWhereInput!]
   """events edge predicates"""
   hasEvents: Boolean
   hasEventsWith: [EventWhereInput!]

@@ -366,7 +366,7 @@ func (c *ContractClient) QueryTransactions(co *Contract) *TransactionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, id),
 			sqlgraph.To(transaction.Table, transaction.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, contract.TransactionsTable, contract.TransactionsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, contract.TransactionsTable, contract.TransactionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
@@ -586,31 +586,15 @@ func (c *TransactionClient) QueryBlock(t *Transaction) *BlockQuery {
 	return query
 }
 
-// QueryContract queries the contract edge of a Transaction.
-func (c *TransactionClient) QueryContract(t *Transaction) *ContractQuery {
-	query := &ContractQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(transaction.Table, transaction.FieldID, id),
-			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, transaction.ContractTable, transaction.ContractPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryReceipts queries the receipts edge of a Transaction.
-func (c *TransactionClient) QueryReceipts(t *Transaction) *TransactionReceiptQuery {
+// QueryReceipt queries the receipt edge of a Transaction.
+func (c *TransactionClient) QueryReceipt(t *Transaction) *TransactionReceiptQuery {
 	query := &TransactionReceiptQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(transaction.Table, transaction.FieldID, id),
 			sqlgraph.To(transactionreceipt.Table, transactionreceipt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptsTable, transaction.ReceiptsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, transaction.ReceiptTable, transaction.ReceiptColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -722,6 +706,22 @@ func (c *TransactionReceiptClient) GetX(ctx context.Context, id string) *Transac
 		panic(err)
 	}
 	return obj
+}
+
+// QueryBlock queries the block edge of a TransactionReceipt.
+func (c *TransactionReceiptClient) QueryBlock(tr *TransactionReceipt) *BlockQuery {
+	query := &BlockQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(transactionreceipt.Table, transactionreceipt.FieldID, id),
+			sqlgraph.To(block.Table, block.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, transactionreceipt.BlockTable, transactionreceipt.BlockColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryTransaction queries the transaction edge of a TransactionReceipt.

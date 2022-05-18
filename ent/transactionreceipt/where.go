@@ -375,6 +375,34 @@ func StatusDataContainsFold(v string) predicate.TransactionReceipt {
 	})
 }
 
+// HasBlock applies the HasEdge predicate on the "block" edge.
+func HasBlock() predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(BlockTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, BlockTable, BlockColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBlockWith applies the HasEdge predicate on the "block" edge with a given conditions (other predicates).
+func HasBlockWith(preds ...predicate.Block) predicate.TransactionReceipt {
+	return predicate.TransactionReceipt(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(BlockInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, BlockTable, BlockColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasTransaction applies the HasEdge predicate on the "transaction" edge.
 func HasTransaction() predicate.TransactionReceipt {
 	return predicate.TransactionReceipt(func(s *sql.Selector) {

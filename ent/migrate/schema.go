@@ -69,6 +69,7 @@ var (
 		{Name: "signature", Type: field.TypeJSON, Nullable: true},
 		{Name: "nonce", Type: field.TypeString, Nullable: true},
 		{Name: "block_transactions", Type: field.TypeString, Nullable: true},
+		{Name: "contract_transactions", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionsTable holds the schema information for the "transactions" table.
 	TransactionsTable = &schema.Table{
@@ -80,6 +81,12 @@ var (
 				Symbol:     "transactions_blocks_transactions",
 				Columns:    []*schema.Column{TransactionsColumns[7]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "transactions_contracts_transactions",
+				Columns:    []*schema.Column{TransactionsColumns[8]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -115,31 +122,6 @@ var (
 			},
 		},
 	}
-	// ContractTransactionsColumns holds the columns for the "contract_transactions" table.
-	ContractTransactionsColumns = []*schema.Column{
-		{Name: "contract_id", Type: field.TypeString},
-		{Name: "transaction_id", Type: field.TypeString},
-	}
-	// ContractTransactionsTable holds the schema information for the "contract_transactions" table.
-	ContractTransactionsTable = &schema.Table{
-		Name:       "contract_transactions",
-		Columns:    ContractTransactionsColumns,
-		PrimaryKey: []*schema.Column{ContractTransactionsColumns[0], ContractTransactionsColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "contract_transactions_contract_id",
-				Columns:    []*schema.Column{ContractTransactionsColumns[0]},
-				RefColumns: []*schema.Column{ContractsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "contract_transactions_transaction_id",
-				Columns:    []*schema.Column{ContractTransactionsColumns[1]},
-				RefColumns: []*schema.Column{TransactionsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlocksTable,
@@ -147,15 +129,13 @@ var (
 		EventsTable,
 		TransactionsTable,
 		TransactionReceiptsTable,
-		ContractTransactionsTable,
 	}
 )
 
 func init() {
 	EventsTable.ForeignKeys[0].RefTable = TransactionsTable
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
+	TransactionsTable.ForeignKeys[1].RefTable = ContractsTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable
-	ContractTransactionsTable.ForeignKeys[0].RefTable = ContractsTable
-	ContractTransactionsTable.ForeignKeys[1].RefTable = TransactionsTable
 }

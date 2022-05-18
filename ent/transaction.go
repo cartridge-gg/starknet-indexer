@@ -32,25 +32,24 @@ type Transaction struct {
 	Nonce string `json:"nonce,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TransactionQuery when eager-loading is set.
-	Edges              TransactionEdges `json:"edges"`
-	block_transactions *string
+	Edges                 TransactionEdges `json:"edges"`
+	block_transactions    *string
+	contract_transactions *string
 }
 
 // TransactionEdges holds the relations/edges for other nodes in the graph.
 type TransactionEdges struct {
 	// Block holds the value of the block edge.
 	Block *Block `json:"block,omitempty"`
-	// Contract holds the value of the contract edge.
-	Contract []*Contract `json:"contract,omitempty"`
-	// Receipts holds the value of the receipts edge.
-	Receipts *TransactionReceipt `json:"receipts,omitempty"`
+	// Receipt holds the value of the receipt edge.
+	Receipt *TransactionReceipt `json:"receipt,omitempty"`
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]*int
+	totalCount [3]*int
 }
 
 // BlockOrErr returns the Block value or an error if the edge
@@ -67,33 +66,24 @@ func (e TransactionEdges) BlockOrErr() (*Block, error) {
 	return nil, &NotLoadedError{edge: "block"}
 }
 
-// ContractOrErr returns the Contract value or an error if the edge
-// was not loaded in eager-loading.
-func (e TransactionEdges) ContractOrErr() ([]*Contract, error) {
-	if e.loadedTypes[1] {
-		return e.Contract, nil
-	}
-	return nil, &NotLoadedError{edge: "contract"}
-}
-
-// ReceiptsOrErr returns the Receipts value or an error if the edge
+// ReceiptOrErr returns the Receipt value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e TransactionEdges) ReceiptsOrErr() (*TransactionReceipt, error) {
-	if e.loadedTypes[2] {
-		if e.Receipts == nil {
-			// The edge receipts was loaded in eager-loading,
+func (e TransactionEdges) ReceiptOrErr() (*TransactionReceipt, error) {
+	if e.loadedTypes[1] {
+		if e.Receipt == nil {
+			// The edge receipt was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: transactionreceipt.Label}
 		}
-		return e.Receipts, nil
+		return e.Receipt, nil
 	}
-	return nil, &NotLoadedError{edge: "receipts"}
+	return nil, &NotLoadedError{edge: "receipt"}
 }
 
 // EventsOrErr returns the Events value or an error if the edge
 // was not loaded in eager-loading.
 func (e TransactionEdges) EventsOrErr() ([]*Event, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Events, nil
 	}
 	return nil, &NotLoadedError{edge: "events"}
@@ -109,6 +99,8 @@ func (*Transaction) scanValues(columns []string) ([]interface{}, error) {
 		case transaction.FieldID, transaction.FieldContractAddress, transaction.FieldEntryPointSelector, transaction.FieldTransactionHash, transaction.FieldNonce:
 			values[i] = new(sql.NullString)
 		case transaction.ForeignKeys[0]: // block_transactions
+			values[i] = new(sql.NullString)
+		case transaction.ForeignKeys[1]: // contract_transactions
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Transaction", columns[i])
@@ -178,6 +170,13 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 				t.block_transactions = new(string)
 				*t.block_transactions = value.String
 			}
+		case transaction.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field contract_transactions", values[i])
+			} else if value.Valid {
+				t.contract_transactions = new(string)
+				*t.contract_transactions = value.String
+			}
 		}
 	}
 	return nil
@@ -188,14 +187,9 @@ func (t *Transaction) QueryBlock() *BlockQuery {
 	return (&TransactionClient{config: t.config}).QueryBlock(t)
 }
 
-// QueryContract queries the "contract" edge of the Transaction entity.
-func (t *Transaction) QueryContract() *ContractQuery {
-	return (&TransactionClient{config: t.config}).QueryContract(t)
-}
-
-// QueryReceipts queries the "receipts" edge of the Transaction entity.
-func (t *Transaction) QueryReceipts() *TransactionReceiptQuery {
-	return (&TransactionClient{config: t.config}).QueryReceipts(t)
+// QueryReceipt queries the "receipt" edge of the Transaction entity.
+func (t *Transaction) QueryReceipt() *TransactionReceiptQuery {
+	return (&TransactionClient{config: t.config}).QueryReceipt(t)
 }
 
 // QueryEvents queries the "events" edge of the Transaction entity.

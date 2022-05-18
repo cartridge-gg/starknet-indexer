@@ -23,10 +23,19 @@ const (
 	FieldMessagesSent = "messages_sent"
 	// FieldL1OriginMessage holds the string denoting the l1_origin_message field in the database.
 	FieldL1OriginMessage = "l1_origin_message"
+	// EdgeBlock holds the string denoting the block edge name in mutations.
+	EdgeBlock = "block"
 	// EdgeTransaction holds the string denoting the transaction edge name in mutations.
 	EdgeTransaction = "transaction"
 	// Table holds the table name of the transactionreceipt in the database.
 	Table = "transaction_receipts"
+	// BlockTable is the table that holds the block relation/edge.
+	BlockTable = "transaction_receipts"
+	// BlockInverseTable is the table name for the Block entity.
+	// It exists in this package in order to avoid circular dependency with the "block" package.
+	BlockInverseTable = "blocks"
+	// BlockColumn is the table column denoting the block relation/edge.
+	BlockColumn = "block_transaction_receipts"
 	// TransactionTable is the table that holds the transaction relation/edge.
 	TransactionTable = "transaction_receipts"
 	// TransactionInverseTable is the table name for the Transaction entity.

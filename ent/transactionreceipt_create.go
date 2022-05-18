@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/dontpanicdao/caigo/types"
+	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -55,6 +56,25 @@ func (trc *TransactionReceiptCreate) SetL1OriginMessage(t *types.L2Message) *Tra
 func (trc *TransactionReceiptCreate) SetID(s string) *TransactionReceiptCreate {
 	trc.mutation.SetID(s)
 	return trc
+}
+
+// SetBlockID sets the "block" edge to the Block entity by ID.
+func (trc *TransactionReceiptCreate) SetBlockID(id string) *TransactionReceiptCreate {
+	trc.mutation.SetBlockID(id)
+	return trc
+}
+
+// SetNillableBlockID sets the "block" edge to the Block entity by ID if the given value is not nil.
+func (trc *TransactionReceiptCreate) SetNillableBlockID(id *string) *TransactionReceiptCreate {
+	if id != nil {
+		trc = trc.SetBlockID(*id)
+	}
+	return trc
+}
+
+// SetBlock sets the "block" edge to the Block entity.
+func (trc *TransactionReceiptCreate) SetBlock(b *Block) *TransactionReceiptCreate {
+	return trc.SetBlockID(b.ID)
 }
 
 // SetTransactionID sets the "transaction" edge to the Transaction entity by ID.
@@ -236,6 +256,26 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 			Column: transactionreceipt.FieldL1OriginMessage,
 		})
 		_node.L1OriginMessage = value
+	}
+	if nodes := trc.mutation.BlockIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   transactionreceipt.BlockTable,
+			Columns: []string{transactionreceipt.BlockColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: block.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.block_transaction_receipts = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := trc.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
