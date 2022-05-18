@@ -70,7 +70,7 @@ func (c *ERC721Contract) Match(ctx context.Context, provider jsonrpc.Client) boo
 	if res, err := provider.Call(ctx, jsonrpc.FunctionCall{
 		ContractAddress:    c.Address,
 		EntryPointSelector: "supportsInterface",
-		Calldata:           []string{"0x01ffc9a7"},
+		Calldata:           []string{"0x80ac58cd"},
 	}, "latest"); err != nil || res[0] != "0x01" {
 		return false
 	}
