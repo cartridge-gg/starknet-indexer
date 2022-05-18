@@ -184,20 +184,20 @@ func (e *Event) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "from",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(e.Key); err != nil {
+	if buf, err = json.Marshal(e.Keys); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
-		Type:  "*types.Felt",
-		Name:  "key",
+		Type:  "[]*types.Felt",
+		Name:  "keys",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(e.Value); err != nil {
+	if buf, err = json.Marshal(e.Data); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "*types.Felt",
-		Name:  "value",
+		Type:  "[]*types.Felt",
+		Name:  "data",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -291,9 +291,9 @@ func (t *Transaction) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[2] = &Edge{
 		Type: "TransactionReceipt",
-		Name: "receipts",
+		Name: "receipt",
 	}
-	err = t.QueryReceipts().
+	err = t.QueryReceipt().
 		Select(transactionreceipt.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {

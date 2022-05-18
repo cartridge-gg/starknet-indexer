@@ -911,10 +911,10 @@ func (ec *executionContext) fieldContext_Subscription_watchEvent(ctx context.Con
 				return ec.fieldContext_Event_id(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
-			case "key":
-				return ec.fieldContext_Event_key(ctx, field)
-			case "value":
-				return ec.fieldContext_Event_value(ctx, field)
+			case "keys":
+				return ec.fieldContext_Event_keys(ctx, field)
+			case "data":
+				return ec.fieldContext_Event_data(ctx, field)
 			case "transaction":
 				return ec.fieldContext_Event_transaction(ctx, field)
 			}
@@ -1179,6 +1179,32 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) ([]*types.Felt, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*types.Felt, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, sel ast.SelectionSet, v []*types.Felt) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx, sel, v[i])
+	}
+
+	return ret
+}
 
 func (ec *executionContext) unmarshalNFelt2ᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) (*types.Felt, error) {
 	var res = new(types.Felt)

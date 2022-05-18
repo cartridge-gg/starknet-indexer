@@ -27,15 +27,15 @@ func (ec *EventCreate) SetFrom(s string) *EventCreate {
 	return ec
 }
 
-// SetKey sets the "key" field.
-func (ec *EventCreate) SetKey(t *types.Felt) *EventCreate {
-	ec.mutation.SetKey(t)
+// SetKeys sets the "keys" field.
+func (ec *EventCreate) SetKeys(t []*types.Felt) *EventCreate {
+	ec.mutation.SetKeys(t)
 	return ec
 }
 
-// SetValue sets the "value" field.
-func (ec *EventCreate) SetValue(t *types.Felt) *EventCreate {
-	ec.mutation.SetValue(t)
+// SetData sets the "data" field.
+func (ec *EventCreate) SetData(t []*types.Felt) *EventCreate {
+	ec.mutation.SetData(t)
 	return ec
 }
 
@@ -137,11 +137,11 @@ func (ec *EventCreate) check() error {
 	if _, ok := ec.mutation.From(); !ok {
 		return &ValidationError{Name: "from", err: errors.New(`ent: missing required field "Event.from"`)}
 	}
-	if _, ok := ec.mutation.Key(); !ok {
-		return &ValidationError{Name: "key", err: errors.New(`ent: missing required field "Event.key"`)}
+	if _, ok := ec.mutation.Keys(); !ok {
+		return &ValidationError{Name: "keys", err: errors.New(`ent: missing required field "Event.keys"`)}
 	}
-	if _, ok := ec.mutation.Value(); !ok {
-		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "Event.value"`)}
+	if _, ok := ec.mutation.Data(); !ok {
+		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "Event.data"`)}
 	}
 	return nil
 }
@@ -187,21 +187,21 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 		})
 		_node.From = value
 	}
-	if value, ok := ec.mutation.Key(); ok {
+	if value, ok := ec.mutation.Keys(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldKey,
+			Column: event.FieldKeys,
 		})
-		_node.Key = value
+		_node.Keys = value
 	}
-	if value, ok := ec.mutation.Value(); ok {
+	if value, ok := ec.mutation.Data(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: event.FieldValue,
+			Column: event.FieldData,
 		})
-		_node.Value = value
+		_node.Data = value
 	}
 	if nodes := ec.mutation.TransactionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

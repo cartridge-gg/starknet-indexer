@@ -394,10 +394,10 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*TransactionReceipt)
 		for i := range nodes {
-			if nodes[i].transaction_receipts == nil {
+			if nodes[i].transaction_receipt == nil {
 				continue
 			}
-			fk := *nodes[i].transaction_receipts
+			fk := *nodes[i].transaction_receipt
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -411,7 +411,7 @@ func (trq *TransactionReceiptQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipts" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "transaction_receipt" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Transaction = n

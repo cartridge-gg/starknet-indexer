@@ -29,7 +29,7 @@ func main() {
 		log.Fatal().Err(err).Msg("opening ent client")
 	}
 
-	provider, err := jsonrpc.DialContext(context.Background(), "http://localhost:9545")
+	provider, err := jsonrpc.DialContext(context.Background(), "https://starknet-goerli.cartridge.gg/")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Dialing provider")
 	}
