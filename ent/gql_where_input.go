@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/predicate"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
@@ -413,6 +414,225 @@ func (i *BlockWhereInput) P() (predicate.Block, error) {
 		return predicates[0], nil
 	default:
 		return block.And(predicates...), nil
+	}
+}
+
+// ContractWhereInput represents a where input for filtering Contract queries.
+type ContractWhereInput struct {
+	Not *ContractWhereInput   `json:"not,omitempty"`
+	Or  []*ContractWhereInput `json:"or,omitempty"`
+	And []*ContractWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "type" field predicates.
+	Type      *contract.Type  `json:"type,omitempty"`
+	TypeNEQ   *contract.Type  `json:"typeNEQ,omitempty"`
+	TypeIn    []contract.Type `json:"typeIn,omitempty"`
+	TypeNotIn []contract.Type `json:"typeNotIn,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "updated_at" field predicates.
+	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+
+	// "transactions" edge predicates.
+	HasTransactions     *bool                    `json:"hasTransactions,omitempty"`
+	HasTransactionsWith []*TransactionWhereInput `json:"hasTransactionsWith,omitempty"`
+}
+
+// Filter applies the ContractWhereInput filter on the ContractQuery builder.
+func (i *ContractWhereInput) Filter(q *ContractQuery) (*ContractQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering contracts.
+// An error is returned if the input is empty or invalid.
+func (i *ContractWhereInput) P() (predicate.Contract, error) {
+	var predicates []predicate.Contract
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, contract.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Contract, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, contract.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Contract, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, contract.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, contract.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, contract.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, contract.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, contract.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, contract.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, contract.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, contract.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, contract.IDLTE(*i.IDLTE))
+	}
+	if i.Type != nil {
+		predicates = append(predicates, contract.TypeEQ(*i.Type))
+	}
+	if i.TypeNEQ != nil {
+		predicates = append(predicates, contract.TypeNEQ(*i.TypeNEQ))
+	}
+	if len(i.TypeIn) > 0 {
+		predicates = append(predicates, contract.TypeIn(i.TypeIn...))
+	}
+	if len(i.TypeNotIn) > 0 {
+		predicates = append(predicates, contract.TypeNotIn(i.TypeNotIn...))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, contract.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, contract.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, contract.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, contract.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, contract.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, contract.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, contract.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, contract.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.UpdatedAt != nil {
+		predicates = append(predicates, contract.UpdatedAtEQ(*i.UpdatedAt))
+	}
+	if i.UpdatedAtNEQ != nil {
+		predicates = append(predicates, contract.UpdatedAtNEQ(*i.UpdatedAtNEQ))
+	}
+	if len(i.UpdatedAtIn) > 0 {
+		predicates = append(predicates, contract.UpdatedAtIn(i.UpdatedAtIn...))
+	}
+	if len(i.UpdatedAtNotIn) > 0 {
+		predicates = append(predicates, contract.UpdatedAtNotIn(i.UpdatedAtNotIn...))
+	}
+	if i.UpdatedAtGT != nil {
+		predicates = append(predicates, contract.UpdatedAtGT(*i.UpdatedAtGT))
+	}
+	if i.UpdatedAtGTE != nil {
+		predicates = append(predicates, contract.UpdatedAtGTE(*i.UpdatedAtGTE))
+	}
+	if i.UpdatedAtLT != nil {
+		predicates = append(predicates, contract.UpdatedAtLT(*i.UpdatedAtLT))
+	}
+	if i.UpdatedAtLTE != nil {
+		predicates = append(predicates, contract.UpdatedAtLTE(*i.UpdatedAtLTE))
+	}
+
+	if i.HasTransactions != nil {
+		p := contract.HasTransactions()
+		if !*i.HasTransactions {
+			p = contract.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTransactionsWith) > 0 {
+		with := make([]predicate.Transaction, 0, len(i.HasTransactionsWith))
+		for _, w := range i.HasTransactionsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, contract.HasTransactionsWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate ContractWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return contract.And(predicates...), nil
 	}
 }
 

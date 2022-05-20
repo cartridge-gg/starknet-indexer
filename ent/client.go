@@ -10,6 +10,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/ent/migrate"
 
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -26,6 +27,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Block is the client for interacting with the Block builders.
 	Block *BlockClient
+	// Contract is the client for interacting with the Contract builders.
+	Contract *ContractClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
 	// Transaction is the client for interacting with the Transaction builders.
@@ -46,6 +49,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Block = NewBlockClient(c.config)
+	c.Contract = NewContractClient(c.config)
 	c.Event = NewEventClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
 	c.TransactionReceipt = NewTransactionReceiptClient(c.config)
@@ -83,6 +87,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                ctx,
 		config:             cfg,
 		Block:              NewBlockClient(cfg),
+		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
@@ -106,6 +111,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                ctx,
 		config:             cfg,
 		Block:              NewBlockClient(cfg),
+		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
@@ -139,6 +145,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Block.Use(hooks...)
+	c.Contract.Use(hooks...)
 	c.Event.Use(hooks...)
 	c.Transaction.Use(hooks...)
 	c.TransactionReceipt.Use(hooks...)
@@ -264,6 +271,112 @@ func (c *BlockClient) QueryTransactionReceipts(b *Block) *TransactionReceiptQuer
 // Hooks returns the client hooks.
 func (c *BlockClient) Hooks() []Hook {
 	return c.hooks.Block
+}
+
+// ContractClient is a client for the Contract schema.
+type ContractClient struct {
+	config
+}
+
+// NewContractClient returns a client for the Contract from the given config.
+func NewContractClient(c config) *ContractClient {
+	return &ContractClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `contract.Hooks(f(g(h())))`.
+func (c *ContractClient) Use(hooks ...Hook) {
+	c.hooks.Contract = append(c.hooks.Contract, hooks...)
+}
+
+// Create returns a create builder for Contract.
+func (c *ContractClient) Create() *ContractCreate {
+	mutation := newContractMutation(c.config, OpCreate)
+	return &ContractCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Contract entities.
+func (c *ContractClient) CreateBulk(builders ...*ContractCreate) *ContractCreateBulk {
+	return &ContractCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Contract.
+func (c *ContractClient) Update() *ContractUpdate {
+	mutation := newContractMutation(c.config, OpUpdate)
+	return &ContractUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ContractClient) UpdateOne(co *Contract) *ContractUpdateOne {
+	mutation := newContractMutation(c.config, OpUpdateOne, withContract(co))
+	return &ContractUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ContractClient) UpdateOneID(id string) *ContractUpdateOne {
+	mutation := newContractMutation(c.config, OpUpdateOne, withContractID(id))
+	return &ContractUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Contract.
+func (c *ContractClient) Delete() *ContractDelete {
+	mutation := newContractMutation(c.config, OpDelete)
+	return &ContractDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ContractClient) DeleteOne(co *Contract) *ContractDeleteOne {
+	return c.DeleteOneID(co.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ContractClient) DeleteOneID(id string) *ContractDeleteOne {
+	builder := c.Delete().Where(contract.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ContractDeleteOne{builder}
+}
+
+// Query returns a query builder for Contract.
+func (c *ContractClient) Query() *ContractQuery {
+	return &ContractQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Contract entity by its id.
+func (c *ContractClient) Get(ctx context.Context, id string) (*Contract, error) {
+	return c.Query().Where(contract.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ContractClient) GetX(ctx context.Context, id string) *Contract {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTransactions queries the transactions edge of a Contract.
+func (c *ContractClient) QueryTransactions(co *Contract) *TransactionQuery {
+	query := &TransactionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(contract.Table, contract.FieldID, id),
+			sqlgraph.To(transaction.Table, transaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, contract.TransactionsTable, contract.TransactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ContractClient) Hooks() []Hook {
+	return c.hooks.Contract
 }
 
 // EventClient is a client for the Event schema.

@@ -32,8 +32,9 @@ type Transaction struct {
 	Nonce string `json:"nonce,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TransactionQuery when eager-loading is set.
-	Edges              TransactionEdges `json:"edges"`
-	block_transactions *string
+	Edges                 TransactionEdges `json:"edges"`
+	block_transactions    *string
+	contract_transactions *string
 }
 
 // TransactionEdges holds the relations/edges for other nodes in the graph.
@@ -98,6 +99,8 @@ func (*Transaction) scanValues(columns []string) ([]interface{}, error) {
 		case transaction.FieldID, transaction.FieldContractAddress, transaction.FieldEntryPointSelector, transaction.FieldTransactionHash, transaction.FieldNonce:
 			values[i] = new(sql.NullString)
 		case transaction.ForeignKeys[0]: // block_transactions
+			values[i] = new(sql.NullString)
+		case transaction.ForeignKeys[1]: // contract_transactions
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Transaction", columns[i])
@@ -166,6 +169,13 @@ func (t *Transaction) assignValues(columns []string, values []interface{}) error
 			} else if value.Valid {
 				t.block_transactions = new(string)
 				*t.block_transactions = value.String
+			}
+		case transaction.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field contract_transactions", values[i])
+			} else if value.Valid {
+				t.contract_transactions = new(string)
+				*t.contract_transactions = value.String
 			}
 		}
 	}

@@ -20,6 +20,14 @@ func (b *Block) TransactionReceipts(ctx context.Context) ([]*TransactionReceipt,
 	return result, err
 }
 
+func (c *Contract) Transactions(ctx context.Context) ([]*Transaction, error) {
+	result, err := c.Edges.TransactionsOrErr()
+	if IsNotLoaded(err) {
+		result, err = c.QueryTransactions().All(ctx)
+	}
+	return result, err
+}
+
 func (e *Event) Transaction(ctx context.Context) (*Transaction, error) {
 	result, err := e.Edges.TransactionOrErr()
 	if IsNotLoaded(err) {

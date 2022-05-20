@@ -100,6 +100,87 @@ func newBlockPaginateArgs(rv map[string]interface{}) *blockPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (c *ContractQuery) CollectFields(ctx context.Context, satisfies ...string) (*ContractQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return c, nil
+	}
+	if err := c.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (c *ContractQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "transactions":
+			var (
+				path  = append(path, field.Name)
+				query = &TransactionQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.withTransactions = query
+		}
+	}
+	return nil
+}
+
+type contractPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ContractPaginateOption
+}
+
+func newContractPaginateArgs(rv map[string]interface{}) *contractPaginateArgs {
+	args := &contractPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &ContractOrder{Field: &ContractOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithContractOrder(order))
+			}
+		case *ContractOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithContractOrder(v))
+			}
+		}
+	}
+	if v := rv[whereField]; v != nil && v != (*ContractWhereInput)(nil) {
+		args.opts = append(args.opts, WithContractFilter(v.(*ContractWhereInput).Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (e *EventQuery) CollectFields(ctx context.Context, satisfies ...string) (*EventQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
@@ -116,6 +117,51 @@ func (b *Block) Node(ctx context.Context) (node *Node, err error) {
 	err = b.QueryTransactionReceipts().
 		Select(transactionreceipt.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     c.ID,
+		Type:   "Contract",
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(c.Type); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "contract.Type",
+		Name:  "type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Transaction",
+		Name: "transactions",
+	}
+	err = c.QueryTransactions().
+		Select(transaction.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -398,6 +444,18 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
+	case contract.Table:
+		query := c.Contract.Query().
+			Where(contract.ID(id))
+		query, err := query.CollectFields(ctx, "Contract")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case event.Table:
 		query := c.Event.Query().
 			Where(event.ID(id))
@@ -511,6 +569,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		query := c.Block.Query().
 			Where(block.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Block")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case contract.Table:
+		query := c.Contract.Query().
+			Where(contract.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Contract")
 		if err != nil {
 			return nil, err
 		}

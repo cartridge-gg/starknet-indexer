@@ -24,6 +24,19 @@ var (
 		Columns:    BlocksColumns,
 		PrimaryKey: []*schema.Column{BlocksColumns[0]},
 	}
+	// ContractsColumns holds the columns for the "contracts" table.
+	ContractsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ERC20", "ERC721"}, Default: "UNKNOWN"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ContractsTable holds the schema information for the "contracts" table.
+	ContractsTable = &schema.Table{
+		Name:       "contracts",
+		Columns:    ContractsColumns,
+		PrimaryKey: []*schema.Column{ContractsColumns[0]},
+	}
 	// EventsColumns holds the columns for the "events" table.
 	EventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -56,6 +69,7 @@ var (
 		{Name: "signature", Type: field.TypeJSON, Nullable: true},
 		{Name: "nonce", Type: field.TypeString, Nullable: true},
 		{Name: "block_transactions", Type: field.TypeString, Nullable: true},
+		{Name: "contract_transactions", Type: field.TypeString, Nullable: true},
 	}
 	// TransactionsTable holds the schema information for the "transactions" table.
 	TransactionsTable = &schema.Table{
@@ -67,6 +81,12 @@ var (
 				Symbol:     "transactions_blocks_transactions",
 				Columns:    []*schema.Column{TransactionsColumns[7]},
 				RefColumns: []*schema.Column{BlocksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "transactions_contracts_transactions",
+				Columns:    []*schema.Column{TransactionsColumns[8]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -105,6 +125,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlocksTable,
+		ContractsTable,
 		EventsTable,
 		TransactionsTable,
 		TransactionReceiptsTable,
@@ -114,6 +135,7 @@ var (
 func init() {
 	EventsTable.ForeignKeys[0].RefTable = TransactionsTable
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
+	TransactionsTable.ForeignKeys[1].RefTable = ContractsTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionReceiptsTable.ForeignKeys[1].RefTable = TransactionsTable
 }

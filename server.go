@@ -11,14 +11,17 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
+	"github.com/tarrencev/starknet-indexer/processor"
 )
 
-func New(addr string, drv *sql.Driver, provider types.Provider, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, provider jsonrpc.Client, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,
@@ -116,6 +119,28 @@ func New(addr string, drv *sql.Driver, provider types.Provider, config Config, o
 						SetData(e.Data).
 						Exec(ctx); err != nil {
 						return err
+					}
+				}
+
+				if t.Type == "deploy" && t.Status != "REJECTED" {
+					contractCode, err := provider.CodeAt(ctx, t.ContractAddress)
+					if err == nil {
+						matchedContract := processor.Match(ctx, t.ContractAddress, contractCode, provider)
+						if matchedContract != nil {
+							if err := tx.Contract.Create().
+								SetID(t.ContractAddress).
+								SetType(contract.Type(matchedContract.Type())).
+								Exec(ctx); err != nil {
+								return err
+							}
+						} else {
+							if err := tx.Contract.Create().
+								SetID(t.ContractAddress).
+								SetType(contract.TypeUNKNOWN).
+								Exec(ctx); err != nil {
+								return err
+							}
+						}
 					}
 				}
 			}
