@@ -122,11 +122,14 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 					}
 				}
 
-				if t.Type == "deploy" && t.Status != "REJECTED" {
+				// txn "type" field empty. check if call data & entry point selector are empty for now
+				// to know if txn is of deploy type
+				if len(t.Calldata) == 0 && t.EntryPointSelector == "" && (t.Status == types.ACCEPTED_ON_L1.String() || t.Status == types.ACCEPTED_ON_L2.String()) {
 					contractCode, err := provider.CodeAt(ctx, t.ContractAddress)
 					if err == nil {
 						matchedContract := processor.Match(ctx, t.ContractAddress, contractCode, provider)
 						if matchedContract != nil {
+							log.Info().Msgf("Matched contract at %s with %s", t.ContractAddress, matchedContract.Type())
 							if err := tx.Contract.Create().
 								SetID(t.ContractAddress).
 								SetType(contract.Type(matchedContract.Type())).
