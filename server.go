@@ -21,7 +21,7 @@ import (
 	"github.com/tarrencev/starknet-indexer/processor"
 )
 
-func New(addr string, drv *sql.Driver, provider jsonrpc.Client, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,

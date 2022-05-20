@@ -31,11 +31,11 @@ type Config struct {
 type Engine struct {
 	sync.Mutex
 	latest   uint64
-	provider jsonrpc.Client
+	provider *jsonrpc.Client
 	ticker   *time.Ticker
 }
 
-func NewEngine(ctx context.Context, provider jsonrpc.Client, config Config) (*Engine, error) {
+func NewEngine(ctx context.Context, provider *jsonrpc.Client, config Config) (*Engine, error) {
 	e := &Engine{
 		provider: provider,
 		ticker:   time.NewTicker(config.Interval),
@@ -111,7 +111,7 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 
 // Create a type based on your input to the work function
 type fetcher struct {
-	provider    jsonrpc.Client
+	provider    *jsonrpc.Client
 	blockNumber uint64
 }
 

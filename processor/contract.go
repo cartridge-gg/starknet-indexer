@@ -9,7 +9,7 @@ import (
 
 type MatchableContract interface {
 	Type() string
-	Match(ctx context.Context, provider jsonrpc.Client) bool
+	Match(ctx context.Context, provider *jsonrpc.Client) bool
 }
 
 // ERC20
@@ -23,7 +23,7 @@ func (c *ERC20Contract) Type() string {
 	return "ERC20"
 }
 
-func (c *ERC20Contract) Match(ctx context.Context, provider jsonrpc.Client) bool {
+func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) bool {
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc20/interfaces/IERC20.cairo
 	// stark_call function / set of functions
 
@@ -64,7 +64,7 @@ func (c *ERC721Contract) Type() string {
 	return "ERC721"
 }
 
-func (c *ERC721Contract) Match(ctx context.Context, provider jsonrpc.Client) bool {
+func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bool {
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc721/ERC721_Mintable_Burnable.cairo
 	// supportsInterface
 	if res, err := provider.Call(ctx, jsonrpc.FunctionCall{
@@ -78,7 +78,7 @@ func (c *ERC721Contract) Match(ctx context.Context, provider jsonrpc.Client) boo
 	return true
 }
 
-func Match(ctx context.Context, address string, code *types.Code, provider jsonrpc.Client) MatchableContract {
+func Match(ctx context.Context, address string, code *types.Code, provider *jsonrpc.Client) MatchableContract {
 	var contract MatchableContract = &ERC20Contract{Address: address, Code: code}
 	if contract.Match(ctx, provider) {
 		return contract
