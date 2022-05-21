@@ -14,7 +14,7 @@ import (
 
 const concurrency = 5
 
-type WriteHandler func(ctx context.Context, block *types.Block) error
+type BlockHandler func(ctx context.Context, block *types.Block) (func() error, error)
 
 type Contract struct {
 	Address    string
@@ -45,14 +45,14 @@ func NewEngine(ctx context.Context, provider *jsonrpc.Client, config Config) (*E
 	return e, nil
 }
 
-func (e *Engine) Start(ctx context.Context, writeHandler WriteHandler) {
+func (e *Engine) Start(ctx context.Context, h BlockHandler) {
 	defer e.ticker.Stop()
 
 	for {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			if err := e.process(ctx, writeHandler); err != nil {
+			if err := e.process(ctx, h); err != nil {
 				log.Err(err).Msg("Processing block.")
 			}
 			e.Unlock()
@@ -67,7 +67,7 @@ func (e *Engine) Subscribe(ctx context.Context) {
 
 }
 
-func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
+func (e *Engine) process(ctx context.Context, h BlockHandler) error {
 	worker := make(chan concurrently.WorkFunction, concurrency)
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: concurrency, OutChannelBuffer: concurrency})
@@ -82,7 +82,7 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 
 	go func() {
 		for i := e.latest; i < head; i++ {
-			worker <- fetcher{e.provider, i}
+			worker <- fetcher{e.provider, i, h}
 		}
 		close(worker)
 	}()
@@ -98,7 +98,7 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 			return v.err
 		}
 
-		if err := writeHandler(ctx, v.block); err != nil {
+		if err := v.callback(); err != nil {
 			log.Err(err).Msg("Writing block.")
 			return err
 		}
@@ -113,16 +113,23 @@ func (e *Engine) process(ctx context.Context, writeHandler WriteHandler) error {
 type fetcher struct {
 	provider    *jsonrpc.Client
 	blockNumber uint64
+	handler     BlockHandler
 }
 
 type response struct {
-	block *types.Block
-	err   error
+	block    *types.Block
+	callback func() error
+	err      error
 }
 
 // The work that needs to be performed
 // The input type should implement the WorkFunction interface
 func (f fetcher) Run(ctx context.Context) interface{} {
 	block, err := f.provider.BlockByNumber(ctx, big.NewInt(int64(f.blockNumber)), "FULL_TXN_AND_RECEIPTS")
-	return response{block, err}
+	if err != nil {
+		return response{block, nil, err}
+	}
+
+	h, err := f.handler(ctx, block)
+	return response{block, h, err}
 }
