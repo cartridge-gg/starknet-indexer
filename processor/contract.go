@@ -4,19 +4,26 @@ import (
 	"context"
 
 	"github.com/dontpanicdao/caigo/jsonrpc"
-	"github.com/dontpanicdao/caigo/types"
 )
 
 type MatchableContract interface {
+	Address() string
 	Type() string
 	Match(ctx context.Context, provider *jsonrpc.Client) bool
 }
 
 // ERC20
 type ERC20Contract struct {
-	Address string
-	Code    *types.Code
 	MatchableContract
+	address string
+}
+
+func NewERC20Contract(address string) *ERC20Contract {
+	return &ERC20Contract{address: address}
+}
+
+func (c *ERC20Contract) Address() string {
+	return c.address
 }
 
 func (c *ERC20Contract) Type() string {
@@ -28,22 +35,22 @@ func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) boo
 	// stark_call function / set of functions
 
 	// check symbol, decimals and balanceOf functions
-	if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
-		ContractAddress:    c.Address,
-		EntryPointSelector: "symbol",
-	}, "latest"); err != nil {
-		return false
-	}
+	// if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	// 	ContractAddress:    c.address,
+	// 	EntryPointSelector: "symbol",
+	// }, "latest"); err != nil {
+	// 	return false
+	// }
+
+	// if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	// 	ContractAddress:    c.address,
+	// 	EntryPointSelector: "decimals",
+	// }, "latest"); err != nil {
+	// 	return false
+	// }
 
 	if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
-		ContractAddress:    c.Address,
-		EntryPointSelector: "decimals",
-	}, "latest"); err != nil {
-		return false
-	}
-
-	if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
-		ContractAddress:    c.Address,
+		ContractAddress:    c.address,
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{"0x050c47150563ff7cf60dd60f7d0bd4d62a9cc5331441916e5099e905bdd8c4bc"},
 	}, "latest"); err != nil {
@@ -55,9 +62,16 @@ func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) boo
 
 // ERC721
 type ERC721Contract struct {
-	Address string
-	Code    *types.Code
 	MatchableContract
+	address string
+}
+
+func NewERC721Contract(address string) *ERC721Contract {
+	return &ERC721Contract{address: address}
+}
+
+func (c *ERC721Contract) Address() string {
+	return c.address
 }
 
 func (c *ERC721Contract) Type() string {
@@ -68,7 +82,7 @@ func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bo
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc721/ERC721_Mintable_Burnable.cairo
 	// supportsInterface
 	if res, err := provider.Call(ctx, jsonrpc.FunctionCall{
-		ContractAddress:    c.Address,
+		ContractAddress:    c.address,
 		EntryPointSelector: "supportsInterface",
 		Calldata:           []string{"0x80ac58cd"},
 	}, "latest"); err != nil || res[0] != "0x01" {
@@ -78,15 +92,13 @@ func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bo
 	return true
 }
 
-func Match(ctx context.Context, address string, code *types.Code, provider *jsonrpc.Client) MatchableContract {
-	var contract MatchableContract = &ERC20Contract{Address: address, Code: code}
-	if contract.Match(ctx, provider) {
-		return contract
+func Match(ctx context.Context, address string, provider *jsonrpc.Client) MatchableContract {
+	if c := NewERC20Contract(address); c.Match(ctx, provider) {
+		return c
 	}
 
-	contract = &ERC721Contract{Address: address, Code: code}
-	if contract.Match(ctx, provider) {
-		return contract
+	if c := NewERC721Contract(address); c.Match(ctx, provider) {
+		return c
 	}
 
 	return nil
