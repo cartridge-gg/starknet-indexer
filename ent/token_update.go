@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/token"
 )
 
@@ -29,15 +30,23 @@ func (tu *TokenUpdate) Where(ps ...predicate.Token) *TokenUpdate {
 }
 
 // SetTokenId sets the "tokenId" field.
-func (tu *TokenUpdate) SetTokenId(u uint64) *TokenUpdate {
+func (tu *TokenUpdate) SetTokenId(b big.Int) *TokenUpdate {
 	tu.mutation.ResetTokenId()
-	tu.mutation.SetTokenId(u)
+	tu.mutation.SetTokenId(b)
 	return tu
 }
 
-// AddTokenId adds u to the "tokenId" field.
-func (tu *TokenUpdate) AddTokenId(u int64) *TokenUpdate {
-	tu.mutation.AddTokenId(u)
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (tu *TokenUpdate) SetNillableTokenId(b *big.Int) *TokenUpdate {
+	if b != nil {
+		tu.SetTokenId(*b)
+	}
+	return tu
+}
+
+// AddTokenId adds b to the "tokenId" field.
+func (tu *TokenUpdate) AddTokenId(b big.Int) *TokenUpdate {
+	tu.mutation.AddTokenId(b)
 	return tu
 }
 
@@ -170,14 +179,14 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := tu.mutation.TokenId(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: token.FieldTokenId,
 		})
 	}
 	if value, ok := tu.mutation.AddedTokenId(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: token.FieldTokenId,
 		})
@@ -272,15 +281,23 @@ type TokenUpdateOne struct {
 }
 
 // SetTokenId sets the "tokenId" field.
-func (tuo *TokenUpdateOne) SetTokenId(u uint64) *TokenUpdateOne {
+func (tuo *TokenUpdateOne) SetTokenId(b big.Int) *TokenUpdateOne {
 	tuo.mutation.ResetTokenId()
-	tuo.mutation.SetTokenId(u)
+	tuo.mutation.SetTokenId(b)
 	return tuo
 }
 
-// AddTokenId adds u to the "tokenId" field.
-func (tuo *TokenUpdateOne) AddTokenId(u int64) *TokenUpdateOne {
-	tuo.mutation.AddTokenId(u)
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (tuo *TokenUpdateOne) SetNillableTokenId(b *big.Int) *TokenUpdateOne {
+	if b != nil {
+		tuo.SetTokenId(*b)
+	}
+	return tuo
+}
+
+// AddTokenId adds b to the "tokenId" field.
+func (tuo *TokenUpdateOne) AddTokenId(b big.Int) *TokenUpdateOne {
+	tuo.mutation.AddTokenId(b)
 	return tuo
 }
 
@@ -437,14 +454,14 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error
 	}
 	if value, ok := tuo.mutation.TokenId(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: token.FieldTokenId,
 		})
 	}
 	if value, ok := tuo.mutation.AddedTokenId(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: token.FieldTokenId,
 		})

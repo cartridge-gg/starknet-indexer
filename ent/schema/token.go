@@ -6,22 +6,31 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 type Token struct {
 	ent.Schema
 }
 
-// Fields returns Balance fields.
+// Fields returns Token fields.
 func (Token) Fields() []ent.Field {
 	return []ent.Field{
 		// contract:tokenId
 		field.String("id").Unique().Immutable(),
-		field.Uint64("tokenId"),
+		field.Int("tokenId").
+			GoType(big.Int{}).
+			SchemaType(big.IntSchemaType).
+			DefaultFunc(func() big.Int {
+				return big.NewInt(0)
+			}).
+			Annotations(
+				entgql.Type("BigInt"),
+			),
 	}
 }
 
-// Edges returns Balance edges.
+// Edges returns Token edges.
 func (Token) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("owner", Contract.Type).Unique(),

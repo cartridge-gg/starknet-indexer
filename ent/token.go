@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/token"
 )
 
@@ -17,7 +18,7 @@ type Token struct {
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// TokenId holds the value of the "tokenId" field.
-	TokenId uint64 `json:"tokenId,omitempty"`
+	TokenId big.Int `json:"tokenId,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TokenQuery when eager-loading is set.
 	Edges          TokenEdges `json:"edges"`
@@ -72,7 +73,7 @@ func (*Token) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case token.FieldTokenId:
-			values[i] = new(sql.NullInt64)
+			values[i] = new(big.Int)
 		case token.FieldID:
 			values[i] = new(sql.NullString)
 		case token.ForeignKeys[0]: // token_owner
@@ -101,10 +102,10 @@ func (t *Token) assignValues(columns []string, values []interface{}) error {
 				t.ID = value.String
 			}
 		case token.FieldTokenId:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*big.Int); !ok {
 				return fmt.Errorf("unexpected type %T for field tokenId", values[i])
-			} else if value.Valid {
-				t.TokenId = uint64(value.Int64)
+			} else if value != nil {
+				t.TokenId = *value
 			}
 		case token.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {

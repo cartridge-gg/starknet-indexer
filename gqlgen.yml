@@ -29,6 +29,9 @@ models:
   JSON:
     model:
       - github.com/cartridge-gg/starknet-indexer/ent/schema/json.RawMessage
+  BigInt:
+    model:
+      - github.com/cartridge-gg/starknet-indexer/ent/schema/big.Int
   L1Message:
     model:
       - github.com/dontpanicdao/caigo/types.L1Message

@@ -2,6 +2,7 @@ scalar Time
 scalar Long
 scalar JSON
 scalar Felt
+scalar BigInt
 
 type L1Message {
   toAddress: String!

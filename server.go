@@ -14,6 +14,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/cartridge-gg/starknet-indexer/processor"
 	"github.com/dontpanicdao/caigo"
@@ -192,7 +193,7 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 							}
 						} else {
 							if err := senderBalance.Update().
-								AddBalance(-u.Event.Data[2].Int64()).
+								AddBalance(big.FromBase(u.Event.Data[2].Int).Neg()).
 								Exec(ctx); err != nil {
 								return err
 							}
@@ -204,13 +205,13 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 								SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
 								SetAccountID(u.Event.Data[0].Hex()).
 								SetContractID(u.ContractAddress).
-								SetBalance(u.Event.Data[2].Uint64()).
+								SetBalance(big.FromBase(u.Event.Data[2].Int)).
 								Exec(ctx); err != nil {
 								return err
 							}
 						} else {
 							if err := receiverBalance.Update().
-								AddBalance(u.Event.Data[2].Int64()).
+								AddBalance(big.FromBase(u.Event.Data[2].Int)).
 								Exec(ctx); err != nil {
 								return err
 							}
@@ -222,7 +223,7 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 								SetID(fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String())).
 								SetOwnerID(u.Event.Data[1].Hex()).
 								SetContractID(u.ContractAddress).
-								SetTokenId(u.Event.Data[2].Uint64()).
+								SetTokenId(big.FromBase(u.Event.Data[2].Int)).
 								Exec(ctx); err != nil {
 								return err
 							}

@@ -2,6 +2,10 @@
 
 package token
 
+import (
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
+)
+
 const (
 	// Label holds the string label denoting the token type in the database.
 	Label = "token"
@@ -58,3 +62,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultTokenId holds the default value on creation for the "tokenId" field.
+	DefaultTokenId func() big.Int
+)

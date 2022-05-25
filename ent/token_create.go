@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/token"
 )
 
@@ -21,8 +22,16 @@ type TokenCreate struct {
 }
 
 // SetTokenId sets the "tokenId" field.
-func (tc *TokenCreate) SetTokenId(u uint64) *TokenCreate {
-	tc.mutation.SetTokenId(u)
+func (tc *TokenCreate) SetTokenId(b big.Int) *TokenCreate {
+	tc.mutation.SetTokenId(b)
+	return tc
+}
+
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (tc *TokenCreate) SetNillableTokenId(b *big.Int) *TokenCreate {
+	if b != nil {
+		tc.SetTokenId(*b)
+	}
 	return tc
 }
 
@@ -81,6 +90,7 @@ func (tc *TokenCreate) Save(ctx context.Context) (*Token, error) {
 		err  error
 		node *Token
 	)
+	tc.defaults()
 	if len(tc.hooks) == 0 {
 		if err = tc.check(); err != nil {
 			return nil, err
@@ -138,6 +148,14 @@ func (tc *TokenCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TokenCreate) defaults() {
+	if _, ok := tc.mutation.TokenId(); !ok {
+		v := token.DefaultTokenId()
+		tc.mutation.SetTokenId(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TokenCreate) check() error {
 	if _, ok := tc.mutation.TokenId(); !ok {
@@ -181,7 +199,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := tc.mutation.TokenId(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: token.FieldTokenId,
 		})
@@ -244,6 +262,7 @@ func (tcb *TokenCreateBulk) Save(ctx context.Context) ([]*Token, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TokenMutation)
 				if !ok {

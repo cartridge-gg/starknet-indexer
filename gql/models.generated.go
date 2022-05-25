@@ -7,6 +7,7 @@ import (
 
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
 
@@ -17,14 +18,14 @@ type BalanceWhereInput struct {
 	And []*BalanceWhereInput `json:"and"`
 	Or  []*BalanceWhereInput `json:"or"`
 	// balance field predicates
-	Balance      *int  `json:"balance"`
-	BalanceNeq   *int  `json:"balanceNEQ"`
-	BalanceIn    []int `json:"balanceIn"`
-	BalanceNotIn []int `json:"balanceNotIn"`
-	BalanceGt    *int  `json:"balanceGT"`
-	BalanceGte   *int  `json:"balanceGTE"`
-	BalanceLt    *int  `json:"balanceLT"`
-	BalanceLte   *int  `json:"balanceLTE"`
+	Balance      *big.Int   `json:"balance"`
+	BalanceNeq   *big.Int   `json:"balanceNEQ"`
+	BalanceIn    []*big.Int `json:"balanceIn"`
+	BalanceNotIn []*big.Int `json:"balanceNotIn"`
+	BalanceGt    *big.Int   `json:"balanceGT"`
+	BalanceGte   *big.Int   `json:"balanceGTE"`
+	BalanceLt    *big.Int   `json:"balanceLT"`
+	BalanceLte   *big.Int   `json:"balanceLTE"`
 	// id field predicates
 	ID      *string  `json:"id"`
 	IDNeq   *string  `json:"idNEQ"`
@@ -214,14 +215,14 @@ type TokenWhereInput struct {
 	And []*TokenWhereInput `json:"and"`
 	Or  []*TokenWhereInput `json:"or"`
 	// tokenId field predicates
-	Tokenid      *int  `json:"tokenid"`
-	TokenidNeq   *int  `json:"tokenidNEQ"`
-	TokenidIn    []int `json:"tokenidIn"`
-	TokenidNotIn []int `json:"tokenidNotIn"`
-	TokenidGt    *int  `json:"tokenidGT"`
-	TokenidGte   *int  `json:"tokenidGTE"`
-	TokenidLt    *int  `json:"tokenidLT"`
-	TokenidLte   *int  `json:"tokenidLTE"`
+	Tokenid      *big.Int   `json:"tokenid"`
+	TokenidNeq   *big.Int   `json:"tokenidNEQ"`
+	TokenidIn    []*big.Int `json:"tokenidIn"`
+	TokenidNotIn []*big.Int `json:"tokenidNotIn"`
+	TokenidGt    *big.Int   `json:"tokenidGT"`
+	TokenidGte   *big.Int   `json:"tokenidGTE"`
+	TokenidLt    *big.Int   `json:"tokenidLT"`
+	TokenidLte   *big.Int   `json:"tokenidLTE"`
 	// id field predicates
 	ID      *string  `json:"id"`
 	IDNeq   *string  `json:"idNEQ"`

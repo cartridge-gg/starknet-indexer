@@ -328,7 +328,7 @@ func (tq *TokenQuery) WithContract(opts ...func(*ContractQuery)) *TokenQuery {
 // Example:
 //
 //	var v []struct {
-//		TokenId uint64 `json:"tokenId,omitempty"`
+//		TokenId big.Int `json:"tokenId,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -357,7 +357,7 @@ func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
 // Example:
 //
 //	var v []struct {
-//		TokenId uint64 `json:"tokenId,omitempty"`
+//		TokenId big.Int `json:"tokenId,omitempty"`
 //	}
 //
 //	client.Token.Query().

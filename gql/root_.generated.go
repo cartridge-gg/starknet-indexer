@@ -31,10 +31,8 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Balance() BalanceResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
-	Token() TokenResolver
 }
 
 type DirectiveRoot struct {
@@ -153,7 +151,7 @@ type ComplexityRoot struct {
 		Contract func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Owner    func(childComplexity int) int
-		Tokenid  func(childComplexity int) int
+		TokenId  func(childComplexity int) int
 	}
 
 	TokenConnection struct {
@@ -680,11 +678,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Token.Owner(childComplexity), true
 
 	case "Token.tokenid":
-		if e.complexity.Token.Tokenid == nil {
+		if e.complexity.Token.TokenId == nil {
 			break
 		}
 
-		return e.complexity.Token.Tokenid(childComplexity), true
+		return e.complexity.Token.TokenId(childComplexity), true
 
 	case "TokenConnection.edges":
 		if e.complexity.TokenConnection.Edges == nil {
@@ -988,7 +986,7 @@ var sources = []*ast.Source{
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type Balance implements Node {
   id: ID!
-  balance: Int!
+  balance: BigInt!
   account: Contract
   contract: Contract
 }
@@ -1016,14 +1014,14 @@ input BalanceWhereInput {
   and: [BalanceWhereInput!]
   or: [BalanceWhereInput!]
   """balance field predicates"""
-  balance: Int
-  balanceNEQ: Int
-  balanceIn: [Int!]
-  balanceNotIn: [Int!]
-  balanceGT: Int
-  balanceGTE: Int
-  balanceLT: Int
-  balanceLTE: Int
+  balance: BigInt
+  balanceNEQ: BigInt
+  balanceIn: [BigInt!]
+  balanceNotIn: [BigInt!]
+  balanceGT: BigInt
+  balanceGTE: BigInt
+  balanceLT: BigInt
+  balanceLTE: BigInt
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -1340,7 +1338,7 @@ enum Status @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/transa
 }
 type Token implements Node {
   id: ID!
-  tokenid: Int!
+  tokenid: BigInt!
   owner: Contract
   contract: Contract
 }
@@ -1368,14 +1366,14 @@ input TokenWhereInput {
   and: [TokenWhereInput!]
   or: [TokenWhereInput!]
   """tokenId field predicates"""
-  tokenid: Int
-  tokenidNEQ: Int
-  tokenidIn: [Int!]
-  tokenidNotIn: [Int!]
-  tokenidGT: Int
-  tokenidGTE: Int
-  tokenidLT: Int
-  tokenidLTE: Int
+  tokenid: BigInt
+  tokenidNEQ: BigInt
+  tokenidIn: [BigInt!]
+  tokenidNotIn: [BigInt!]
+  tokenidGT: BigInt
+  tokenidGTE: BigInt
+  tokenidLT: BigInt
+  tokenidLTE: BigInt
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -1605,6 +1603,7 @@ enum Type @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/contract
 scalar Long
 scalar JSON
 scalar Felt
+scalar BigInt
 
 type L1Message {
   toAddress: String!

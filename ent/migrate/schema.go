@@ -11,7 +11,7 @@ var (
 	// BalancesColumns holds the columns for the "balances" table.
 	BalancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "balance", Type: field.TypeUint64, Default: 0},
+		{Name: "balance", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
 		{Name: "balance_account", Type: field.TypeString, Nullable: true},
 		{Name: "balance_contract", Type: field.TypeString, Nullable: true},
 	}
@@ -89,7 +89,7 @@ var (
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "token_id", Type: field.TypeUint64},
+		{Name: "token_id", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
 		{Name: "token_owner", Type: field.TypeString, Nullable: true},
 		{Name: "token_contract", Type: field.TypeString, Nullable: true},
 	}

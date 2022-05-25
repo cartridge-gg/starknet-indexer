@@ -2,6 +2,10 @@
 
 package balance
 
+import (
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
+)
+
 const (
 	// Label holds the string label denoting the balance type in the database.
 	Label = "balance"
@@ -61,5 +65,5 @@ func ValidColumn(column string) bool {
 
 var (
 	// DefaultBalance holds the default value on creation for the "balance" field.
-	DefaultBalance uint64
+	DefaultBalance func() big.Int
 )

@@ -14,6 +14,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
@@ -46,8 +47,8 @@ type BalanceMutation struct {
 	op              Op
 	typ             string
 	id              *string
-	balance         *uint64
-	addbalance      *int64
+	balance         *big.Int
+	addbalance      *big.Int
 	clearedFields   map[string]struct{}
 	account         *string
 	clearedaccount  bool
@@ -163,13 +164,13 @@ func (m *BalanceMutation) IDs(ctx context.Context) ([]string, error) {
 }
 
 // SetBalance sets the "balance" field.
-func (m *BalanceMutation) SetBalance(u uint64) {
-	m.balance = &u
+func (m *BalanceMutation) SetBalance(b big.Int) {
+	m.balance = &b
 	m.addbalance = nil
 }
 
 // Balance returns the value of the "balance" field in the mutation.
-func (m *BalanceMutation) Balance() (r uint64, exists bool) {
+func (m *BalanceMutation) Balance() (r big.Int, exists bool) {
 	v := m.balance
 	if v == nil {
 		return
@@ -180,7 +181,7 @@ func (m *BalanceMutation) Balance() (r uint64, exists bool) {
 // OldBalance returns the old "balance" field's value of the Balance entity.
 // If the Balance object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *BalanceMutation) OldBalance(ctx context.Context) (v uint64, err error) {
+func (m *BalanceMutation) OldBalance(ctx context.Context) (v big.Int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldBalance is only allowed on UpdateOne operations")
 	}
@@ -194,17 +195,17 @@ func (m *BalanceMutation) OldBalance(ctx context.Context) (v uint64, err error) 
 	return oldValue.Balance, nil
 }
 
-// AddBalance adds u to the "balance" field.
-func (m *BalanceMutation) AddBalance(u int64) {
+// AddBalance adds b to the "balance" field.
+func (m *BalanceMutation) AddBalance(b big.Int) {
 	if m.addbalance != nil {
-		*m.addbalance += u
+		*m.addbalance = m.addbalance.Add(b)
 	} else {
-		m.addbalance = &u
+		m.addbalance = &b
 	}
 }
 
 // AddedBalance returns the value that was added to the "balance" field in this mutation.
-func (m *BalanceMutation) AddedBalance() (r int64, exists bool) {
+func (m *BalanceMutation) AddedBalance() (r big.Int, exists bool) {
 	v := m.addbalance
 	if v == nil {
 		return
@@ -350,7 +351,7 @@ func (m *BalanceMutation) OldField(ctx context.Context, name string) (ent.Value,
 func (m *BalanceMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case balance.FieldBalance:
-		v, ok := value.(uint64)
+		v, ok := value.(big.Int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -387,7 +388,7 @@ func (m *BalanceMutation) AddedField(name string) (ent.Value, bool) {
 func (m *BalanceMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case balance.FieldBalance:
-		v, ok := value.(int64)
+		v, ok := value.(big.Int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2338,8 +2339,8 @@ type TokenMutation struct {
 	op              Op
 	typ             string
 	id              *string
-	tokenId         *uint64
-	addtokenId      *int64
+	tokenId         *big.Int
+	addtokenId      *big.Int
 	clearedFields   map[string]struct{}
 	owner           *string
 	clearedowner    bool
@@ -2455,13 +2456,13 @@ func (m *TokenMutation) IDs(ctx context.Context) ([]string, error) {
 }
 
 // SetTokenId sets the "tokenId" field.
-func (m *TokenMutation) SetTokenId(u uint64) {
-	m.tokenId = &u
+func (m *TokenMutation) SetTokenId(b big.Int) {
+	m.tokenId = &b
 	m.addtokenId = nil
 }
 
 // TokenId returns the value of the "tokenId" field in the mutation.
-func (m *TokenMutation) TokenId() (r uint64, exists bool) {
+func (m *TokenMutation) TokenId() (r big.Int, exists bool) {
 	v := m.tokenId
 	if v == nil {
 		return
@@ -2472,7 +2473,7 @@ func (m *TokenMutation) TokenId() (r uint64, exists bool) {
 // OldTokenId returns the old "tokenId" field's value of the Token entity.
 // If the Token object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TokenMutation) OldTokenId(ctx context.Context) (v uint64, err error) {
+func (m *TokenMutation) OldTokenId(ctx context.Context) (v big.Int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTokenId is only allowed on UpdateOne operations")
 	}
@@ -2486,17 +2487,17 @@ func (m *TokenMutation) OldTokenId(ctx context.Context) (v uint64, err error) {
 	return oldValue.TokenId, nil
 }
 
-// AddTokenId adds u to the "tokenId" field.
-func (m *TokenMutation) AddTokenId(u int64) {
+// AddTokenId adds b to the "tokenId" field.
+func (m *TokenMutation) AddTokenId(b big.Int) {
 	if m.addtokenId != nil {
-		*m.addtokenId += u
+		*m.addtokenId = m.addtokenId.Add(b)
 	} else {
-		m.addtokenId = &u
+		m.addtokenId = &b
 	}
 }
 
 // AddedTokenId returns the value that was added to the "tokenId" field in this mutation.
-func (m *TokenMutation) AddedTokenId() (r int64, exists bool) {
+func (m *TokenMutation) AddedTokenId() (r big.Int, exists bool) {
 	v := m.addtokenId
 	if v == nil {
 		return
@@ -2642,7 +2643,7 @@ func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, e
 func (m *TokenMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case token.FieldTokenId:
-		v, ok := value.(uint64)
+		v, ok := value.(big.Int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2679,7 +2680,7 @@ func (m *TokenMutation) AddedField(name string) (ent.Value, bool) {
 func (m *TokenMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case token.FieldTokenId:
-		v, ok := value.(int64)
+		v, ok := value.(big.Int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

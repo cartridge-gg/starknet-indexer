@@ -328,7 +328,7 @@ func (bq *BalanceQuery) WithContract(opts ...func(*ContractQuery)) *BalanceQuery
 // Example:
 //
 //	var v []struct {
-//		Balance uint64 `json:"balance,omitempty"`
+//		Balance big.Int `json:"balance,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -357,7 +357,7 @@ func (bq *BalanceQuery) GroupBy(field string, fields ...string) *BalanceGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Balance uint64 `json:"balance,omitempty"`
+//		Balance big.Int `json:"balance,omitempty"`
 //	}
 //
 //	client.Balance.Query().

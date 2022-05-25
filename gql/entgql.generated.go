@@ -15,19 +15,13 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
-
-type BalanceResolver interface {
-	Balance(ctx context.Context, obj *ent.Balance) (int, error)
-}
-type TokenResolver interface {
-	Tokenid(ctx context.Context, obj *ent.Token) (int, error)
-}
 
 // endregion ************************** generated!.gotpl **************************
 
@@ -99,7 +93,7 @@ func (ec *executionContext) _Balance_balance(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Balance().Balance(rctx, obj)
+		return obj.Balance, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -111,19 +105,19 @@ func (ec *executionContext) _Balance_balance(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(big.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Balance_balance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Balance",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type BigInt does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2345,7 +2339,7 @@ func (ec *executionContext) _Token_tokenid(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Token().Tokenid(rctx, obj)
+		return obj.TokenId, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2357,19 +2351,19 @@ func (ec *executionContext) _Token_tokenid(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(big.Int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Token_tokenid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Token",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type BigInt does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4143,7 +4137,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balance"))
-			it.Balance, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Balance, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4151,7 +4145,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceNEQ"))
-			it.BalanceNeq, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.BalanceNeq, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4159,7 +4153,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceIn"))
-			it.BalanceIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.BalanceIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4167,7 +4161,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceNotIn"))
-			it.BalanceNotIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.BalanceNotIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4175,7 +4169,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceGT"))
-			it.BalanceGt, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.BalanceGt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4183,7 +4177,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceGTE"))
-			it.BalanceGte, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.BalanceGte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4191,7 +4185,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceLT"))
-			it.BalanceLt, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.BalanceLt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4199,7 +4193,7 @@ func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceLTE"))
-			it.BalanceLte, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.BalanceLte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5521,7 +5515,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenid"))
-			it.Tokenid, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Tokenid, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5529,7 +5523,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidNEQ"))
-			it.TokenidNeq, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.TokenidNeq, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5537,7 +5531,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidIn"))
-			it.TokenidIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.TokenidIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5545,7 +5539,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidNotIn"))
-			it.TokenidNotIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.TokenidNotIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5553,7 +5547,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidGT"))
-			it.TokenidGt, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.TokenidGt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5561,7 +5555,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidGTE"))
-			it.TokenidGte, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.TokenidGte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5569,7 +5563,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidLT"))
-			it.TokenidLt, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.TokenidLt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5577,7 +5571,7 @@ func (ec *executionContext) unmarshalInputTokenWhereInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidLTE"))
-			it.TokenidLte, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.TokenidLte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6765,25 +6759,15 @@ func (ec *executionContext) _Balance(ctx context.Context, sel ast.SelectionSet, 
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "balance":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Balance_balance(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+				return ec._Balance_balance(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "account":
 			field := field
 
@@ -7530,25 +7514,15 @@ func (ec *executionContext) _Token(ctx context.Context, sel ast.SelectionSet, ob
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "tokenid":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Token_tokenid(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+				return ec._Token_tokenid(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "owner":
 			field := field
 

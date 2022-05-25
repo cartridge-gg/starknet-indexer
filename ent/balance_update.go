@@ -13,6 +13,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // BalanceUpdate is the builder for updating Balance entities.
@@ -29,23 +30,23 @@ func (bu *BalanceUpdate) Where(ps ...predicate.Balance) *BalanceUpdate {
 }
 
 // SetBalance sets the "balance" field.
-func (bu *BalanceUpdate) SetBalance(u uint64) *BalanceUpdate {
+func (bu *BalanceUpdate) SetBalance(b big.Int) *BalanceUpdate {
 	bu.mutation.ResetBalance()
-	bu.mutation.SetBalance(u)
+	bu.mutation.SetBalance(b)
 	return bu
 }
 
 // SetNillableBalance sets the "balance" field if the given value is not nil.
-func (bu *BalanceUpdate) SetNillableBalance(u *uint64) *BalanceUpdate {
-	if u != nil {
-		bu.SetBalance(*u)
+func (bu *BalanceUpdate) SetNillableBalance(b *big.Int) *BalanceUpdate {
+	if b != nil {
+		bu.SetBalance(*b)
 	}
 	return bu
 }
 
-// AddBalance adds u to the "balance" field.
-func (bu *BalanceUpdate) AddBalance(u int64) *BalanceUpdate {
-	bu.mutation.AddBalance(u)
+// AddBalance adds b to the "balance" field.
+func (bu *BalanceUpdate) AddBalance(b big.Int) *BalanceUpdate {
+	bu.mutation.AddBalance(b)
 	return bu
 }
 
@@ -178,14 +179,14 @@ func (bu *BalanceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := bu.mutation.Balance(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: balance.FieldBalance,
 		})
 	}
 	if value, ok := bu.mutation.AddedBalance(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: balance.FieldBalance,
 		})
@@ -280,23 +281,23 @@ type BalanceUpdateOne struct {
 }
 
 // SetBalance sets the "balance" field.
-func (buo *BalanceUpdateOne) SetBalance(u uint64) *BalanceUpdateOne {
+func (buo *BalanceUpdateOne) SetBalance(b big.Int) *BalanceUpdateOne {
 	buo.mutation.ResetBalance()
-	buo.mutation.SetBalance(u)
+	buo.mutation.SetBalance(b)
 	return buo
 }
 
 // SetNillableBalance sets the "balance" field if the given value is not nil.
-func (buo *BalanceUpdateOne) SetNillableBalance(u *uint64) *BalanceUpdateOne {
-	if u != nil {
-		buo.SetBalance(*u)
+func (buo *BalanceUpdateOne) SetNillableBalance(b *big.Int) *BalanceUpdateOne {
+	if b != nil {
+		buo.SetBalance(*b)
 	}
 	return buo
 }
 
-// AddBalance adds u to the "balance" field.
-func (buo *BalanceUpdateOne) AddBalance(u int64) *BalanceUpdateOne {
-	buo.mutation.AddBalance(u)
+// AddBalance adds b to the "balance" field.
+func (buo *BalanceUpdateOne) AddBalance(b big.Int) *BalanceUpdateOne {
+	buo.mutation.AddBalance(b)
 	return buo
 }
 
@@ -453,14 +454,14 @@ func (buo *BalanceUpdateOne) sqlSave(ctx context.Context) (_node *Balance, err e
 	}
 	if value, ok := buo.mutation.Balance(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: balance.FieldBalance,
 		})
 	}
 	if value, ok := buo.mutation.AddedBalance(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: balance.FieldBalance,
 		})

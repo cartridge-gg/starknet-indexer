@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // ID filters vertices based on their ID field.
@@ -92,28 +93,28 @@ func IDLTE(id string) predicate.Balance {
 }
 
 // Balance applies equality check predicate on the "balance" field. It's identical to BalanceEQ.
-func Balance(v uint64) predicate.Balance {
+func Balance(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceEQ applies the EQ predicate on the "balance" field.
-func BalanceEQ(v uint64) predicate.Balance {
+func BalanceEQ(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceNEQ applies the NEQ predicate on the "balance" field.
-func BalanceNEQ(v uint64) predicate.Balance {
+func BalanceNEQ(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceIn applies the In predicate on the "balance" field.
-func BalanceIn(vs ...uint64) predicate.Balance {
+func BalanceIn(vs ...big.Int) predicate.Balance {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -130,7 +131,7 @@ func BalanceIn(vs ...uint64) predicate.Balance {
 }
 
 // BalanceNotIn applies the NotIn predicate on the "balance" field.
-func BalanceNotIn(vs ...uint64) predicate.Balance {
+func BalanceNotIn(vs ...big.Int) predicate.Balance {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -147,28 +148,28 @@ func BalanceNotIn(vs ...uint64) predicate.Balance {
 }
 
 // BalanceGT applies the GT predicate on the "balance" field.
-func BalanceGT(v uint64) predicate.Balance {
+func BalanceGT(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceGTE applies the GTE predicate on the "balance" field.
-func BalanceGTE(v uint64) predicate.Balance {
+func BalanceGTE(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceLT applies the LT predicate on the "balance" field.
-func BalanceLT(v uint64) predicate.Balance {
+func BalanceLT(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldBalance), v))
 	})
 }
 
 // BalanceLTE applies the LTE predicate on the "balance" field.
-func BalanceLTE(v uint64) predicate.Balance {
+func BalanceLTE(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldBalance), v))
 	})

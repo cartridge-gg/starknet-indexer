@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // BalanceCreate is the builder for creating a Balance entity.
@@ -21,15 +22,15 @@ type BalanceCreate struct {
 }
 
 // SetBalance sets the "balance" field.
-func (bc *BalanceCreate) SetBalance(u uint64) *BalanceCreate {
-	bc.mutation.SetBalance(u)
+func (bc *BalanceCreate) SetBalance(b big.Int) *BalanceCreate {
+	bc.mutation.SetBalance(b)
 	return bc
 }
 
 // SetNillableBalance sets the "balance" field if the given value is not nil.
-func (bc *BalanceCreate) SetNillableBalance(u *uint64) *BalanceCreate {
-	if u != nil {
-		bc.SetBalance(*u)
+func (bc *BalanceCreate) SetNillableBalance(b *big.Int) *BalanceCreate {
+	if b != nil {
+		bc.SetBalance(*b)
 	}
 	return bc
 }
@@ -150,7 +151,7 @@ func (bc *BalanceCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (bc *BalanceCreate) defaults() {
 	if _, ok := bc.mutation.Balance(); !ok {
-		v := balance.DefaultBalance
+		v := balance.DefaultBalance()
 		bc.mutation.SetBalance(v)
 	}
 }
@@ -198,7 +199,7 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := bc.mutation.Balance(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
+			Type:   field.TypeInt,
 			Value:  value,
 			Column: balance.FieldBalance,
 		})

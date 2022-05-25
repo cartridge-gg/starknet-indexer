@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // Balance is the model entity for the Balance schema.
@@ -17,7 +18,7 @@ type Balance struct {
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// Balance holds the value of the "balance" field.
-	Balance uint64 `json:"balance,omitempty"`
+	Balance big.Int `json:"balance,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BalanceQuery when eager-loading is set.
 	Edges            BalanceEdges `json:"edges"`
@@ -72,7 +73,7 @@ func (*Balance) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case balance.FieldBalance:
-			values[i] = new(sql.NullInt64)
+			values[i] = new(big.Int)
 		case balance.FieldID:
 			values[i] = new(sql.NullString)
 		case balance.ForeignKeys[0]: // balance_account
@@ -101,10 +102,10 @@ func (b *Balance) assignValues(columns []string, values []interface{}) error {
 				b.ID = value.String
 			}
 		case balance.FieldBalance:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*big.Int); !ok {
 				return fmt.Errorf("unexpected type %T for field balance", values[i])
-			} else if value.Valid {
-				b.Balance = uint64(value.Int64)
+			} else if value != nil {
+				b.Balance = *value
 			}
 		case balance.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {

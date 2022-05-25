@@ -58,7 +58,7 @@ func (b *Balance) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
-		Type:  "uint64",
+		Type:  "big.Int",
 		Name:  "balance",
 		Value: string(buf),
 	}
@@ -266,7 +266,7 @@ func (t *Token) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
-		Type:  "uint64",
+		Type:  "big.Int",
 		Name:  "tokenId",
 		Value: string(buf),
 	}

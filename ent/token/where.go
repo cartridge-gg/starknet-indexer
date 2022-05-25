@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // ID filters vertices based on their ID field.
@@ -92,28 +93,28 @@ func IDLTE(id string) predicate.Token {
 }
 
 // TokenId applies equality check predicate on the "tokenId" field. It's identical to TokenIdEQ.
-func TokenId(v uint64) predicate.Token {
+func TokenId(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdEQ applies the EQ predicate on the "tokenId" field.
-func TokenIdEQ(v uint64) predicate.Token {
+func TokenIdEQ(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdNEQ applies the NEQ predicate on the "tokenId" field.
-func TokenIdNEQ(v uint64) predicate.Token {
+func TokenIdNEQ(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdIn applies the In predicate on the "tokenId" field.
-func TokenIdIn(vs ...uint64) predicate.Token {
+func TokenIdIn(vs ...big.Int) predicate.Token {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -130,7 +131,7 @@ func TokenIdIn(vs ...uint64) predicate.Token {
 }
 
 // TokenIdNotIn applies the NotIn predicate on the "tokenId" field.
-func TokenIdNotIn(vs ...uint64) predicate.Token {
+func TokenIdNotIn(vs ...big.Int) predicate.Token {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -147,28 +148,28 @@ func TokenIdNotIn(vs ...uint64) predicate.Token {
 }
 
 // TokenIdGT applies the GT predicate on the "tokenId" field.
-func TokenIdGT(v uint64) predicate.Token {
+func TokenIdGT(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdGTE applies the GTE predicate on the "tokenId" field.
-func TokenIdGTE(v uint64) predicate.Token {
+func TokenIdGTE(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdLT applies the LT predicate on the "tokenId" field.
-func TokenIdLT(v uint64) predicate.Token {
+func TokenIdLT(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldTokenId), v))
 	})
 }
 
 // TokenIdLTE applies the LTE predicate on the "tokenId" field.
-func TokenIdLTE(v uint64) predicate.Token {
+func TokenIdLTE(v big.Int) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldTokenId), v))
 	})

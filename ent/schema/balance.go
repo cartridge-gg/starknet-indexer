@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 type Balance struct {
@@ -17,7 +18,15 @@ func (Balance) Fields() []ent.Field {
 	return []ent.Field{
 		// account:contract
 		field.String("id").Unique().Immutable(),
-		field.Uint64("balance").Default(0),
+		field.Int("balance").
+			GoType(big.Int{}).
+			SchemaType(big.IntSchemaType).
+			DefaultFunc(func() big.Int {
+				return big.NewInt(0)
+			}).
+			Annotations(
+				entgql.Type("BigInt"),
+			),
 	}
 }
 

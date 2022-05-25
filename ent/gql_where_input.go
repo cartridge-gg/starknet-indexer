@@ -11,6 +11,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
@@ -33,14 +34,14 @@ type BalanceWhereInput struct {
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
 	// "balance" field predicates.
-	Balance      *uint64  `json:"balance,omitempty"`
-	BalanceNEQ   *uint64  `json:"balanceNEQ,omitempty"`
-	BalanceIn    []uint64 `json:"balanceIn,omitempty"`
-	BalanceNotIn []uint64 `json:"balanceNotIn,omitempty"`
-	BalanceGT    *uint64  `json:"balanceGT,omitempty"`
-	BalanceGTE   *uint64  `json:"balanceGTE,omitempty"`
-	BalanceLT    *uint64  `json:"balanceLT,omitempty"`
-	BalanceLTE   *uint64  `json:"balanceLTE,omitempty"`
+	Balance      *big.Int  `json:"balance,omitempty"`
+	BalanceNEQ   *big.Int  `json:"balanceNEQ,omitempty"`
+	BalanceIn    []big.Int `json:"balanceIn,omitempty"`
+	BalanceNotIn []big.Int `json:"balanceNotIn,omitempty"`
+	BalanceGT    *big.Int  `json:"balanceGT,omitempty"`
+	BalanceGTE   *big.Int  `json:"balanceGTE,omitempty"`
+	BalanceLT    *big.Int  `json:"balanceLT,omitempty"`
+	BalanceLTE   *big.Int  `json:"balanceLTE,omitempty"`
 
 	// "account" edge predicates.
 	HasAccount     *bool                 `json:"hasAccount,omitempty"`
@@ -1031,14 +1032,14 @@ type TokenWhereInput struct {
 	IDLTE   *string  `json:"idLTE,omitempty"`
 
 	// "tokenId" field predicates.
-	TokenId      *uint64  `json:"tokenid,omitempty"`
-	TokenIdNEQ   *uint64  `json:"tokenidNEQ,omitempty"`
-	TokenIdIn    []uint64 `json:"tokenidIn,omitempty"`
-	TokenIdNotIn []uint64 `json:"tokenidNotIn,omitempty"`
-	TokenIdGT    *uint64  `json:"tokenidGT,omitempty"`
-	TokenIdGTE   *uint64  `json:"tokenidGTE,omitempty"`
-	TokenIdLT    *uint64  `json:"tokenidLT,omitempty"`
-	TokenIdLTE   *uint64  `json:"tokenidLTE,omitempty"`
+	TokenId      *big.Int  `json:"tokenid,omitempty"`
+	TokenIdNEQ   *big.Int  `json:"tokenidNEQ,omitempty"`
+	TokenIdIn    []big.Int `json:"tokenidIn,omitempty"`
+	TokenIdNotIn []big.Int `json:"tokenidNotIn,omitempty"`
+	TokenIdGT    *big.Int  `json:"tokenidGT,omitempty"`
+	TokenIdGTE   *big.Int  `json:"tokenidGTE,omitempty"`
+	TokenIdLT    *big.Int  `json:"tokenidLT,omitempty"`
+	TokenIdLTE   *big.Int  `json:"tokenidLTE,omitempty"`
 
 	// "owner" edge predicates.
 	HasOwner     *bool                 `json:"hasOwner,omitempty"`
