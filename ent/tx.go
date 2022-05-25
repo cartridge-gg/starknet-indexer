@@ -12,12 +12,16 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Balance is the client for interacting with the Balance builders.
+	Balance *BalanceClient
 	// Block is the client for interacting with the Block builders.
 	Block *BlockClient
 	// Contract is the client for interacting with the Contract builders.
 	Contract *ContractClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
+	// Token is the client for interacting with the Token builders.
+	Token *TokenClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
@@ -157,9 +161,11 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Balance = NewBalanceClient(tx.config)
 	tx.Block = NewBlockClient(tx.config)
 	tx.Contract = NewContractClient(tx.config)
 	tx.Event = NewEventClient(tx.config)
+	tx.Token = NewTokenClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)
 	tx.TransactionReceipt = NewTransactionReceiptClient(tx.config)
 }
@@ -171,7 +177,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Block.QueryXXX(), the query will be executed
+// applies a query, for example: Balance.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

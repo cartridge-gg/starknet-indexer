@@ -16,10 +16,17 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/cartridge-gg/starknet-indexer/processor"
+	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 )
+
+type BalanceUpdate struct {
+	Event           *types.Event
+	ContractAddress string
+	ContractType    string
+}
 
 func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
@@ -71,14 +78,35 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 	go e.Start(ctx, func(ctx context.Context, b *types.Block) (func() error, error) {
 		log.Info().Msgf("Processing block: %d", b.BlockNumber)
 		var matches []processor.MatchableContract
+		var balanceUpdates []BalanceUpdate
 
 		for _, tx := range b.Transactions {
-			// txn "type" field empty. check if call data & entry point selector are empty for now
-			// to know if txn is of deploy type
-			if tx.EntryPointSelector == "" && tx.Status != types.REJECTED.String() {
-				if m := processor.Match(ctx, tx.ContractAddress, provider); m != nil {
-					log.Info().Msgf("Matched contract at %s with %s", tx.ContractAddress, m.Type())
-					matches = append(matches, m)
+			// check if transaction emitted a transfer event
+			for _, event := range tx.Events {
+				if len(event.Keys) == 0 || event.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
+					continue
+				}
+
+				// check if contract indexed
+				balanceUpdate := BalanceUpdate{
+					Event: event,
+				}
+				contract, _ := client.Contract.Query().Where(contract.IDEQ(tx.ContractAddress)).Only(ctx)
+				// index contract if not indexed
+				if contract == nil {
+					matched := processor.Match(ctx, tx.ContractAddress, provider)
+					matches = append(matches, matched)
+
+					if matched.Type() != "UNKNOWN" {
+						balanceUpdate.ContractAddress = tx.ContractAddress
+						balanceUpdate.ContractType = contract.Type.String()
+						balanceUpdates = append(balanceUpdates, balanceUpdate)
+						log.Info().Msgf("Matched contract at %s with %s", tx.ContractAddress, matched.Type())
+					}
+				} else if contract.Type.String() != "UNKNOWN" {
+					balanceUpdate.ContractAddress = tx.ContractAddress
+					balanceUpdate.ContractType = contract.Type.String()
+					balanceUpdates = append(balanceUpdates, balanceUpdate)
 				}
 			}
 		}
@@ -145,6 +173,64 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 						SetType(contract.Type(m.Type())).
 						Exec(ctx); err != nil {
 						return err
+					}
+				}
+
+				for _, u := range balanceUpdates {
+					switch u.ContractType {
+					case "ERC20":
+						senderBalance, _ := tx.Balance.Get(ctx, fmt.Sprintf("%s:%s", u.Event.Data[0], u.ContractAddress))
+						if senderBalance == nil {
+							if err := tx.Balance.Create().
+								SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
+								SetAccountID(u.Event.Data[0].Hex()).
+								SetContractID(u.ContractAddress).
+								Exec(ctx); err != nil {
+								return err
+							}
+						} else {
+							if err := senderBalance.Update().
+								AddBalance(-u.Event.Data[2].Int64()).
+								Exec(ctx); err != nil {
+								return err
+							}
+						}
+
+						receiverBalance, _ := tx.Balance.Get(ctx, fmt.Sprintf("%s:%s", u.Event.Data[1], u.ContractAddress))
+						if receiverBalance == nil {
+							if err := tx.Balance.Create().
+								SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
+								SetAccountID(u.Event.Data[0].Hex()).
+								SetContractID(u.ContractAddress).
+								SetBalance(u.Event.Data[2].Uint64()).
+								Exec(ctx); err != nil {
+								return err
+							}
+						} else {
+							if err := receiverBalance.Update().
+								AddBalance(u.Event.Data[2].Int64()).
+								Exec(ctx); err != nil {
+								return err
+							}
+						}
+					case "ERC721":
+						token, _ := tx.Token.Get(ctx, fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String()))
+						if token == nil {
+							if err := tx.Token.Create().
+								SetID(fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String())).
+								SetOwnerID(u.Event.Data[1].Hex()).
+								SetContractID(u.ContractAddress).
+								SetTokenId(u.Event.Data[2].Uint64()).
+								Exec(ctx); err != nil {
+								return err
+							}
+						} else {
+							if err := token.Update().
+								SetOwnerID(u.Event.Data[1].Hex()).
+								Exec(ctx); err != nil {
+								return err
+							}
+						}
 					}
 				}
 

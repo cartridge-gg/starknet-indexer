@@ -4,6 +4,22 @@ package ent
 
 import "context"
 
+func (b *Balance) Account(ctx context.Context) (*Contract, error) {
+	result, err := b.Edges.AccountOrErr()
+	if IsNotLoaded(err) {
+		result, err = b.QueryAccount().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (b *Balance) Contract(ctx context.Context) (*Contract, error) {
+	result, err := b.Edges.ContractOrErr()
+	if IsNotLoaded(err) {
+		result, err = b.QueryContract().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (b *Block) Transactions(ctx context.Context) ([]*Transaction, error) {
 	result, err := b.Edges.TransactionsOrErr()
 	if IsNotLoaded(err) {
@@ -32,6 +48,22 @@ func (e *Event) Transaction(ctx context.Context) (*Transaction, error) {
 	result, err := e.Edges.TransactionOrErr()
 	if IsNotLoaded(err) {
 		result, err = e.QueryTransaction().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (t *Token) Owner(ctx context.Context) (*Contract, error) {
+	result, err := t.Edges.OwnerOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryOwner().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (t *Token) Contract(ctx context.Context) (*Contract, error) {
+	result, err := t.Edges.ContractOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryContract().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
