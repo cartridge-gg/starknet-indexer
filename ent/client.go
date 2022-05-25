@@ -181,7 +181,7 @@ func (c *BalanceClient) Use(hooks ...Hook) {
 	c.hooks.Balance = append(c.hooks.Balance, hooks...)
 }
 
-// Create returns a create builder for Balance.
+// Create returns a builder for creating a Balance entity.
 func (c *BalanceClient) Create() *BalanceCreate {
 	mutation := newBalanceMutation(c.config, OpCreate)
 	return &BalanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -216,12 +216,12 @@ func (c *BalanceClient) Delete() *BalanceDelete {
 	return &BalanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *BalanceClient) DeleteOne(b *Balance) *BalanceDeleteOne {
 	return c.DeleteOneID(b.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *BalanceClient) DeleteOneID(id string) *BalanceDeleteOne {
 	builder := c.Delete().Where(balance.ID(id))
 	builder.mutation.id = &id
@@ -303,7 +303,7 @@ func (c *BlockClient) Use(hooks ...Hook) {
 	c.hooks.Block = append(c.hooks.Block, hooks...)
 }
 
-// Create returns a create builder for Block.
+// Create returns a builder for creating a Block entity.
 func (c *BlockClient) Create() *BlockCreate {
 	mutation := newBlockMutation(c.config, OpCreate)
 	return &BlockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -338,12 +338,12 @@ func (c *BlockClient) Delete() *BlockDelete {
 	return &BlockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *BlockClient) DeleteOne(b *Block) *BlockDeleteOne {
 	return c.DeleteOneID(b.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *BlockClient) DeleteOneID(id string) *BlockDeleteOne {
 	builder := c.Delete().Where(block.ID(id))
 	builder.mutation.id = &id
@@ -425,7 +425,7 @@ func (c *ContractClient) Use(hooks ...Hook) {
 	c.hooks.Contract = append(c.hooks.Contract, hooks...)
 }
 
-// Create returns a create builder for Contract.
+// Create returns a builder for creating a Contract entity.
 func (c *ContractClient) Create() *ContractCreate {
 	mutation := newContractMutation(c.config, OpCreate)
 	return &ContractCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -460,12 +460,12 @@ func (c *ContractClient) Delete() *ContractDelete {
 	return &ContractDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ContractClient) DeleteOne(co *Contract) *ContractDeleteOne {
 	return c.DeleteOneID(co.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ContractClient) DeleteOneID(id string) *ContractDeleteOne {
 	builder := c.Delete().Where(contract.ID(id))
 	builder.mutation.id = &id
@@ -531,7 +531,7 @@ func (c *EventClient) Use(hooks ...Hook) {
 	c.hooks.Event = append(c.hooks.Event, hooks...)
 }
 
-// Create returns a create builder for Event.
+// Create returns a builder for creating a Event entity.
 func (c *EventClient) Create() *EventCreate {
 	mutation := newEventMutation(c.config, OpCreate)
 	return &EventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -566,12 +566,12 @@ func (c *EventClient) Delete() *EventDelete {
 	return &EventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *EventClient) DeleteOne(e *Event) *EventDeleteOne {
 	return c.DeleteOneID(e.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *EventClient) DeleteOneID(id string) *EventDeleteOne {
 	builder := c.Delete().Where(event.ID(id))
 	builder.mutation.id = &id
@@ -637,7 +637,7 @@ func (c *TokenClient) Use(hooks ...Hook) {
 	c.hooks.Token = append(c.hooks.Token, hooks...)
 }
 
-// Create returns a create builder for Token.
+// Create returns a builder for creating a Token entity.
 func (c *TokenClient) Create() *TokenCreate {
 	mutation := newTokenMutation(c.config, OpCreate)
 	return &TokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -672,12 +672,12 @@ func (c *TokenClient) Delete() *TokenDelete {
 	return &TokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TokenClient) DeleteOneID(id string) *TokenDeleteOne {
 	builder := c.Delete().Where(token.ID(id))
 	builder.mutation.id = &id
@@ -759,7 +759,7 @@ func (c *TransactionClient) Use(hooks ...Hook) {
 	c.hooks.Transaction = append(c.hooks.Transaction, hooks...)
 }
 
-// Create returns a create builder for Transaction.
+// Create returns a builder for creating a Transaction entity.
 func (c *TransactionClient) Create() *TransactionCreate {
 	mutation := newTransactionMutation(c.config, OpCreate)
 	return &TransactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -794,12 +794,12 @@ func (c *TransactionClient) Delete() *TransactionDelete {
 	return &TransactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TransactionClient) DeleteOne(t *Transaction) *TransactionDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TransactionClient) DeleteOneID(id string) *TransactionDeleteOne {
 	builder := c.Delete().Where(transaction.ID(id))
 	builder.mutation.id = &id
@@ -897,7 +897,7 @@ func (c *TransactionReceiptClient) Use(hooks ...Hook) {
 	c.hooks.TransactionReceipt = append(c.hooks.TransactionReceipt, hooks...)
 }
 
-// Create returns a create builder for TransactionReceipt.
+// Create returns a builder for creating a TransactionReceipt entity.
 func (c *TransactionReceiptClient) Create() *TransactionReceiptCreate {
 	mutation := newTransactionReceiptMutation(c.config, OpCreate)
 	return &TransactionReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -932,12 +932,12 @@ func (c *TransactionReceiptClient) Delete() *TransactionReceiptDelete {
 	return &TransactionReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TransactionReceiptClient) DeleteOne(tr *TransactionReceipt) *TransactionReceiptDeleteOne {
 	return c.DeleteOneID(tr.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TransactionReceiptClient) DeleteOneID(id string) *TransactionReceiptDeleteOne {
 	builder := c.Delete().Where(transactionreceipt.ID(id))
 	builder.mutation.id = &id

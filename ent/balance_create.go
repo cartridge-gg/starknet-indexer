@@ -122,9 +122,15 @@ func (bc *BalanceCreate) Save(ctx context.Context) (*Balance, error) {
 			}
 			mut = bc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, bc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, bc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Balance)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from BalanceMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

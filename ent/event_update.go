@@ -304,9 +304,15 @@ func (euo *EventUpdateOne) Save(ctx context.Context) (*Event, error) {
 			}
 			mut = euo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, euo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, euo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Event)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from EventMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

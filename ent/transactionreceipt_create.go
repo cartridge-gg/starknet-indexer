@@ -130,9 +130,15 @@ func (trc *TransactionReceiptCreate) Save(ctx context.Context) (*TransactionRece
 			}
 			mut = trc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, trc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, trc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*TransactionReceipt)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from TransactionReceiptMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

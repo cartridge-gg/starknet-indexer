@@ -659,9 +659,15 @@ func (tuo *TransactionUpdateOne) Save(ctx context.Context) (*Transaction, error)
 			}
 			mut = tuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, tuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Transaction)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from TransactionMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

@@ -158,8 +158,8 @@ func (b *Balance) Unwrap() *Balance {
 func (b *Balance) String() string {
 	var builder strings.Builder
 	builder.WriteString("Balance(")
-	builder.WriteString(fmt.Sprintf("id=%v", b.ID))
-	builder.WriteString(", balance=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", b.ID))
+	builder.WriteString("balance=")
 	builder.WriteString(fmt.Sprintf("%v", b.Balance))
 	builder.WriteByte(')')
 	return builder.String()

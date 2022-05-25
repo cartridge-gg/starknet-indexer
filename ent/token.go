@@ -158,8 +158,8 @@ func (t *Token) Unwrap() *Token {
 func (t *Token) String() string {
 	var builder strings.Builder
 	builder.WriteString("Token(")
-	builder.WriteString(fmt.Sprintf("id=%v", t.ID))
-	builder.WriteString(", tokenId=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("tokenId=")
 	builder.WriteString(fmt.Sprintf("%v", t.TokenId))
 	builder.WriteByte(')')
 	return builder.String()

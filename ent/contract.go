@@ -127,12 +127,14 @@ func (c *Contract) Unwrap() *Contract {
 func (c *Contract) String() string {
 	var builder strings.Builder
 	builder.WriteString("Contract(")
-	builder.WriteString(fmt.Sprintf("id=%v", c.ID))
-	builder.WriteString(", type=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
+	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", c.Type))
-	builder.WriteString(", created_at=")
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
 	builder.WriteString(c.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", updated_at=")
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
 	builder.WriteString(c.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
