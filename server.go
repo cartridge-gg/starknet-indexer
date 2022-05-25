@@ -23,6 +23,8 @@ import (
 )
 
 type BalanceUpdate struct {
+	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc20/library.cairo#L20
+	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc721/library.cairo#L30
 	Event           *types.Event
 	ContractAddress string
 	ContractType    string
