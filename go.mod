@@ -1,4 +1,4 @@
-module github.com/tarrencev/starknet-indexer
+module github.com/cartridge-gg/starknet-indexer
 
 go 1.17
 
