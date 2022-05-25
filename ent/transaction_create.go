@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
@@ -20,6 +22,7 @@ type TransactionCreate struct {
 	config
 	mutation *TransactionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetContractAddress sets the "contract_address" field.
@@ -244,6 +247,7 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = tc.conflict
 	if id, ok := tc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -357,10 +361,345 @@ func (tc *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Transaction.Create().
+//		SetContractAddress(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TransactionUpsert) {
+//			SetContractAddress(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (tc *TransactionCreate) OnConflict(opts ...sql.ConflictOption) *TransactionUpsertOne {
+	tc.conflict = opts
+	return &TransactionUpsertOne{
+		create: tc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Transaction.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (tc *TransactionCreate) OnConflictColumns(columns ...string) *TransactionUpsertOne {
+	tc.conflict = append(tc.conflict, sql.ConflictColumns(columns...))
+	return &TransactionUpsertOne{
+		create: tc,
+	}
+}
+
+type (
+	// TransactionUpsertOne is the builder for "upsert"-ing
+	//  one Transaction node.
+	TransactionUpsertOne struct {
+		create *TransactionCreate
+	}
+
+	// TransactionUpsert is the "OnConflict" setter.
+	TransactionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetContractAddress sets the "contract_address" field.
+func (u *TransactionUpsert) SetContractAddress(v string) *TransactionUpsert {
+	u.Set(transaction.FieldContractAddress, v)
+	return u
+}
+
+// UpdateContractAddress sets the "contract_address" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateContractAddress() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldContractAddress)
+	return u
+}
+
+// SetEntryPointSelector sets the "entry_point_selector" field.
+func (u *TransactionUpsert) SetEntryPointSelector(v string) *TransactionUpsert {
+	u.Set(transaction.FieldEntryPointSelector, v)
+	return u
+}
+
+// UpdateEntryPointSelector sets the "entry_point_selector" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateEntryPointSelector() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldEntryPointSelector)
+	return u
+}
+
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (u *TransactionUpsert) ClearEntryPointSelector() *TransactionUpsert {
+	u.SetNull(transaction.FieldEntryPointSelector)
+	return u
+}
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionUpsert) SetTransactionHash(v string) *TransactionUpsert {
+	u.Set(transaction.FieldTransactionHash, v)
+	return u
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateTransactionHash() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldTransactionHash)
+	return u
+}
+
+// SetCalldata sets the "calldata" field.
+func (u *TransactionUpsert) SetCalldata(v []string) *TransactionUpsert {
+	u.Set(transaction.FieldCalldata, v)
+	return u
+}
+
+// UpdateCalldata sets the "calldata" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateCalldata() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldCalldata)
+	return u
+}
+
+// SetSignature sets the "signature" field.
+func (u *TransactionUpsert) SetSignature(v []string) *TransactionUpsert {
+	u.Set(transaction.FieldSignature, v)
+	return u
+}
+
+// UpdateSignature sets the "signature" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateSignature() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldSignature)
+	return u
+}
+
+// ClearSignature clears the value of the "signature" field.
+func (u *TransactionUpsert) ClearSignature() *TransactionUpsert {
+	u.SetNull(transaction.FieldSignature)
+	return u
+}
+
+// SetNonce sets the "nonce" field.
+func (u *TransactionUpsert) SetNonce(v string) *TransactionUpsert {
+	u.Set(transaction.FieldNonce, v)
+	return u
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *TransactionUpsert) UpdateNonce() *TransactionUpsert {
+	u.SetExcluded(transaction.FieldNonce)
+	return u
+}
+
+// ClearNonce clears the value of the "nonce" field.
+func (u *TransactionUpsert) ClearNonce() *TransactionUpsert {
+	u.SetNull(transaction.FieldNonce)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Transaction.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(transaction.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *TransactionUpsertOne) UpdateNewValues() *TransactionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(transaction.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.Transaction.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *TransactionUpsertOne) Ignore() *TransactionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TransactionUpsertOne) DoNothing() *TransactionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TransactionCreate.OnConflict
+// documentation for more info.
+func (u *TransactionUpsertOne) Update(set func(*TransactionUpsert)) *TransactionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TransactionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetContractAddress sets the "contract_address" field.
+func (u *TransactionUpsertOne) SetContractAddress(v string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetContractAddress(v)
+	})
+}
+
+// UpdateContractAddress sets the "contract_address" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateContractAddress() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateContractAddress()
+	})
+}
+
+// SetEntryPointSelector sets the "entry_point_selector" field.
+func (u *TransactionUpsertOne) SetEntryPointSelector(v string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetEntryPointSelector(v)
+	})
+}
+
+// UpdateEntryPointSelector sets the "entry_point_selector" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateEntryPointSelector() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateEntryPointSelector()
+	})
+}
+
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (u *TransactionUpsertOne) ClearEntryPointSelector() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearEntryPointSelector()
+	})
+}
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionUpsertOne) SetTransactionHash(v string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetTransactionHash(v)
+	})
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateTransactionHash() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateTransactionHash()
+	})
+}
+
+// SetCalldata sets the "calldata" field.
+func (u *TransactionUpsertOne) SetCalldata(v []string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetCalldata(v)
+	})
+}
+
+// UpdateCalldata sets the "calldata" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateCalldata() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateCalldata()
+	})
+}
+
+// SetSignature sets the "signature" field.
+func (u *TransactionUpsertOne) SetSignature(v []string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetSignature(v)
+	})
+}
+
+// UpdateSignature sets the "signature" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateSignature() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateSignature()
+	})
+}
+
+// ClearSignature clears the value of the "signature" field.
+func (u *TransactionUpsertOne) ClearSignature() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearSignature()
+	})
+}
+
+// SetNonce sets the "nonce" field.
+func (u *TransactionUpsertOne) SetNonce(v string) *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetNonce(v)
+	})
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *TransactionUpsertOne) UpdateNonce() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateNonce()
+	})
+}
+
+// ClearNonce clears the value of the "nonce" field.
+func (u *TransactionUpsertOne) ClearNonce() *TransactionUpsertOne {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearNonce()
+	})
+}
+
+// Exec executes the query.
+func (u *TransactionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TransactionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TransactionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TransactionUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: TransactionUpsertOne.ID is not supported by MySQL driver. Use TransactionUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TransactionUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TransactionCreateBulk is the builder for creating many Transaction entities in bulk.
 type TransactionCreateBulk struct {
 	config
 	builders []*TransactionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Transaction entities in the database.
@@ -386,6 +725,7 @@ func (tcb *TransactionCreateBulk) Save(ctx context.Context) ([]*Transaction, err
 					_, err = mutators[i+1].Mutate(root, tcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = tcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, tcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -432,6 +772,227 @@ func (tcb *TransactionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (tcb *TransactionCreateBulk) ExecX(ctx context.Context) {
 	if err := tcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Transaction.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TransactionUpsert) {
+//			SetContractAddress(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (tcb *TransactionCreateBulk) OnConflict(opts ...sql.ConflictOption) *TransactionUpsertBulk {
+	tcb.conflict = opts
+	return &TransactionUpsertBulk{
+		create: tcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Transaction.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (tcb *TransactionCreateBulk) OnConflictColumns(columns ...string) *TransactionUpsertBulk {
+	tcb.conflict = append(tcb.conflict, sql.ConflictColumns(columns...))
+	return &TransactionUpsertBulk{
+		create: tcb,
+	}
+}
+
+// TransactionUpsertBulk is the builder for "upsert"-ing
+// a bulk of Transaction nodes.
+type TransactionUpsertBulk struct {
+	create *TransactionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Transaction.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(transaction.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *TransactionUpsertBulk) UpdateNewValues() *TransactionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(transaction.FieldID)
+				return
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Transaction.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *TransactionUpsertBulk) Ignore() *TransactionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TransactionUpsertBulk) DoNothing() *TransactionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TransactionCreateBulk.OnConflict
+// documentation for more info.
+func (u *TransactionUpsertBulk) Update(set func(*TransactionUpsert)) *TransactionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TransactionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetContractAddress sets the "contract_address" field.
+func (u *TransactionUpsertBulk) SetContractAddress(v string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetContractAddress(v)
+	})
+}
+
+// UpdateContractAddress sets the "contract_address" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateContractAddress() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateContractAddress()
+	})
+}
+
+// SetEntryPointSelector sets the "entry_point_selector" field.
+func (u *TransactionUpsertBulk) SetEntryPointSelector(v string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetEntryPointSelector(v)
+	})
+}
+
+// UpdateEntryPointSelector sets the "entry_point_selector" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateEntryPointSelector() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateEntryPointSelector()
+	})
+}
+
+// ClearEntryPointSelector clears the value of the "entry_point_selector" field.
+func (u *TransactionUpsertBulk) ClearEntryPointSelector() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearEntryPointSelector()
+	})
+}
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionUpsertBulk) SetTransactionHash(v string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetTransactionHash(v)
+	})
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateTransactionHash() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateTransactionHash()
+	})
+}
+
+// SetCalldata sets the "calldata" field.
+func (u *TransactionUpsertBulk) SetCalldata(v []string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetCalldata(v)
+	})
+}
+
+// UpdateCalldata sets the "calldata" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateCalldata() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateCalldata()
+	})
+}
+
+// SetSignature sets the "signature" field.
+func (u *TransactionUpsertBulk) SetSignature(v []string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetSignature(v)
+	})
+}
+
+// UpdateSignature sets the "signature" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateSignature() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateSignature()
+	})
+}
+
+// ClearSignature clears the value of the "signature" field.
+func (u *TransactionUpsertBulk) ClearSignature() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearSignature()
+	})
+}
+
+// SetNonce sets the "nonce" field.
+func (u *TransactionUpsertBulk) SetNonce(v string) *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.SetNonce(v)
+	})
+}
+
+// UpdateNonce sets the "nonce" field to the value that was provided on create.
+func (u *TransactionUpsertBulk) UpdateNonce() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.UpdateNonce()
+	})
+}
+
+// ClearNonce clears the value of the "nonce" field.
+func (u *TransactionUpsertBulk) ClearNonce() *TransactionUpsertBulk {
+	return u.Update(func(s *TransactionUpsert) {
+		s.ClearNonce()
+	})
+}
+
+// Exec executes the query.
+func (u *TransactionUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the TransactionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TransactionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TransactionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

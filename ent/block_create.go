@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
@@ -20,6 +22,7 @@ type BlockCreate struct {
 	config
 	mutation *BlockMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetBlockHash sets the "block_hash" field.
@@ -219,6 +222,7 @@ func (bc *BlockCreate) createSpec() (*Block, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = bc.conflict
 	if id, ok := bc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -312,10 +316,322 @@ func (bc *BlockCreate) createSpec() (*Block, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Block.Create().
+//		SetBlockHash(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BlockUpsert) {
+//			SetBlockHash(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (bc *BlockCreate) OnConflict(opts ...sql.ConflictOption) *BlockUpsertOne {
+	bc.conflict = opts
+	return &BlockUpsertOne{
+		create: bc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Block.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (bc *BlockCreate) OnConflictColumns(columns ...string) *BlockUpsertOne {
+	bc.conflict = append(bc.conflict, sql.ConflictColumns(columns...))
+	return &BlockUpsertOne{
+		create: bc,
+	}
+}
+
+type (
+	// BlockUpsertOne is the builder for "upsert"-ing
+	//  one Block node.
+	BlockUpsertOne struct {
+		create *BlockCreate
+	}
+
+	// BlockUpsert is the "OnConflict" setter.
+	BlockUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetBlockHash sets the "block_hash" field.
+func (u *BlockUpsert) SetBlockHash(v string) *BlockUpsert {
+	u.Set(block.FieldBlockHash, v)
+	return u
+}
+
+// UpdateBlockHash sets the "block_hash" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateBlockHash() *BlockUpsert {
+	u.SetExcluded(block.FieldBlockHash)
+	return u
+}
+
+// SetParentBlockHash sets the "parent_block_hash" field.
+func (u *BlockUpsert) SetParentBlockHash(v string) *BlockUpsert {
+	u.Set(block.FieldParentBlockHash, v)
+	return u
+}
+
+// UpdateParentBlockHash sets the "parent_block_hash" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateParentBlockHash() *BlockUpsert {
+	u.SetExcluded(block.FieldParentBlockHash)
+	return u
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (u *BlockUpsert) SetBlockNumber(v uint64) *BlockUpsert {
+	u.Set(block.FieldBlockNumber, v)
+	return u
+}
+
+// UpdateBlockNumber sets the "block_number" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateBlockNumber() *BlockUpsert {
+	u.SetExcluded(block.FieldBlockNumber)
+	return u
+}
+
+// AddBlockNumber adds v to the "block_number" field.
+func (u *BlockUpsert) AddBlockNumber(v uint64) *BlockUpsert {
+	u.Add(block.FieldBlockNumber, v)
+	return u
+}
+
+// SetStateRoot sets the "state_root" field.
+func (u *BlockUpsert) SetStateRoot(v string) *BlockUpsert {
+	u.Set(block.FieldStateRoot, v)
+	return u
+}
+
+// UpdateStateRoot sets the "state_root" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateStateRoot() *BlockUpsert {
+	u.SetExcluded(block.FieldStateRoot)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *BlockUpsert) SetStatus(v block.Status) *BlockUpsert {
+	u.Set(block.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateStatus() *BlockUpsert {
+	u.SetExcluded(block.FieldStatus)
+	return u
+}
+
+// SetTimestamp sets the "timestamp" field.
+func (u *BlockUpsert) SetTimestamp(v time.Time) *BlockUpsert {
+	u.Set(block.FieldTimestamp, v)
+	return u
+}
+
+// UpdateTimestamp sets the "timestamp" field to the value that was provided on create.
+func (u *BlockUpsert) UpdateTimestamp() *BlockUpsert {
+	u.SetExcluded(block.FieldTimestamp)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Block.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(block.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *BlockUpsertOne) UpdateNewValues() *BlockUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(block.FieldID)
+		}
+		if _, exists := u.create.mutation.Timestamp(); exists {
+			s.SetIgnore(block.FieldTimestamp)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.Block.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *BlockUpsertOne) Ignore() *BlockUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BlockUpsertOne) DoNothing() *BlockUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BlockCreate.OnConflict
+// documentation for more info.
+func (u *BlockUpsertOne) Update(set func(*BlockUpsert)) *BlockUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BlockUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetBlockHash sets the "block_hash" field.
+func (u *BlockUpsertOne) SetBlockHash(v string) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetBlockHash(v)
+	})
+}
+
+// UpdateBlockHash sets the "block_hash" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateBlockHash() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateBlockHash()
+	})
+}
+
+// SetParentBlockHash sets the "parent_block_hash" field.
+func (u *BlockUpsertOne) SetParentBlockHash(v string) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetParentBlockHash(v)
+	})
+}
+
+// UpdateParentBlockHash sets the "parent_block_hash" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateParentBlockHash() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateParentBlockHash()
+	})
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (u *BlockUpsertOne) SetBlockNumber(v uint64) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetBlockNumber(v)
+	})
+}
+
+// AddBlockNumber adds v to the "block_number" field.
+func (u *BlockUpsertOne) AddBlockNumber(v uint64) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.AddBlockNumber(v)
+	})
+}
+
+// UpdateBlockNumber sets the "block_number" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateBlockNumber() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateBlockNumber()
+	})
+}
+
+// SetStateRoot sets the "state_root" field.
+func (u *BlockUpsertOne) SetStateRoot(v string) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetStateRoot(v)
+	})
+}
+
+// UpdateStateRoot sets the "state_root" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateStateRoot() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateStateRoot()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BlockUpsertOne) SetStatus(v block.Status) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateStatus() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTimestamp sets the "timestamp" field.
+func (u *BlockUpsertOne) SetTimestamp(v time.Time) *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetTimestamp(v)
+	})
+}
+
+// UpdateTimestamp sets the "timestamp" field to the value that was provided on create.
+func (u *BlockUpsertOne) UpdateTimestamp() *BlockUpsertOne {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateTimestamp()
+	})
+}
+
+// Exec executes the query.
+func (u *BlockUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BlockCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BlockUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *BlockUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: BlockUpsertOne.ID is not supported by MySQL driver. Use BlockUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *BlockUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // BlockCreateBulk is the builder for creating many Block entities in bulk.
 type BlockCreateBulk struct {
 	config
 	builders []*BlockCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Block entities in the database.
@@ -341,6 +657,7 @@ func (bcb *BlockCreateBulk) Save(ctx context.Context) ([]*Block, error) {
 					_, err = mutators[i+1].Mutate(root, bcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = bcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, bcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -387,6 +704,216 @@ func (bcb *BlockCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (bcb *BlockCreateBulk) ExecX(ctx context.Context) {
 	if err := bcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Block.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BlockUpsert) {
+//			SetBlockHash(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (bcb *BlockCreateBulk) OnConflict(opts ...sql.ConflictOption) *BlockUpsertBulk {
+	bcb.conflict = opts
+	return &BlockUpsertBulk{
+		create: bcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Block.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (bcb *BlockCreateBulk) OnConflictColumns(columns ...string) *BlockUpsertBulk {
+	bcb.conflict = append(bcb.conflict, sql.ConflictColumns(columns...))
+	return &BlockUpsertBulk{
+		create: bcb,
+	}
+}
+
+// BlockUpsertBulk is the builder for "upsert"-ing
+// a bulk of Block nodes.
+type BlockUpsertBulk struct {
+	create *BlockCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Block.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(block.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *BlockUpsertBulk) UpdateNewValues() *BlockUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(block.FieldID)
+				return
+			}
+			if _, exists := b.mutation.Timestamp(); exists {
+				s.SetIgnore(block.FieldTimestamp)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Block.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *BlockUpsertBulk) Ignore() *BlockUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BlockUpsertBulk) DoNothing() *BlockUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BlockCreateBulk.OnConflict
+// documentation for more info.
+func (u *BlockUpsertBulk) Update(set func(*BlockUpsert)) *BlockUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BlockUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetBlockHash sets the "block_hash" field.
+func (u *BlockUpsertBulk) SetBlockHash(v string) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetBlockHash(v)
+	})
+}
+
+// UpdateBlockHash sets the "block_hash" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateBlockHash() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateBlockHash()
+	})
+}
+
+// SetParentBlockHash sets the "parent_block_hash" field.
+func (u *BlockUpsertBulk) SetParentBlockHash(v string) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetParentBlockHash(v)
+	})
+}
+
+// UpdateParentBlockHash sets the "parent_block_hash" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateParentBlockHash() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateParentBlockHash()
+	})
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (u *BlockUpsertBulk) SetBlockNumber(v uint64) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetBlockNumber(v)
+	})
+}
+
+// AddBlockNumber adds v to the "block_number" field.
+func (u *BlockUpsertBulk) AddBlockNumber(v uint64) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.AddBlockNumber(v)
+	})
+}
+
+// UpdateBlockNumber sets the "block_number" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateBlockNumber() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateBlockNumber()
+	})
+}
+
+// SetStateRoot sets the "state_root" field.
+func (u *BlockUpsertBulk) SetStateRoot(v string) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetStateRoot(v)
+	})
+}
+
+// UpdateStateRoot sets the "state_root" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateStateRoot() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateStateRoot()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BlockUpsertBulk) SetStatus(v block.Status) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateStatus() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTimestamp sets the "timestamp" field.
+func (u *BlockUpsertBulk) SetTimestamp(v time.Time) *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.SetTimestamp(v)
+	})
+}
+
+// UpdateTimestamp sets the "timestamp" field to the value that was provided on create.
+func (u *BlockUpsertBulk) UpdateTimestamp() *BlockUpsertBulk {
+	return u.Update(func(s *BlockUpsert) {
+		s.UpdateTimestamp()
+	})
+}
+
+// Exec executes the query.
+func (u *BlockUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the BlockCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BlockCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BlockUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

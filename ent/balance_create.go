@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/balance"
@@ -19,6 +21,7 @@ type BalanceCreate struct {
 	config
 	mutation *BalanceMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetBalance sets the "balance" field.
@@ -193,6 +196,7 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = bc.conflict
 	if id, ok := bc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -248,10 +252,189 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Balance.Create().
+//		SetBalance(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BalanceUpsert) {
+//			SetBalance(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (bc *BalanceCreate) OnConflict(opts ...sql.ConflictOption) *BalanceUpsertOne {
+	bc.conflict = opts
+	return &BalanceUpsertOne{
+		create: bc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Balance.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (bc *BalanceCreate) OnConflictColumns(columns ...string) *BalanceUpsertOne {
+	bc.conflict = append(bc.conflict, sql.ConflictColumns(columns...))
+	return &BalanceUpsertOne{
+		create: bc,
+	}
+}
+
+type (
+	// BalanceUpsertOne is the builder for "upsert"-ing
+	//  one Balance node.
+	BalanceUpsertOne struct {
+		create *BalanceCreate
+	}
+
+	// BalanceUpsert is the "OnConflict" setter.
+	BalanceUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetBalance sets the "balance" field.
+func (u *BalanceUpsert) SetBalance(v big.Int) *BalanceUpsert {
+	u.Set(balance.FieldBalance, v)
+	return u
+}
+
+// UpdateBalance sets the "balance" field to the value that was provided on create.
+func (u *BalanceUpsert) UpdateBalance() *BalanceUpsert {
+	u.SetExcluded(balance.FieldBalance)
+	return u
+}
+
+// AddBalance adds v to the "balance" field.
+func (u *BalanceUpsert) AddBalance(v big.Int) *BalanceUpsert {
+	u.Add(balance.FieldBalance, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Balance.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(balance.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *BalanceUpsertOne) UpdateNewValues() *BalanceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(balance.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.Balance.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *BalanceUpsertOne) Ignore() *BalanceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BalanceUpsertOne) DoNothing() *BalanceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BalanceCreate.OnConflict
+// documentation for more info.
+func (u *BalanceUpsertOne) Update(set func(*BalanceUpsert)) *BalanceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BalanceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetBalance sets the "balance" field.
+func (u *BalanceUpsertOne) SetBalance(v big.Int) *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.SetBalance(v)
+	})
+}
+
+// AddBalance adds v to the "balance" field.
+func (u *BalanceUpsertOne) AddBalance(v big.Int) *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.AddBalance(v)
+	})
+}
+
+// UpdateBalance sets the "balance" field to the value that was provided on create.
+func (u *BalanceUpsertOne) UpdateBalance() *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.UpdateBalance()
+	})
+}
+
+// Exec executes the query.
+func (u *BalanceUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BalanceCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BalanceUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *BalanceUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: BalanceUpsertOne.ID is not supported by MySQL driver. Use BalanceUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *BalanceUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // BalanceCreateBulk is the builder for creating many Balance entities in bulk.
 type BalanceCreateBulk struct {
 	config
 	builders []*BalanceCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Balance entities in the database.
@@ -278,6 +461,7 @@ func (bcb *BalanceCreateBulk) Save(ctx context.Context) ([]*Balance, error) {
 					_, err = mutators[i+1].Mutate(root, bcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = bcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, bcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -324,6 +508,143 @@ func (bcb *BalanceCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (bcb *BalanceCreateBulk) ExecX(ctx context.Context) {
 	if err := bcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Balance.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BalanceUpsert) {
+//			SetBalance(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (bcb *BalanceCreateBulk) OnConflict(opts ...sql.ConflictOption) *BalanceUpsertBulk {
+	bcb.conflict = opts
+	return &BalanceUpsertBulk{
+		create: bcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Balance.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (bcb *BalanceCreateBulk) OnConflictColumns(columns ...string) *BalanceUpsertBulk {
+	bcb.conflict = append(bcb.conflict, sql.ConflictColumns(columns...))
+	return &BalanceUpsertBulk{
+		create: bcb,
+	}
+}
+
+// BalanceUpsertBulk is the builder for "upsert"-ing
+// a bulk of Balance nodes.
+type BalanceUpsertBulk struct {
+	create *BalanceCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Balance.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(balance.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *BalanceUpsertBulk) UpdateNewValues() *BalanceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(balance.FieldID)
+				return
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Balance.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *BalanceUpsertBulk) Ignore() *BalanceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BalanceUpsertBulk) DoNothing() *BalanceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BalanceCreateBulk.OnConflict
+// documentation for more info.
+func (u *BalanceUpsertBulk) Update(set func(*BalanceUpsert)) *BalanceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BalanceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetBalance sets the "balance" field.
+func (u *BalanceUpsertBulk) SetBalance(v big.Int) *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.SetBalance(v)
+	})
+}
+
+// AddBalance adds v to the "balance" field.
+func (u *BalanceUpsertBulk) AddBalance(v big.Int) *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.AddBalance(v)
+	})
+}
+
+// UpdateBalance sets the "balance" field to the value that was provided on create.
+func (u *BalanceUpsertBulk) UpdateBalance() *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.UpdateBalance()
+	})
+}
+
+// Exec executes the query.
+func (u *BalanceUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the BalanceCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BalanceCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BalanceUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
