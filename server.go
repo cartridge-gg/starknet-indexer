@@ -203,11 +203,12 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 							return err
 						}
 					case "ERC721":
-						if err := tx.Token.Create().
+						if err := tx.Balance.Create().
 							SetID(fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String())).
-							SetOwnerID(u.Event.Data[1].Hex()).
+							SetAccountID(u.Event.Data[1].Hex()).
 							SetContractID(u.ContractAddress).
 							SetTokenId(big.FromBase(u.Event.Data[2].Int)).
+							SetBalance(big.NewInt(1)).
 							OnConflictColumns("id").
 							UpdateNewValues().
 							Exec(ctx); err != nil {

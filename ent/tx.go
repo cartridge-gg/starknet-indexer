@@ -20,8 +20,6 @@ type Tx struct {
 	Contract *ContractClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
-	// Token is the client for interacting with the Token builders.
-	Token *TokenClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
@@ -165,7 +163,6 @@ func (tx *Tx) init() {
 	tx.Block = NewBlockClient(tx.config)
 	tx.Contract = NewContractClient(tx.config)
 	tx.Event = NewEventClient(tx.config)
-	tx.Token = NewTokenClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)
 	tx.TransactionReceipt = NewTransactionReceiptClient(tx.config)
 }

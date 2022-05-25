@@ -24,6 +24,20 @@ type BalanceCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetTokenId sets the "tokenId" field.
+func (bc *BalanceCreate) SetTokenId(b big.Int) *BalanceCreate {
+	bc.mutation.SetTokenId(b)
+	return bc
+}
+
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (bc *BalanceCreate) SetNillableTokenId(b *big.Int) *BalanceCreate {
+	if b != nil {
+		bc.SetTokenId(*b)
+	}
+	return bc
+}
+
 // SetBalance sets the "balance" field.
 func (bc *BalanceCreate) SetBalance(b big.Int) *BalanceCreate {
 	bc.mutation.SetBalance(b)
@@ -159,6 +173,10 @@ func (bc *BalanceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (bc *BalanceCreate) defaults() {
+	if _, ok := bc.mutation.TokenId(); !ok {
+		v := balance.DefaultTokenId()
+		bc.mutation.SetTokenId(v)
+	}
 	if _, ok := bc.mutation.Balance(); !ok {
 		v := balance.DefaultBalance()
 		bc.mutation.SetBalance(v)
@@ -206,6 +224,14 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 	if id, ok := bc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := bc.mutation.TokenId(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: balance.FieldTokenId,
+		})
+		_node.TokenId = value
 	}
 	if value, ok := bc.mutation.Balance(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -262,7 +288,7 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Balance.Create().
-//		SetBalance(v).
+//		SetTokenId(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -271,7 +297,7 @@ func (bc *BalanceCreate) createSpec() (*Balance, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.BalanceUpsert) {
-//			SetBalance(v+v).
+//			SetTokenId(v+v).
 //		}).
 //		Exec(ctx)
 //
@@ -308,6 +334,30 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetTokenId sets the "tokenId" field.
+func (u *BalanceUpsert) SetTokenId(v big.Int) *BalanceUpsert {
+	u.Set(balance.FieldTokenId, v)
+	return u
+}
+
+// UpdateTokenId sets the "tokenId" field to the value that was provided on create.
+func (u *BalanceUpsert) UpdateTokenId() *BalanceUpsert {
+	u.SetExcluded(balance.FieldTokenId)
+	return u
+}
+
+// AddTokenId adds v to the "tokenId" field.
+func (u *BalanceUpsert) AddTokenId(v big.Int) *BalanceUpsert {
+	u.Add(balance.FieldTokenId, v)
+	return u
+}
+
+// ClearTokenId clears the value of the "tokenId" field.
+func (u *BalanceUpsert) ClearTokenId() *BalanceUpsert {
+	u.SetNull(balance.FieldTokenId)
+	return u
+}
 
 // SetBalance sets the "balance" field.
 func (u *BalanceUpsert) SetBalance(v big.Int) *BalanceUpsert {
@@ -375,6 +425,34 @@ func (u *BalanceUpsertOne) Update(set func(*BalanceUpsert)) *BalanceUpsertOne {
 		set(&BalanceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetTokenId sets the "tokenId" field.
+func (u *BalanceUpsertOne) SetTokenId(v big.Int) *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.SetTokenId(v)
+	})
+}
+
+// AddTokenId adds v to the "tokenId" field.
+func (u *BalanceUpsertOne) AddTokenId(v big.Int) *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.AddTokenId(v)
+	})
+}
+
+// UpdateTokenId sets the "tokenId" field to the value that was provided on create.
+func (u *BalanceUpsertOne) UpdateTokenId() *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.UpdateTokenId()
+	})
+}
+
+// ClearTokenId clears the value of the "tokenId" field.
+func (u *BalanceUpsertOne) ClearTokenId() *BalanceUpsertOne {
+	return u.Update(func(s *BalanceUpsert) {
+		s.ClearTokenId()
+	})
 }
 
 // SetBalance sets the "balance" field.
@@ -530,7 +608,7 @@ func (bcb *BalanceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.BalanceUpsert) {
-//			SetBalance(v+v).
+//			SetTokenId(v+v).
 //		}).
 //		Exec(ctx)
 //
@@ -612,6 +690,34 @@ func (u *BalanceUpsertBulk) Update(set func(*BalanceUpsert)) *BalanceUpsertBulk 
 		set(&BalanceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetTokenId sets the "tokenId" field.
+func (u *BalanceUpsertBulk) SetTokenId(v big.Int) *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.SetTokenId(v)
+	})
+}
+
+// AddTokenId adds v to the "tokenId" field.
+func (u *BalanceUpsertBulk) AddTokenId(v big.Int) *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.AddTokenId(v)
+	})
+}
+
+// UpdateTokenId sets the "tokenId" field to the value that was provided on create.
+func (u *BalanceUpsertBulk) UpdateTokenId() *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.UpdateTokenId()
+	})
+}
+
+// ClearTokenId clears the value of the "tokenId" field.
+func (u *BalanceUpsertBulk) ClearTokenId() *BalanceUpsertBulk {
+	return u.Update(func(s *BalanceUpsert) {
+		s.ClearTokenId()
+	})
 }
 
 // SetBalance sets the "balance" field.

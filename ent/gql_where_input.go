@@ -12,7 +12,6 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
-	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
@@ -32,6 +31,18 @@ type BalanceWhereInput struct {
 	IDGTE   *string  `json:"idGTE,omitempty"`
 	IDLT    *string  `json:"idLT,omitempty"`
 	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "tokenId" field predicates.
+	TokenId       *big.Int  `json:"tokenid,omitempty"`
+	TokenIdNEQ    *big.Int  `json:"tokenidNEQ,omitempty"`
+	TokenIdIn     []big.Int `json:"tokenidIn,omitempty"`
+	TokenIdNotIn  []big.Int `json:"tokenidNotIn,omitempty"`
+	TokenIdGT     *big.Int  `json:"tokenidGT,omitempty"`
+	TokenIdGTE    *big.Int  `json:"tokenidGTE,omitempty"`
+	TokenIdLT     *big.Int  `json:"tokenidLT,omitempty"`
+	TokenIdLTE    *big.Int  `json:"tokenidLTE,omitempty"`
+	TokenIdIsNil  bool      `json:"tokenidIsNil,omitempty"`
+	TokenIdNotNil bool      `json:"tokenidNotNil,omitempty"`
 
 	// "balance" field predicates.
 	Balance      *big.Int  `json:"balance,omitempty"`
@@ -134,6 +145,36 @@ func (i *BalanceWhereInput) P() (predicate.Balance, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, balance.IDLTE(*i.IDLTE))
+	}
+	if i.TokenId != nil {
+		predicates = append(predicates, balance.TokenIdEQ(*i.TokenId))
+	}
+	if i.TokenIdNEQ != nil {
+		predicates = append(predicates, balance.TokenIdNEQ(*i.TokenIdNEQ))
+	}
+	if len(i.TokenIdIn) > 0 {
+		predicates = append(predicates, balance.TokenIdIn(i.TokenIdIn...))
+	}
+	if len(i.TokenIdNotIn) > 0 {
+		predicates = append(predicates, balance.TokenIdNotIn(i.TokenIdNotIn...))
+	}
+	if i.TokenIdGT != nil {
+		predicates = append(predicates, balance.TokenIdGT(*i.TokenIdGT))
+	}
+	if i.TokenIdGTE != nil {
+		predicates = append(predicates, balance.TokenIdGTE(*i.TokenIdGTE))
+	}
+	if i.TokenIdLT != nil {
+		predicates = append(predicates, balance.TokenIdLT(*i.TokenIdLT))
+	}
+	if i.TokenIdLTE != nil {
+		predicates = append(predicates, balance.TokenIdLTE(*i.TokenIdLTE))
+	}
+	if i.TokenIdIsNil {
+		predicates = append(predicates, balance.TokenIdIsNil())
+	}
+	if i.TokenIdNotNil {
+		predicates = append(predicates, balance.TokenIdNotNil())
 	}
 	if i.Balance != nil {
 		predicates = append(predicates, balance.BalanceEQ(*i.Balance))
@@ -1012,195 +1053,6 @@ func (i *EventWhereInput) P() (predicate.Event, error) {
 		return predicates[0], nil
 	default:
 		return event.And(predicates...), nil
-	}
-}
-
-// TokenWhereInput represents a where input for filtering Token queries.
-type TokenWhereInput struct {
-	Not *TokenWhereInput   `json:"not,omitempty"`
-	Or  []*TokenWhereInput `json:"or,omitempty"`
-	And []*TokenWhereInput `json:"and,omitempty"`
-
-	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
-
-	// "tokenId" field predicates.
-	TokenId      *big.Int  `json:"tokenid,omitempty"`
-	TokenIdNEQ   *big.Int  `json:"tokenidNEQ,omitempty"`
-	TokenIdIn    []big.Int `json:"tokenidIn,omitempty"`
-	TokenIdNotIn []big.Int `json:"tokenidNotIn,omitempty"`
-	TokenIdGT    *big.Int  `json:"tokenidGT,omitempty"`
-	TokenIdGTE   *big.Int  `json:"tokenidGTE,omitempty"`
-	TokenIdLT    *big.Int  `json:"tokenidLT,omitempty"`
-	TokenIdLTE   *big.Int  `json:"tokenidLTE,omitempty"`
-
-	// "owner" edge predicates.
-	HasOwner     *bool                 `json:"hasOwner,omitempty"`
-	HasOwnerWith []*ContractWhereInput `json:"hasOwnerWith,omitempty"`
-
-	// "contract" edge predicates.
-	HasContract     *bool                 `json:"hasContract,omitempty"`
-	HasContractWith []*ContractWhereInput `json:"hasContractWith,omitempty"`
-}
-
-// Filter applies the TokenWhereInput filter on the TokenQuery builder.
-func (i *TokenWhereInput) Filter(q *TokenQuery) (*TokenQuery, error) {
-	if i == nil {
-		return q, nil
-	}
-	p, err := i.P()
-	if err != nil {
-		return nil, err
-	}
-	return q.Where(p), nil
-}
-
-// P returns a predicate for filtering tokens.
-// An error is returned if the input is empty or invalid.
-func (i *TokenWhereInput) P() (predicate.Token, error) {
-	var predicates []predicate.Token
-	if i.Not != nil {
-		p, err := i.Not.P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, token.Not(p))
-	}
-	switch n := len(i.Or); {
-	case n == 1:
-		p, err := i.Or[0].P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		or := make([]predicate.Token, 0, n)
-		for _, w := range i.Or {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			or = append(or, p)
-		}
-		predicates = append(predicates, token.Or(or...))
-	}
-	switch n := len(i.And); {
-	case n == 1:
-		p, err := i.And[0].P()
-		if err != nil {
-			return nil, err
-		}
-		predicates = append(predicates, p)
-	case n > 1:
-		and := make([]predicate.Token, 0, n)
-		for _, w := range i.And {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			and = append(and, p)
-		}
-		predicates = append(predicates, token.And(and...))
-	}
-	if i.ID != nil {
-		predicates = append(predicates, token.IDEQ(*i.ID))
-	}
-	if i.IDNEQ != nil {
-		predicates = append(predicates, token.IDNEQ(*i.IDNEQ))
-	}
-	if len(i.IDIn) > 0 {
-		predicates = append(predicates, token.IDIn(i.IDIn...))
-	}
-	if len(i.IDNotIn) > 0 {
-		predicates = append(predicates, token.IDNotIn(i.IDNotIn...))
-	}
-	if i.IDGT != nil {
-		predicates = append(predicates, token.IDGT(*i.IDGT))
-	}
-	if i.IDGTE != nil {
-		predicates = append(predicates, token.IDGTE(*i.IDGTE))
-	}
-	if i.IDLT != nil {
-		predicates = append(predicates, token.IDLT(*i.IDLT))
-	}
-	if i.IDLTE != nil {
-		predicates = append(predicates, token.IDLTE(*i.IDLTE))
-	}
-	if i.TokenId != nil {
-		predicates = append(predicates, token.TokenIdEQ(*i.TokenId))
-	}
-	if i.TokenIdNEQ != nil {
-		predicates = append(predicates, token.TokenIdNEQ(*i.TokenIdNEQ))
-	}
-	if len(i.TokenIdIn) > 0 {
-		predicates = append(predicates, token.TokenIdIn(i.TokenIdIn...))
-	}
-	if len(i.TokenIdNotIn) > 0 {
-		predicates = append(predicates, token.TokenIdNotIn(i.TokenIdNotIn...))
-	}
-	if i.TokenIdGT != nil {
-		predicates = append(predicates, token.TokenIdGT(*i.TokenIdGT))
-	}
-	if i.TokenIdGTE != nil {
-		predicates = append(predicates, token.TokenIdGTE(*i.TokenIdGTE))
-	}
-	if i.TokenIdLT != nil {
-		predicates = append(predicates, token.TokenIdLT(*i.TokenIdLT))
-	}
-	if i.TokenIdLTE != nil {
-		predicates = append(predicates, token.TokenIdLTE(*i.TokenIdLTE))
-	}
-
-	if i.HasOwner != nil {
-		p := token.HasOwner()
-		if !*i.HasOwner {
-			p = token.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasOwnerWith) > 0 {
-		with := make([]predicate.Contract, 0, len(i.HasOwnerWith))
-		for _, w := range i.HasOwnerWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, token.HasOwnerWith(with...))
-	}
-	if i.HasContract != nil {
-		p := token.HasContract()
-		if !*i.HasContract {
-			p = token.Not(p)
-		}
-		predicates = append(predicates, p)
-	}
-	if len(i.HasContractWith) > 0 {
-		with := make([]predicate.Contract, 0, len(i.HasContractWith))
-		for _, w := range i.HasContractWith {
-			p, err := w.P()
-			if err != nil {
-				return nil, err
-			}
-			with = append(with, p)
-		}
-		predicates = append(predicates, token.HasContractWith(with...))
-	}
-	switch len(predicates) {
-	case 0:
-		return nil, fmt.Errorf("empty predicate TokenWhereInput")
-	case 1:
-		return predicates[0], nil
-	default:
-		return token.And(predicates...), nil
 	}
 }
 

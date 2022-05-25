@@ -52,22 +52,6 @@ func (e *Event) Transaction(ctx context.Context) (*Transaction, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Token) Owner(ctx context.Context) (*Contract, error) {
-	result, err := t.Edges.OwnerOrErr()
-	if IsNotLoaded(err) {
-		result, err = t.QueryOwner().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
-func (t *Token) Contract(ctx context.Context) (*Contract, error) {
-	result, err := t.Edges.ContractOrErr()
-	if IsNotLoaded(err) {
-		result, err = t.QueryContract().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
 func (t *Transaction) Block(ctx context.Context) (*Block, error) {
 	result, err := t.Edges.BlockOrErr()
 	if IsNotLoaded(err) {

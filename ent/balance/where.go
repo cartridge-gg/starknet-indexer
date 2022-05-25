@@ -92,10 +92,107 @@ func IDLTE(id string) predicate.Balance {
 	})
 }
 
+// TokenId applies equality check predicate on the "tokenId" field. It's identical to TokenIdEQ.
+func TokenId(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTokenId), v))
+	})
+}
+
 // Balance applies equality check predicate on the "balance" field. It's identical to BalanceEQ.
 func Balance(v big.Int) predicate.Balance {
 	return predicate.Balance(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldBalance), v))
+	})
+}
+
+// TokenIdEQ applies the EQ predicate on the "tokenId" field.
+func TokenIdEQ(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdNEQ applies the NEQ predicate on the "tokenId" field.
+func TokenIdNEQ(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdIn applies the In predicate on the "tokenId" field.
+func TokenIdIn(vs ...big.Int) predicate.Balance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Balance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTokenId), v...))
+	})
+}
+
+// TokenIdNotIn applies the NotIn predicate on the "tokenId" field.
+func TokenIdNotIn(vs ...big.Int) predicate.Balance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Balance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTokenId), v...))
+	})
+}
+
+// TokenIdGT applies the GT predicate on the "tokenId" field.
+func TokenIdGT(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdGTE applies the GTE predicate on the "tokenId" field.
+func TokenIdGTE(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdLT applies the LT predicate on the "tokenId" field.
+func TokenIdLT(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdLTE applies the LTE predicate on the "tokenId" field.
+func TokenIdLTE(v big.Int) predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTokenId), v))
+	})
+}
+
+// TokenIdIsNil applies the IsNil predicate on the "tokenId" field.
+func TokenIdIsNil() predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldTokenId)))
+	})
+}
+
+// TokenIdNotNil applies the NotNil predicate on the "tokenId" field.
+func TokenIdNotNil() predicate.Balance {
+	return predicate.Balance(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldTokenId)))
 	})
 }
 

@@ -29,6 +29,33 @@ func (bu *BalanceUpdate) Where(ps ...predicate.Balance) *BalanceUpdate {
 	return bu
 }
 
+// SetTokenId sets the "tokenId" field.
+func (bu *BalanceUpdate) SetTokenId(b big.Int) *BalanceUpdate {
+	bu.mutation.ResetTokenId()
+	bu.mutation.SetTokenId(b)
+	return bu
+}
+
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (bu *BalanceUpdate) SetNillableTokenId(b *big.Int) *BalanceUpdate {
+	if b != nil {
+		bu.SetTokenId(*b)
+	}
+	return bu
+}
+
+// AddTokenId adds b to the "tokenId" field.
+func (bu *BalanceUpdate) AddTokenId(b big.Int) *BalanceUpdate {
+	bu.mutation.AddTokenId(b)
+	return bu
+}
+
+// ClearTokenId clears the value of the "tokenId" field.
+func (bu *BalanceUpdate) ClearTokenId() *BalanceUpdate {
+	bu.mutation.ClearTokenId()
+	return bu
+}
+
 // SetBalance sets the "balance" field.
 func (bu *BalanceUpdate) SetBalance(b big.Int) *BalanceUpdate {
 	bu.mutation.ResetBalance()
@@ -177,6 +204,26 @@ func (bu *BalanceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := bu.mutation.TokenId(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: balance.FieldTokenId,
+		})
+	}
+	if value, ok := bu.mutation.AddedTokenId(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: balance.FieldTokenId,
+		})
+	}
+	if bu.mutation.TokenIdCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: balance.FieldTokenId,
+		})
+	}
 	if value, ok := bu.mutation.Balance(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -278,6 +325,33 @@ type BalanceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *BalanceMutation
+}
+
+// SetTokenId sets the "tokenId" field.
+func (buo *BalanceUpdateOne) SetTokenId(b big.Int) *BalanceUpdateOne {
+	buo.mutation.ResetTokenId()
+	buo.mutation.SetTokenId(b)
+	return buo
+}
+
+// SetNillableTokenId sets the "tokenId" field if the given value is not nil.
+func (buo *BalanceUpdateOne) SetNillableTokenId(b *big.Int) *BalanceUpdateOne {
+	if b != nil {
+		buo.SetTokenId(*b)
+	}
+	return buo
+}
+
+// AddTokenId adds b to the "tokenId" field.
+func (buo *BalanceUpdateOne) AddTokenId(b big.Int) *BalanceUpdateOne {
+	buo.mutation.AddTokenId(b)
+	return buo
+}
+
+// ClearTokenId clears the value of the "tokenId" field.
+func (buo *BalanceUpdateOne) ClearTokenId() *BalanceUpdateOne {
+	buo.mutation.ClearTokenId()
+	return buo
 }
 
 // SetBalance sets the "balance" field.
@@ -457,6 +531,26 @@ func (buo *BalanceUpdateOne) sqlSave(ctx context.Context) (_node *Balance, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := buo.mutation.TokenId(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: balance.FieldTokenId,
+		})
+	}
+	if value, ok := buo.mutation.AddedTokenId(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: balance.FieldTokenId,
+		})
+	}
+	if buo.mutation.TokenIdCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: balance.FieldTokenId,
+		})
 	}
 	if value, ok := buo.mutation.Balance(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

@@ -13,7 +13,6 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
-	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 
@@ -35,8 +34,6 @@ type Client struct {
 	Contract *ContractClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
-	// Token is the client for interacting with the Token builders.
-	Token *TokenClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// TransactionReceipt is the client for interacting with the TransactionReceipt builders.
@@ -58,7 +55,6 @@ func (c *Client) init() {
 	c.Block = NewBlockClient(c.config)
 	c.Contract = NewContractClient(c.config)
 	c.Event = NewEventClient(c.config)
-	c.Token = NewTokenClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
 	c.TransactionReceipt = NewTransactionReceiptClient(c.config)
 }
@@ -98,7 +94,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Block:              NewBlockClient(cfg),
 		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
-		Token:              NewTokenClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
@@ -124,7 +119,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Block:              NewBlockClient(cfg),
 		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
-		Token:              NewTokenClient(cfg),
 		Transaction:        NewTransactionClient(cfg),
 		TransactionReceipt: NewTransactionReceiptClient(cfg),
 	}, nil
@@ -160,7 +154,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Block.Use(hooks...)
 	c.Contract.Use(hooks...)
 	c.Event.Use(hooks...)
-	c.Token.Use(hooks...)
 	c.Transaction.Use(hooks...)
 	c.TransactionReceipt.Use(hooks...)
 }
@@ -619,128 +612,6 @@ func (c *EventClient) QueryTransaction(e *Event) *TransactionQuery {
 // Hooks returns the client hooks.
 func (c *EventClient) Hooks() []Hook {
 	return c.hooks.Event
-}
-
-// TokenClient is a client for the Token schema.
-type TokenClient struct {
-	config
-}
-
-// NewTokenClient returns a client for the Token from the given config.
-func NewTokenClient(c config) *TokenClient {
-	return &TokenClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `token.Hooks(f(g(h())))`.
-func (c *TokenClient) Use(hooks ...Hook) {
-	c.hooks.Token = append(c.hooks.Token, hooks...)
-}
-
-// Create returns a builder for creating a Token entity.
-func (c *TokenClient) Create() *TokenCreate {
-	mutation := newTokenMutation(c.config, OpCreate)
-	return &TokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Token entities.
-func (c *TokenClient) CreateBulk(builders ...*TokenCreate) *TokenCreateBulk {
-	return &TokenCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Token.
-func (c *TokenClient) Update() *TokenUpdate {
-	mutation := newTokenMutation(c.config, OpUpdate)
-	return &TokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TokenClient) UpdateOne(t *Token) *TokenUpdateOne {
-	mutation := newTokenMutation(c.config, OpUpdateOne, withToken(t))
-	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TokenClient) UpdateOneID(id string) *TokenUpdateOne {
-	mutation := newTokenMutation(c.config, OpUpdateOne, withTokenID(id))
-	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Token.
-func (c *TokenClient) Delete() *TokenDelete {
-	mutation := newTokenMutation(c.config, OpDelete)
-	return &TokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
-	return c.DeleteOneID(t.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *TokenClient) DeleteOneID(id string) *TokenDeleteOne {
-	builder := c.Delete().Where(token.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TokenDeleteOne{builder}
-}
-
-// Query returns a query builder for Token.
-func (c *TokenClient) Query() *TokenQuery {
-	return &TokenQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a Token entity by its id.
-func (c *TokenClient) Get(ctx context.Context, id string) (*Token, error) {
-	return c.Query().Where(token.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TokenClient) GetX(ctx context.Context, id string) *Token {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOwner queries the owner edge of a Token.
-func (c *TokenClient) QueryOwner(t *Token) *ContractQuery {
-	query := &ContractQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(token.Table, token.FieldID, id),
-			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, token.OwnerTable, token.OwnerColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryContract queries the contract edge of a Token.
-func (c *TokenClient) QueryContract(t *Token) *ContractQuery {
-	query := &ContractQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(token.Table, token.FieldID, id),
-			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, token.ContractTable, token.ContractColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *TokenClient) Hooks() []Hook {
-	return c.hooks.Token
 }
 
 // TransactionClient is a client for the Transaction schema.

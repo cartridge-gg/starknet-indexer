@@ -28,7 +28,6 @@ type hooks struct {
 	Block              []ent.Hook
 	Contract           []ent.Hook
 	Event              []ent.Hook
-	Token              []ent.Hook
 	Transaction        []ent.Hook
 	TransactionReceipt []ent.Hook
 }

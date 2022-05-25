@@ -13,7 +13,6 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
-	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/hashicorp/go-multierror"
@@ -50,14 +49,22 @@ func (b *Balance) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     b.ID,
 		Type:   "Balance",
-		Fields: make([]*Field, 1),
+		Fields: make([]*Field, 2),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(b.Balance); err != nil {
+	if buf, err = json.Marshal(b.TokenId); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
+		Type:  "big.Int",
+		Name:  "tokenId",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Balance); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
 		Type:  "big.Int",
 		Name:  "balance",
 		Value: string(buf),
@@ -248,45 +255,6 @@ func (e *Event) Node(ctx context.Context) (node *Node, err error) {
 	err = e.QueryTransaction().
 		Select(transaction.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	return node, nil
-}
-
-func (t *Token) Node(ctx context.Context) (node *Node, err error) {
-	node = &Node{
-		ID:     t.ID,
-		Type:   "Token",
-		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 2),
-	}
-	var buf []byte
-	if buf, err = json.Marshal(t.TokenId); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "big.Int",
-		Name:  "tokenId",
-		Value: string(buf),
-	}
-	node.Edges[0] = &Edge{
-		Type: "Contract",
-		Name: "owner",
-	}
-	err = t.QueryOwner().
-		Select(contract.FieldID).
-		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[1] = &Edge{
-		Type: "Contract",
-		Name: "contract",
-	}
-	err = t.QueryContract().
-		Select(contract.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -560,18 +528,6 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
-	case token.Table:
-		query := c.Token.Query().
-			Where(token.ID(id))
-		query, err := query.CollectFields(ctx, "Token")
-		if err != nil {
-			return nil, err
-		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
 	case transaction.Table:
 		query := c.Transaction.Query().
 			Where(transaction.ID(id))
@@ -721,22 +677,6 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		query := c.Event.Query().
 			Where(event.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Event")
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
-	case token.Table:
-		query := c.Token.Query().
-			Where(token.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Token")
 		if err != nil {
 			return nil, err
 		}

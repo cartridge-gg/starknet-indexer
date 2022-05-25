@@ -11,6 +11,8 @@ const (
 	Label = "balance"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldTokenId holds the string denoting the tokenid field in the database.
+	FieldTokenId = "token_id"
 	// FieldBalance holds the string denoting the balance field in the database.
 	FieldBalance = "balance"
 	// EdgeAccount holds the string denoting the account edge name in mutations.
@@ -38,6 +40,7 @@ const (
 // Columns holds all SQL columns for balance fields.
 var Columns = []string{
 	FieldID,
+	FieldTokenId,
 	FieldBalance,
 }
 
@@ -64,6 +67,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultTokenId holds the default value on creation for the "tokenId" field.
+	DefaultTokenId func() big.Int
 	// DefaultBalance holds the default value on creation for the "balance" field.
 	DefaultBalance func() big.Int
 )

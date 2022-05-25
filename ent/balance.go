@@ -17,6 +17,8 @@ type Balance struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// TokenId holds the value of the "tokenId" field.
+	TokenId big.Int `json:"tokenId,omitempty"`
 	// Balance holds the value of the "balance" field.
 	Balance big.Int `json:"balance,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -72,7 +74,7 @@ func (*Balance) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case balance.FieldBalance:
+		case balance.FieldTokenId, balance.FieldBalance:
 			values[i] = new(big.Int)
 		case balance.FieldID:
 			values[i] = new(sql.NullString)
@@ -100,6 +102,12 @@ func (b *Balance) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				b.ID = value.String
+			}
+		case balance.FieldTokenId:
+			if value, ok := values[i].(*big.Int); !ok {
+				return fmt.Errorf("unexpected type %T for field tokenId", values[i])
+			} else if value != nil {
+				b.TokenId = *value
 			}
 		case balance.FieldBalance:
 			if value, ok := values[i].(*big.Int); !ok {
@@ -159,6 +167,9 @@ func (b *Balance) String() string {
 	var builder strings.Builder
 	builder.WriteString("Balance(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", b.ID))
+	builder.WriteString("tokenId=")
+	builder.WriteString(fmt.Sprintf("%v", b.TokenId))
+	builder.WriteString(", ")
 	builder.WriteString("balance=")
 	builder.WriteString(fmt.Sprintf("%v", b.Balance))
 	builder.WriteByte(')')

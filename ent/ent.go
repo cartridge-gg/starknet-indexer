@@ -14,7 +14,6 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
-	"github.com/cartridge-gg/starknet-indexer/ent/token"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
@@ -41,7 +40,6 @@ func columnChecker(table string) func(string) error {
 		block.Table:              block.ValidColumn,
 		contract.Table:           contract.ValidColumn,
 		event.Table:              event.ValidColumn,
-		token.Table:              token.ValidColumn,
 		transaction.Table:        transaction.ValidColumn,
 		transactionreceipt.Table: transactionreceipt.ValidColumn,
 	}

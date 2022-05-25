@@ -9,7 +9,6 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
-	"github.com/cartridge-gg/starknet-indexer/ent/token"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -18,8 +17,12 @@ import (
 func init() {
 	balanceFields := schema.Balance{}.Fields()
 	_ = balanceFields
+	// balanceDescTokenId is the schema descriptor for tokenId field.
+	balanceDescTokenId := balanceFields[1].Descriptor()
+	// balance.DefaultTokenId holds the default value on creation for the tokenId field.
+	balance.DefaultTokenId = balanceDescTokenId.Default.(func() big.Int)
 	// balanceDescBalance is the schema descriptor for balance field.
-	balanceDescBalance := balanceFields[1].Descriptor()
+	balanceDescBalance := balanceFields[2].Descriptor()
 	// balance.DefaultBalance holds the default value on creation for the balance field.
 	balance.DefaultBalance = balanceDescBalance.Default.(func() big.Int)
 	contractFields := schema.Contract{}.Fields()
@@ -34,10 +37,4 @@ func init() {
 	contract.DefaultUpdatedAt = contractDescUpdatedAt.Default.(func() time.Time)
 	// contract.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	contract.UpdateDefaultUpdatedAt = contractDescUpdatedAt.UpdateDefault.(func() time.Time)
-	tokenFields := schema.Token{}.Fields()
-	_ = tokenFields
-	// tokenDescTokenId is the schema descriptor for tokenId field.
-	tokenDescTokenId := tokenFields[1].Descriptor()
-	// token.DefaultTokenId holds the default value on creation for the tokenId field.
-	token.DefaultTokenId = tokenDescTokenId.Default.(func() big.Int)
 }

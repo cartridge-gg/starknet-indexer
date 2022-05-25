@@ -328,12 +328,12 @@ func (bq *BalanceQuery) WithContract(opts ...func(*ContractQuery)) *BalanceQuery
 // Example:
 //
 //	var v []struct {
-//		Balance big.Int `json:"balance,omitempty"`
+//		TokenId big.Int `json:"tokenId,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Balance.Query().
-//		GroupBy(balance.FieldBalance).
+//		GroupBy(balance.FieldTokenId).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -357,11 +357,11 @@ func (bq *BalanceQuery) GroupBy(field string, fields ...string) *BalanceGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Balance big.Int `json:"balance,omitempty"`
+//		TokenId big.Int `json:"tokenId,omitempty"`
 //	}
 //
 //	client.Balance.Query().
-//		Select(balance.FieldBalance).
+//		Select(balance.FieldTokenId).
 //		Scan(ctx, &v)
 //
 func (bq *BalanceQuery) Select(fields ...string) *BalanceSelect {
