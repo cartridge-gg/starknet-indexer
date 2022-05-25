@@ -11,14 +11,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/cartridge-gg/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
+	"github.com/cartridge-gg/starknet-indexer/processor"
 	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
-	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
-	"github.com/tarrencev/starknet-indexer/processor"
 )
 
 func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, opts ...IndexerOption) {

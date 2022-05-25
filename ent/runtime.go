@@ -5,8 +5,8 @@ package ent
 import (
 	"time"
 
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/schema"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

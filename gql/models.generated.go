@@ -5,9 +5,9 @@ package gql
 import (
 	"time"
 
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockWhereInput is used for filtering Block objects.

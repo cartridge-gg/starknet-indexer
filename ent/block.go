@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/tarrencev/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
 )
 
 // Block is the model entity for the Block schema.

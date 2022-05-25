@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
 
 // BlockCreate is the builder for creating a Block entity.

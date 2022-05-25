@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionReceipt is the model entity for the TransactionReceipt schema.

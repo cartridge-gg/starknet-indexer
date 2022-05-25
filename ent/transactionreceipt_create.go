@@ -9,10 +9,10 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionReceiptCreate is the builder for creating a TransactionReceipt entity.

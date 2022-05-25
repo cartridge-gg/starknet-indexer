@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/cartridge-gg/starknet-indexer/ent/event"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent/event"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // EventCreate is the builder for creating a Event entity.

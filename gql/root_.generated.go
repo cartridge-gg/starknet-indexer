@@ -9,8 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -857,7 +857,7 @@ enum BlockOrderField {
   TIMESTAMP
 }
 """BlockStatus is enum for the field status"""
-enum BlockStatus @goModel(model: "github.com/tarrencev/starknet-indexer/ent/block.Status") {
+enum BlockStatus @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/block.Status") {
   ACCEPTED_ON_L1
   ACCEPTED_ON_L2
 }
@@ -1112,7 +1112,7 @@ type PageInfo {
   endCursor: Cursor
 }
 """Status is enum for the field status"""
-enum Status @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transactionreceipt.Status") {
+enum Status @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt.Status") {
   UNKNOWN
   RECEIVED
   PENDING
@@ -1323,7 +1323,7 @@ input TransactionWhereInput {
   hasEventsWith: [EventWhereInput!]
 }
 """Type is enum for the field type"""
-enum Type @goModel(model: "github.com/tarrencev/starknet-indexer/ent/contract.Type") {
+enum Type @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/contract.Type") {
   UNKNOWN
   ERC20
   ERC721

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 )
 
 // Contract is the model entity for the Contract schema.

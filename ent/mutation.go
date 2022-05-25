@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/event"
+	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/event"
-	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 
 	"entgo.io/ent"
 )

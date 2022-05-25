@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cartridge-gg/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/gql"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/gql"
 )
 
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {

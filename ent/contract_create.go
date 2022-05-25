@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 )
 
 // ContractCreate is the builder for creating a Contract entity.

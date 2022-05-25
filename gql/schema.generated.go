@@ -14,8 +14,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -57,7 +57,7 @@ func (ec *executionContext) field_Query_blocks_args(ctx context.Context, rawArgs
 	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +75,7 @@ func (ec *executionContext) field_Query_blocks_args(ctx context.Context, rawArgs
 	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (ec *executionContext) field_Query_blocks_args(ctx context.Context, rawArgs
 	var arg4 *ent.BlockOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOBlockOrder2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐBlockOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOBlockOrder2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBlockOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (ec *executionContext) field_Query_blocks_args(ctx context.Context, rawArgs
 	var arg5 *BlockWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg5, err = ec.unmarshalOBlockWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐBlockWhereInput(ctx, tmp)
+		arg5, err = ec.unmarshalOBlockWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBlockWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,7 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +153,7 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	var arg4 *EventWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOEventWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx, tmp)
+		arg4, err = ec.unmarshalOEventWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐEventWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +198,7 @@ func (ec *executionContext) field_Query_transactions_args(ctx context.Context, r
 	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -216,7 +216,7 @@ func (ec *executionContext) field_Query_transactions_args(ctx context.Context, r
 	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -234,7 +234,7 @@ func (ec *executionContext) field_Query_transactions_args(ctx context.Context, r
 	var arg4 *TransactionWhereInput
 	if tmp, ok := rawArgs["where"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		arg4, err = ec.unmarshalOTransactionWhereInput2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋgqlᚐTransactionWhereInput(ctx, tmp)
+		arg4, err = ec.unmarshalOTransactionWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐTransactionWhereInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -470,7 +470,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(ent.Noder)
 	fc.Result = res
-	return ec.marshalONode2githubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐNoder(ctx, field.Selections, res)
+	return ec.marshalONode2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -525,7 +525,7 @@ func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]ent.Noder)
 	fc.Result = res
-	return ec.marshalNNode2ᚕgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐNoder(ctx, field.Selections, res)
+	return ec.marshalNNode2ᚕgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -577,7 +577,7 @@ func (ec *executionContext) _Query_blocks(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*ent.BlockConnection)
 	fc.Result = res
-	return ec.marshalOBlockConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐBlockConnection(ctx, field.Selections, res)
+	return ec.marshalOBlockConnection2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBlockConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_blocks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -637,7 +637,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*ent.EventConnection)
 	fc.Result = res
-	return ec.marshalOEventConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEventConnection(ctx, field.Selections, res)
+	return ec.marshalOEventConnection2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐEventConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -697,7 +697,7 @@ func (ec *executionContext) _Query_transactions(ctx context.Context, field graph
 	}
 	res := resTmp.(*ent.TransactionConnection)
 	fc.Result = res
-	return ec.marshalOTransactionConnection2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐTransactionConnection(ctx, field.Selections, res)
+	return ec.marshalOTransactionConnection2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐTransactionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -893,7 +893,7 @@ func (ec *executionContext) _Subscription_watchEvent(ctx context.Context, field 
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalOEvent2ᚖgithubᚗcomᚋtarrencevᚋstarknetᚑindexerᚋentᚐEvent(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalOEvent2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐEvent(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}

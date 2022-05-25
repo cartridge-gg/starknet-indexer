@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 )
 
 // ContractQuery is the builder for querying Contract entities.

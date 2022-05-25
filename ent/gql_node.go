@@ -9,12 +9,12 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/cartridge-gg/starknet-indexer/ent/block"
+	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/event"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/hashicorp/go-multierror"
-	"github.com/tarrencev/starknet-indexer/ent/block"
-	"github.com/tarrencev/starknet-indexer/ent/contract"
-	"github.com/tarrencev/starknet-indexer/ent/event"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
 
 // Noder wraps the basic Node method.

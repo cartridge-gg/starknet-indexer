@@ -5,9 +5,9 @@ package enttest
 import (
 	"context"
 
-	"github.com/tarrencev/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/ent"
 	// required by schema hooks.
-	_ "github.com/tarrencev/starknet-indexer/ent/runtime"
+	_ "github.com/cartridge-gg/starknet-indexer/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

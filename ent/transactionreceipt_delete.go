@@ -9,8 +9,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/tarrencev/starknet-indexer/ent/predicate"
-	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
+	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
 
 // TransactionReceiptDelete is the builder for deleting a TransactionReceipt entity.

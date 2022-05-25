@@ -6,12 +6,12 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/alecthomas/kong"
+	indexer "github.com/cartridge-gg/starknet-indexer"
+	_ "github.com/cartridge-gg/starknet-indexer/ent/runtime"
 	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
-	indexer "github.com/tarrencev/starknet-indexer"
-	_ "github.com/tarrencev/starknet-indexer/ent/runtime"
 )
 
 func main() {

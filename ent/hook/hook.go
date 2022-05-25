@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tarrencev/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/ent"
 )
 
 // The BlockFunc type is an adapter to allow the use of ordinary

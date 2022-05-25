@@ -2,8 +2,8 @@ package indexer
 
 import (
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/tarrencev/starknet-indexer/ent"
-	"github.com/tarrencev/starknet-indexer/gql"
+	"github.com/cartridge-gg/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/gql"
 )
 
 // Resolver is the resolver root.

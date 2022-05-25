@@ -19,7 +19,7 @@ models:
       - github.com/99designs/gqlgen/graphql.ID
   Node:
     model:
-      - github.com/tarrencev/starknet-indexer/ent.Noder
+      - github.com/cartridge-gg/starknet-indexer/ent.Noder
   Felt:
     model:
       - github.com/dontpanicdao/caigo/types.Felt
@@ -28,7 +28,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Uint64
   JSON:
     model:
-      - github.com/tarrencev/starknet-indexer/ent/schema/json.RawMessage
+      - github.com/cartridge-gg/starknet-indexer/ent/schema/json.RawMessage
   L1Message:
     model:
       - github.com/dontpanicdao/caigo/types.L1Message

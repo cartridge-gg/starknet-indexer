@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/cartridge-gg/starknet-indexer/ent/event"
+	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/tarrencev/starknet-indexer/ent/event"
-	"github.com/tarrencev/starknet-indexer/ent/transaction"
 )
 
 // Event is the model entity for the Event schema.
