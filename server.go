@@ -182,57 +182,36 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 				for _, u := range balanceUpdates {
 					switch u.ContractType {
 					case "ERC20":
-						senderBalance, _ := tx.Balance.Get(ctx, fmt.Sprintf("%s:%s", u.Event.Data[0], u.ContractAddress))
-						if senderBalance == nil {
-							if err := tx.Balance.Create().
-								SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
-								SetAccountID(u.Event.Data[0].Hex()).
-								SetContractID(u.ContractAddress).
-								Exec(ctx); err != nil {
-								return err
-							}
-						} else {
-							if err := senderBalance.Update().
-								AddBalance(big.FromBase(u.Event.Data[2].Int).Neg()).
-								Exec(ctx); err != nil {
-								return err
-							}
+						if err := tx.Balance.Create().
+							SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
+							SetAccountID(u.Event.Data[0].Hex()).
+							SetContractID(u.ContractAddress).
+							OnConflictColumns("id").
+							AddBalance(big.FromBase(u.Event.Data[2].Int).Neg()).
+							Exec(ctx); err != nil {
+							return err
 						}
 
-						receiverBalance, _ := tx.Balance.Get(ctx, fmt.Sprintf("%s:%s", u.Event.Data[1], u.ContractAddress))
-						if receiverBalance == nil {
-							if err := tx.Balance.Create().
-								SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
-								SetAccountID(u.Event.Data[0].Hex()).
-								SetContractID(u.ContractAddress).
-								SetBalance(big.FromBase(u.Event.Data[2].Int)).
-								Exec(ctx); err != nil {
-								return err
-							}
-						} else {
-							if err := receiverBalance.Update().
-								AddBalance(big.FromBase(u.Event.Data[2].Int)).
-								Exec(ctx); err != nil {
-								return err
-							}
+						if err := tx.Balance.Create().
+							SetID(fmt.Sprintf("%s:%s", u.Event.Data[0].Hex(), u.ContractAddress)).
+							SetAccountID(u.Event.Data[0].Hex()).
+							SetContractID(u.ContractAddress).
+							SetBalance(big.FromBase(u.Event.Data[2].Int)).
+							OnConflictColumns("id").
+							AddBalance(big.FromBase(u.Event.Data[2].Int)).
+							Exec(ctx); err != nil {
+							return err
 						}
 					case "ERC721":
-						token, _ := tx.Token.Get(ctx, fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String()))
-						if token == nil {
-							if err := tx.Token.Create().
-								SetID(fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String())).
-								SetOwnerID(u.Event.Data[1].Hex()).
-								SetContractID(u.ContractAddress).
-								SetTokenId(big.FromBase(u.Event.Data[2].Int)).
-								Exec(ctx); err != nil {
-								return err
-							}
-						} else {
-							if err := token.Update().
-								SetOwnerID(u.Event.Data[1].Hex()).
-								Exec(ctx); err != nil {
-								return err
-							}
+						if err := tx.Token.Create().
+							SetID(fmt.Sprintf("$%s:%s", u.ContractAddress, u.Event.Data[2].String())).
+							SetOwnerID(u.Event.Data[1].Hex()).
+							SetContractID(u.ContractAddress).
+							SetTokenId(big.FromBase(u.Event.Data[2].Int)).
+							OnConflictColumns("id").
+							UpdateNewValues().
+							Exec(ctx); err != nil {
+							return err
 						}
 					}
 				}
