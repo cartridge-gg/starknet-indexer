@@ -12,6 +12,24 @@ type MatchableContract interface {
 	Match(ctx context.Context, provider *jsonrpc.Client) bool
 }
 
+// Unknown
+type UnknownContract struct {
+	MatchableContract
+	address string
+}
+
+func NewUnknownContract(address string) *UnknownContract {
+	return &UnknownContract{address: address}
+}
+
+func (c *UnknownContract) Address() string {
+	return c.address
+}
+
+func (c *UnknownContract) Type() string {
+	return "UNKNOWN"
+}
+
 // ERC20
 type ERC20Contract struct {
 	MatchableContract
@@ -101,5 +119,5 @@ func Match(ctx context.Context, address string, provider *jsonrpc.Client) Matcha
 		return c
 	}
 
-	return nil
+	return NewUnknownContract(address)
 }

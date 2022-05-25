@@ -31,14 +31,34 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Balance() BalanceResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
+	Token() TokenResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Balance struct {
+		Account  func(childComplexity int) int
+		Balance  func(childComplexity int) int
+		Contract func(childComplexity int) int
+		ID       func(childComplexity int) int
+	}
+
+	BalanceConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	BalanceEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Block struct {
 		BlockHash           func(childComplexity int) int
 		BlockNumber         func(childComplexity int) int
@@ -129,6 +149,24 @@ type ComplexityRoot struct {
 		WatchEvent func(childComplexity int, address string, keys []*types.Felt) int
 	}
 
+	Token struct {
+		Contract func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Owner    func(childComplexity int) int
+		Tokenid  func(childComplexity int) int
+	}
+
+	TokenConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	TokenEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Transaction struct {
 		Block              func(childComplexity int) int
 		Calldata           func(childComplexity int) int
@@ -190,6 +228,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Balance.account":
+		if e.complexity.Balance.Account == nil {
+			break
+		}
+
+		return e.complexity.Balance.Account(childComplexity), true
+
+	case "Balance.balance":
+		if e.complexity.Balance.Balance == nil {
+			break
+		}
+
+		return e.complexity.Balance.Balance(childComplexity), true
+
+	case "Balance.contract":
+		if e.complexity.Balance.Contract == nil {
+			break
+		}
+
+		return e.complexity.Balance.Contract(childComplexity), true
+
+	case "Balance.id":
+		if e.complexity.Balance.ID == nil {
+			break
+		}
+
+		return e.complexity.Balance.ID(childComplexity), true
+
+	case "BalanceConnection.edges":
+		if e.complexity.BalanceConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.BalanceConnection.Edges(childComplexity), true
+
+	case "BalanceConnection.pageInfo":
+		if e.complexity.BalanceConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.BalanceConnection.PageInfo(childComplexity), true
+
+	case "BalanceConnection.totalCount":
+		if e.complexity.BalanceConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.BalanceConnection.TotalCount(childComplexity), true
+
+	case "BalanceEdge.cursor":
+		if e.complexity.BalanceEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.BalanceEdge.Cursor(childComplexity), true
+
+	case "BalanceEdge.node":
+		if e.complexity.BalanceEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.BalanceEdge.Node(childComplexity), true
 
 	case "Block.blockHash":
 		if e.complexity.Block.BlockHash == nil {
@@ -557,6 +658,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.WatchEvent(childComplexity, args["address"].(string), args["keys"].([]*types.Felt)), true
 
+	case "Token.contract":
+		if e.complexity.Token.Contract == nil {
+			break
+		}
+
+		return e.complexity.Token.Contract(childComplexity), true
+
+	case "Token.id":
+		if e.complexity.Token.ID == nil {
+			break
+		}
+
+		return e.complexity.Token.ID(childComplexity), true
+
+	case "Token.owner":
+		if e.complexity.Token.Owner == nil {
+			break
+		}
+
+		return e.complexity.Token.Owner(childComplexity), true
+
+	case "Token.tokenid":
+		if e.complexity.Token.Tokenid == nil {
+			break
+		}
+
+		return e.complexity.Token.Tokenid(childComplexity), true
+
+	case "TokenConnection.edges":
+		if e.complexity.TokenConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.TokenConnection.Edges(childComplexity), true
+
+	case "TokenConnection.pageInfo":
+		if e.complexity.TokenConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.TokenConnection.PageInfo(childComplexity), true
+
+	case "TokenConnection.totalCount":
+		if e.complexity.TokenConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.TokenConnection.TotalCount(childComplexity), true
+
+	case "TokenEdge.cursor":
+		if e.complexity.TokenEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.TokenEdge.Cursor(childComplexity), true
+
+	case "TokenEdge.node":
+		if e.complexity.TokenEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.TokenEdge.Node(childComplexity), true
+
 	case "Transaction.block":
 		if e.complexity.Transaction.Block == nil {
 			break
@@ -822,6 +986,60 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+type Balance implements Node {
+  id: ID!
+  balance: Int!
+  account: Contract
+  contract: Contract
+}
+"""A connection to a list of items."""
+type BalanceConnection {
+  """A list of edges."""
+  edges: [BalanceEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type BalanceEdge {
+  """The item at the end of the edge."""
+  node: Balance
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
+BalanceWhereInput is used for filtering Balance objects.
+Input was generated by ent.
+"""
+input BalanceWhereInput {
+  not: BalanceWhereInput
+  and: [BalanceWhereInput!]
+  or: [BalanceWhereInput!]
+  """balance field predicates"""
+  balance: Int
+  balanceNEQ: Int
+  balanceIn: [Int!]
+  balanceNotIn: [Int!]
+  balanceGT: Int
+  balanceGTE: Int
+  balanceLT: Int
+  balanceLTE: Int
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """account edge predicates"""
+  hasAccount: Boolean
+  hasAccountWith: [ContractWhereInput!]
+  """contract edge predicates"""
+  hasContract: Boolean
+  hasContractWith: [ContractWhereInput!]
+}
 type Block implements Node {
   id: ID!
   blockHash: String!
@@ -1119,6 +1337,60 @@ enum Status @goModel(model: "github.com/tarrencev/starknet-indexer/ent/transacti
   ACCEPTED_ON_L2
   ACCEPTED_ON_L1
   REJECTED
+}
+type Token implements Node {
+  id: ID!
+  tokenid: Int!
+  owner: Contract
+  contract: Contract
+}
+"""A connection to a list of items."""
+type TokenConnection {
+  """A list of edges."""
+  edges: [TokenEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type TokenEdge {
+  """The item at the end of the edge."""
+  node: Token
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
+TokenWhereInput is used for filtering Token objects.
+Input was generated by ent.
+"""
+input TokenWhereInput {
+  not: TokenWhereInput
+  and: [TokenWhereInput!]
+  or: [TokenWhereInput!]
+  """tokenId field predicates"""
+  tokenid: Int
+  tokenidNEQ: Int
+  tokenidIn: [Int!]
+  tokenidNotIn: [Int!]
+  tokenidGT: Int
+  tokenidGTE: Int
+  tokenidLT: Int
+  tokenidLTE: Int
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """owner edge predicates"""
+  hasOwner: Boolean
+  hasOwnerWith: [ContractWhereInput!]
+  """contract edge predicates"""
+  hasContract: Boolean
+  hasContractWith: [ContractWhereInput!]
 }
 type Transaction implements Node {
   id: ID!

@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/tarrencev/starknet-indexer/ent/balance"
 	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/schema"
 )
@@ -13,6 +14,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	balanceFields := schema.Balance{}.Fields()
+	_ = balanceFields
+	// balanceDescBalance is the schema descriptor for balance field.
+	balanceDescBalance := balanceFields[1].Descriptor()
+	// balance.DefaultBalance holds the default value on creation for the balance field.
+	balance.DefaultBalance = balanceDescBalance.Default.(uint64)
 	contractFields := schema.Contract{}.Fields()
 	_ = contractFields
 	// contractDescCreatedAt is the schema descriptor for created_at field.

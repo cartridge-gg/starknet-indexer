@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Balance is the predicate function for balance builders.
+type Balance func(*sql.Selector)
+
 // Block is the predicate function for block builders.
 type Block func(*sql.Selector)
 
@@ -14,6 +17,9 @@ type Contract func(*sql.Selector)
 
 // Event is the predicate function for event builders.
 type Event func(*sql.Selector)
+
+// Token is the predicate function for token builders.
+type Token func(*sql.Selector)
 
 // Transaction is the predicate function for transaction builders.
 type Transaction func(*sql.Selector)

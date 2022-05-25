@@ -10,9 +10,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/tarrencev/starknet-indexer/ent/balance"
 	"github.com/tarrencev/starknet-indexer/ent/block"
 	"github.com/tarrencev/starknet-indexer/ent/contract"
 	"github.com/tarrencev/starknet-indexer/ent/event"
+	"github.com/tarrencev/starknet-indexer/ent/token"
 	"github.com/tarrencev/starknet-indexer/ent/transaction"
 	"github.com/tarrencev/starknet-indexer/ent/transactionreceipt"
 )
@@ -35,9 +37,11 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		balance.Table:            balance.ValidColumn,
 		block.Table:              block.ValidColumn,
 		contract.Table:           contract.ValidColumn,
 		event.Table:              event.ValidColumn,
+		token.Table:              token.ValidColumn,
 		transaction.Table:        transaction.ValidColumn,
 		transactionreceipt.Table: transactionreceipt.ValidColumn,
 	}

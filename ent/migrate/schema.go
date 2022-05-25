@@ -8,6 +8,33 @@ import (
 )
 
 var (
+	// BalancesColumns holds the columns for the "balances" table.
+	BalancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "balance", Type: field.TypeUint64, Default: 0},
+		{Name: "balance_account", Type: field.TypeString, Nullable: true},
+		{Name: "balance_contract", Type: field.TypeString, Nullable: true},
+	}
+	// BalancesTable holds the schema information for the "balances" table.
+	BalancesTable = &schema.Table{
+		Name:       "balances",
+		Columns:    BalancesColumns,
+		PrimaryKey: []*schema.Column{BalancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "balances_contracts_account",
+				Columns:    []*schema.Column{BalancesColumns[2]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "balances_contracts_contract",
+				Columns:    []*schema.Column{BalancesColumns[3]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// BlocksColumns holds the columns for the "blocks" table.
 	BlocksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -55,6 +82,33 @@ var (
 				Symbol:     "events_transactions_events",
 				Columns:    []*schema.Column{EventsColumns[4]},
 				RefColumns: []*schema.Column{TransactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TokensColumns holds the columns for the "tokens" table.
+	TokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "token_id", Type: field.TypeUint64},
+		{Name: "token_owner", Type: field.TypeString, Nullable: true},
+		{Name: "token_contract", Type: field.TypeString, Nullable: true},
+	}
+	// TokensTable holds the schema information for the "tokens" table.
+	TokensTable = &schema.Table{
+		Name:       "tokens",
+		Columns:    TokensColumns,
+		PrimaryKey: []*schema.Column{TokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tokens_contracts_owner",
+				Columns:    []*schema.Column{TokensColumns[2]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "tokens_contracts_contract",
+				Columns:    []*schema.Column{TokensColumns[3]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -124,16 +178,22 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BalancesTable,
 		BlocksTable,
 		ContractsTable,
 		EventsTable,
+		TokensTable,
 		TransactionsTable,
 		TransactionReceiptsTable,
 	}
 )
 
 func init() {
+	BalancesTable.ForeignKeys[0].RefTable = ContractsTable
+	BalancesTable.ForeignKeys[1].RefTable = ContractsTable
 	EventsTable.ForeignKeys[0].RefTable = TransactionsTable
+	TokensTable.ForeignKeys[0].RefTable = ContractsTable
+	TokensTable.ForeignKeys[1].RefTable = ContractsTable
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionsTable.ForeignKeys[1].RefTable = ContractsTable
 	TransactionReceiptsTable.ForeignKeys[0].RefTable = BlocksTable
