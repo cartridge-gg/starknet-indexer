@@ -67,7 +67,7 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 	if err != nil && !ent.IsNotFound(err) {
 		log.Fatal().Err(err).Msg("Getting head block")
 	} else if head != nil {
-		n = head.BlockNumber
+		n = head.BlockNumber + 1
 	}
 
 	e, err := NewEngine(ctx, provider, Config{
@@ -174,6 +174,8 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 					if err := tx.Contract.Create().
 						SetID(m.Address()).
 						SetType(contract.Type(m.Type())).
+						OnConflictColumns("id").
+						DoNothing().
 						Exec(ctx); err != nil {
 						return err
 					}
