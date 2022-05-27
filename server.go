@@ -212,7 +212,7 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 							SetTokenId(big.FromBase(u.Event.Data[2].Int)).
 							SetBalance(big.NewInt(0)).
 							OnConflictColumns("id").
-							AddBalance(big.NewInt(0)).
+							SetBalance(big.NewInt(0)).
 							Exec(ctx); err != nil {
 							return err
 						}
