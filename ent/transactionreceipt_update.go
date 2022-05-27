@@ -437,9 +437,15 @@ func (truo *TransactionReceiptUpdateOne) Save(ctx context.Context) (*Transaction
 			}
 			mut = truo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, truo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, truo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*TransactionReceipt)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from TransactionReceiptMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

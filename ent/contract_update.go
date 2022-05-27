@@ -409,9 +409,15 @@ func (cuo *ContractUpdateOne) Save(ctx context.Context) (*Contract, error) {
 			}
 			mut = cuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, cuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Contract)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ContractMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
@@ -20,6 +22,7 @@ type TransactionReceiptCreate struct {
 	config
 	mutation *TransactionReceiptMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTransactionHash sets the "transaction_hash" field.
@@ -127,9 +130,15 @@ func (trc *TransactionReceiptCreate) Save(ctx context.Context) (*TransactionRece
 			}
 			mut = trc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, trc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, trc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*TransactionReceipt)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from TransactionReceiptMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }
@@ -213,6 +222,7 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 			},
 		}
 	)
+	_spec.OnConflict = trc.conflict
 	if id, ok := trc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -300,10 +310,280 @@ func (trc *TransactionReceiptCreate) createSpec() (*TransactionReceipt, *sqlgrap
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TransactionReceipt.Create().
+//		SetTransactionHash(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TransactionReceiptUpsert) {
+//			SetTransactionHash(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (trc *TransactionReceiptCreate) OnConflict(opts ...sql.ConflictOption) *TransactionReceiptUpsertOne {
+	trc.conflict = opts
+	return &TransactionReceiptUpsertOne{
+		create: trc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TransactionReceipt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (trc *TransactionReceiptCreate) OnConflictColumns(columns ...string) *TransactionReceiptUpsertOne {
+	trc.conflict = append(trc.conflict, sql.ConflictColumns(columns...))
+	return &TransactionReceiptUpsertOne{
+		create: trc,
+	}
+}
+
+type (
+	// TransactionReceiptUpsertOne is the builder for "upsert"-ing
+	//  one TransactionReceipt node.
+	TransactionReceiptUpsertOne struct {
+		create *TransactionReceiptCreate
+	}
+
+	// TransactionReceiptUpsert is the "OnConflict" setter.
+	TransactionReceiptUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionReceiptUpsert) SetTransactionHash(v string) *TransactionReceiptUpsert {
+	u.Set(transactionreceipt.FieldTransactionHash, v)
+	return u
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionReceiptUpsert) UpdateTransactionHash() *TransactionReceiptUpsert {
+	u.SetExcluded(transactionreceipt.FieldTransactionHash)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *TransactionReceiptUpsert) SetStatus(v transactionreceipt.Status) *TransactionReceiptUpsert {
+	u.Set(transactionreceipt.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TransactionReceiptUpsert) UpdateStatus() *TransactionReceiptUpsert {
+	u.SetExcluded(transactionreceipt.FieldStatus)
+	return u
+}
+
+// SetStatusData sets the "status_data" field.
+func (u *TransactionReceiptUpsert) SetStatusData(v string) *TransactionReceiptUpsert {
+	u.Set(transactionreceipt.FieldStatusData, v)
+	return u
+}
+
+// UpdateStatusData sets the "status_data" field to the value that was provided on create.
+func (u *TransactionReceiptUpsert) UpdateStatusData() *TransactionReceiptUpsert {
+	u.SetExcluded(transactionreceipt.FieldStatusData)
+	return u
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (u *TransactionReceiptUpsert) SetMessagesSent(v []*types.L1Message) *TransactionReceiptUpsert {
+	u.Set(transactionreceipt.FieldMessagesSent, v)
+	return u
+}
+
+// UpdateMessagesSent sets the "messages_sent" field to the value that was provided on create.
+func (u *TransactionReceiptUpsert) UpdateMessagesSent() *TransactionReceiptUpsert {
+	u.SetExcluded(transactionreceipt.FieldMessagesSent)
+	return u
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (u *TransactionReceiptUpsert) SetL1OriginMessage(v *types.L2Message) *TransactionReceiptUpsert {
+	u.Set(transactionreceipt.FieldL1OriginMessage, v)
+	return u
+}
+
+// UpdateL1OriginMessage sets the "l1_origin_message" field to the value that was provided on create.
+func (u *TransactionReceiptUpsert) UpdateL1OriginMessage() *TransactionReceiptUpsert {
+	u.SetExcluded(transactionreceipt.FieldL1OriginMessage)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.TransactionReceipt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(transactionreceipt.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *TransactionReceiptUpsertOne) UpdateNewValues() *TransactionReceiptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(transactionreceipt.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.TransactionReceipt.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *TransactionReceiptUpsertOne) Ignore() *TransactionReceiptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TransactionReceiptUpsertOne) DoNothing() *TransactionReceiptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TransactionReceiptCreate.OnConflict
+// documentation for more info.
+func (u *TransactionReceiptUpsertOne) Update(set func(*TransactionReceiptUpsert)) *TransactionReceiptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TransactionReceiptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionReceiptUpsertOne) SetTransactionHash(v string) *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetTransactionHash(v)
+	})
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertOne) UpdateTransactionHash() *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateTransactionHash()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *TransactionReceiptUpsertOne) SetStatus(v transactionreceipt.Status) *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertOne) UpdateStatus() *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetStatusData sets the "status_data" field.
+func (u *TransactionReceiptUpsertOne) SetStatusData(v string) *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetStatusData(v)
+	})
+}
+
+// UpdateStatusData sets the "status_data" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertOne) UpdateStatusData() *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateStatusData()
+	})
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (u *TransactionReceiptUpsertOne) SetMessagesSent(v []*types.L1Message) *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetMessagesSent(v)
+	})
+}
+
+// UpdateMessagesSent sets the "messages_sent" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertOne) UpdateMessagesSent() *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateMessagesSent()
+	})
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (u *TransactionReceiptUpsertOne) SetL1OriginMessage(v *types.L2Message) *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetL1OriginMessage(v)
+	})
+}
+
+// UpdateL1OriginMessage sets the "l1_origin_message" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertOne) UpdateL1OriginMessage() *TransactionReceiptUpsertOne {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateL1OriginMessage()
+	})
+}
+
+// Exec executes the query.
+func (u *TransactionReceiptUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TransactionReceiptCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TransactionReceiptUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TransactionReceiptUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: TransactionReceiptUpsertOne.ID is not supported by MySQL driver. Use TransactionReceiptUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TransactionReceiptUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TransactionReceiptCreateBulk is the builder for creating many TransactionReceipt entities in bulk.
 type TransactionReceiptCreateBulk struct {
 	config
 	builders []*TransactionReceiptCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the TransactionReceipt entities in the database.
@@ -329,6 +609,7 @@ func (trcb *TransactionReceiptCreateBulk) Save(ctx context.Context) ([]*Transact
 					_, err = mutators[i+1].Mutate(root, trcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = trcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, trcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -375,6 +656,192 @@ func (trcb *TransactionReceiptCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (trcb *TransactionReceiptCreateBulk) ExecX(ctx context.Context) {
 	if err := trcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TransactionReceipt.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TransactionReceiptUpsert) {
+//			SetTransactionHash(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (trcb *TransactionReceiptCreateBulk) OnConflict(opts ...sql.ConflictOption) *TransactionReceiptUpsertBulk {
+	trcb.conflict = opts
+	return &TransactionReceiptUpsertBulk{
+		create: trcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TransactionReceipt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (trcb *TransactionReceiptCreateBulk) OnConflictColumns(columns ...string) *TransactionReceiptUpsertBulk {
+	trcb.conflict = append(trcb.conflict, sql.ConflictColumns(columns...))
+	return &TransactionReceiptUpsertBulk{
+		create: trcb,
+	}
+}
+
+// TransactionReceiptUpsertBulk is the builder for "upsert"-ing
+// a bulk of TransactionReceipt nodes.
+type TransactionReceiptUpsertBulk struct {
+	create *TransactionReceiptCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.TransactionReceipt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(transactionreceipt.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *TransactionReceiptUpsertBulk) UpdateNewValues() *TransactionReceiptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(transactionreceipt.FieldID)
+				return
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.TransactionReceipt.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *TransactionReceiptUpsertBulk) Ignore() *TransactionReceiptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TransactionReceiptUpsertBulk) DoNothing() *TransactionReceiptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TransactionReceiptCreateBulk.OnConflict
+// documentation for more info.
+func (u *TransactionReceiptUpsertBulk) Update(set func(*TransactionReceiptUpsert)) *TransactionReceiptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TransactionReceiptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTransactionHash sets the "transaction_hash" field.
+func (u *TransactionReceiptUpsertBulk) SetTransactionHash(v string) *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetTransactionHash(v)
+	})
+}
+
+// UpdateTransactionHash sets the "transaction_hash" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertBulk) UpdateTransactionHash() *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateTransactionHash()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *TransactionReceiptUpsertBulk) SetStatus(v transactionreceipt.Status) *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertBulk) UpdateStatus() *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetStatusData sets the "status_data" field.
+func (u *TransactionReceiptUpsertBulk) SetStatusData(v string) *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetStatusData(v)
+	})
+}
+
+// UpdateStatusData sets the "status_data" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertBulk) UpdateStatusData() *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateStatusData()
+	})
+}
+
+// SetMessagesSent sets the "messages_sent" field.
+func (u *TransactionReceiptUpsertBulk) SetMessagesSent(v []*types.L1Message) *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetMessagesSent(v)
+	})
+}
+
+// UpdateMessagesSent sets the "messages_sent" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertBulk) UpdateMessagesSent() *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateMessagesSent()
+	})
+}
+
+// SetL1OriginMessage sets the "l1_origin_message" field.
+func (u *TransactionReceiptUpsertBulk) SetL1OriginMessage(v *types.L2Message) *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.SetL1OriginMessage(v)
+	})
+}
+
+// UpdateL1OriginMessage sets the "l1_origin_message" field to the value that was provided on create.
+func (u *TransactionReceiptUpsertBulk) UpdateL1OriginMessage() *TransactionReceiptUpsertBulk {
+	return u.Update(func(s *TransactionReceiptUpsert) {
+		s.UpdateL1OriginMessage()
+	})
+}
+
+// Exec executes the query.
+func (u *TransactionReceiptUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the TransactionReceiptCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TransactionReceiptCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TransactionReceiptUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

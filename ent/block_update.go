@@ -552,9 +552,15 @@ func (buo *BlockUpdateOne) Save(ctx context.Context) (*Block, error) {
 			}
 			mut = buo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, buo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, buo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Block)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from BlockMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

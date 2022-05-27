@@ -5,14 +5,26 @@ package ent
 import (
 	"time"
 
+	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	balanceFields := schema.Balance{}.Fields()
+	_ = balanceFields
+	// balanceDescTokenId is the schema descriptor for tokenId field.
+	balanceDescTokenId := balanceFields[1].Descriptor()
+	// balance.DefaultTokenId holds the default value on creation for the tokenId field.
+	balance.DefaultTokenId = balanceDescTokenId.Default.(func() big.Int)
+	// balanceDescBalance is the schema descriptor for balance field.
+	balanceDescBalance := balanceFields[2].Descriptor()
+	// balance.DefaultBalance holds the default value on creation for the balance field.
+	balance.DefaultBalance = balanceDescBalance.Default.(func() big.Int)
 	contractFields := schema.Contract{}.Fields()
 	_ = contractFields
 	// contractDescCreatedAt is the schema descriptor for created_at field.

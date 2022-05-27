@@ -9,6 +9,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
 )
@@ -26,7 +27,12 @@ func main() {
 	opts := []entc.Option{
 		entc.Extensions(ex),
 	}
-	err = entc.Generate("./schema", &gen.Config{}, opts...)
+	err = entc.Generate("./schema", &gen.Config{
+		IDType: &field.TypeInfo{Type: field.TypeString},
+		Features: []gen.Feature{
+			gen.FeatureUpsert,
+		},
+	}, opts...)
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}

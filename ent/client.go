@@ -9,6 +9,7 @@ import (
 
 	"github.com/cartridge-gg/starknet-indexer/ent/migrate"
 
+	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
@@ -25,6 +26,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Balance is the client for interacting with the Balance builders.
+	Balance *BalanceClient
 	// Block is the client for interacting with the Block builders.
 	Block *BlockClient
 	// Contract is the client for interacting with the Contract builders.
@@ -48,6 +51,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Balance = NewBalanceClient(c.config)
 	c.Block = NewBlockClient(c.config)
 	c.Contract = NewContractClient(c.config)
 	c.Event = NewEventClient(c.config)
@@ -86,6 +90,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                ctx,
 		config:             cfg,
+		Balance:            NewBalanceClient(cfg),
 		Block:              NewBlockClient(cfg),
 		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
@@ -110,6 +115,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                ctx,
 		config:             cfg,
+		Balance:            NewBalanceClient(cfg),
 		Block:              NewBlockClient(cfg),
 		Contract:           NewContractClient(cfg),
 		Event:              NewEventClient(cfg),
@@ -121,7 +127,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Block.
+//		Balance.
 //		Query().
 //		Count(ctx)
 //
@@ -144,11 +150,134 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Balance.Use(hooks...)
 	c.Block.Use(hooks...)
 	c.Contract.Use(hooks...)
 	c.Event.Use(hooks...)
 	c.Transaction.Use(hooks...)
 	c.TransactionReceipt.Use(hooks...)
+}
+
+// BalanceClient is a client for the Balance schema.
+type BalanceClient struct {
+	config
+}
+
+// NewBalanceClient returns a client for the Balance from the given config.
+func NewBalanceClient(c config) *BalanceClient {
+	return &BalanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `balance.Hooks(f(g(h())))`.
+func (c *BalanceClient) Use(hooks ...Hook) {
+	c.hooks.Balance = append(c.hooks.Balance, hooks...)
+}
+
+// Create returns a builder for creating a Balance entity.
+func (c *BalanceClient) Create() *BalanceCreate {
+	mutation := newBalanceMutation(c.config, OpCreate)
+	return &BalanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Balance entities.
+func (c *BalanceClient) CreateBulk(builders ...*BalanceCreate) *BalanceCreateBulk {
+	return &BalanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Balance.
+func (c *BalanceClient) Update() *BalanceUpdate {
+	mutation := newBalanceMutation(c.config, OpUpdate)
+	return &BalanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BalanceClient) UpdateOne(b *Balance) *BalanceUpdateOne {
+	mutation := newBalanceMutation(c.config, OpUpdateOne, withBalance(b))
+	return &BalanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BalanceClient) UpdateOneID(id string) *BalanceUpdateOne {
+	mutation := newBalanceMutation(c.config, OpUpdateOne, withBalanceID(id))
+	return &BalanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Balance.
+func (c *BalanceClient) Delete() *BalanceDelete {
+	mutation := newBalanceMutation(c.config, OpDelete)
+	return &BalanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BalanceClient) DeleteOne(b *Balance) *BalanceDeleteOne {
+	return c.DeleteOneID(b.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *BalanceClient) DeleteOneID(id string) *BalanceDeleteOne {
+	builder := c.Delete().Where(balance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BalanceDeleteOne{builder}
+}
+
+// Query returns a query builder for Balance.
+func (c *BalanceClient) Query() *BalanceQuery {
+	return &BalanceQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Balance entity by its id.
+func (c *BalanceClient) Get(ctx context.Context, id string) (*Balance, error) {
+	return c.Query().Where(balance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BalanceClient) GetX(ctx context.Context, id string) *Balance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAccount queries the account edge of a Balance.
+func (c *BalanceClient) QueryAccount(b *Balance) *ContractQuery {
+	query := &ContractQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(balance.Table, balance.FieldID, id),
+			sqlgraph.To(contract.Table, contract.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, balance.AccountTable, balance.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContract queries the contract edge of a Balance.
+func (c *BalanceClient) QueryContract(b *Balance) *ContractQuery {
+	query := &ContractQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(balance.Table, balance.FieldID, id),
+			sqlgraph.To(contract.Table, contract.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, balance.ContractTable, balance.ContractColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BalanceClient) Hooks() []Hook {
+	return c.hooks.Balance
 }
 
 // BlockClient is a client for the Block schema.
@@ -167,7 +296,7 @@ func (c *BlockClient) Use(hooks ...Hook) {
 	c.hooks.Block = append(c.hooks.Block, hooks...)
 }
 
-// Create returns a create builder for Block.
+// Create returns a builder for creating a Block entity.
 func (c *BlockClient) Create() *BlockCreate {
 	mutation := newBlockMutation(c.config, OpCreate)
 	return &BlockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -202,12 +331,12 @@ func (c *BlockClient) Delete() *BlockDelete {
 	return &BlockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *BlockClient) DeleteOne(b *Block) *BlockDeleteOne {
 	return c.DeleteOneID(b.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *BlockClient) DeleteOneID(id string) *BlockDeleteOne {
 	builder := c.Delete().Where(block.ID(id))
 	builder.mutation.id = &id
@@ -289,7 +418,7 @@ func (c *ContractClient) Use(hooks ...Hook) {
 	c.hooks.Contract = append(c.hooks.Contract, hooks...)
 }
 
-// Create returns a create builder for Contract.
+// Create returns a builder for creating a Contract entity.
 func (c *ContractClient) Create() *ContractCreate {
 	mutation := newContractMutation(c.config, OpCreate)
 	return &ContractCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -324,12 +453,12 @@ func (c *ContractClient) Delete() *ContractDelete {
 	return &ContractDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ContractClient) DeleteOne(co *Contract) *ContractDeleteOne {
 	return c.DeleteOneID(co.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ContractClient) DeleteOneID(id string) *ContractDeleteOne {
 	builder := c.Delete().Where(contract.ID(id))
 	builder.mutation.id = &id
@@ -395,7 +524,7 @@ func (c *EventClient) Use(hooks ...Hook) {
 	c.hooks.Event = append(c.hooks.Event, hooks...)
 }
 
-// Create returns a create builder for Event.
+// Create returns a builder for creating a Event entity.
 func (c *EventClient) Create() *EventCreate {
 	mutation := newEventMutation(c.config, OpCreate)
 	return &EventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -430,12 +559,12 @@ func (c *EventClient) Delete() *EventDelete {
 	return &EventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *EventClient) DeleteOne(e *Event) *EventDeleteOne {
 	return c.DeleteOneID(e.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *EventClient) DeleteOneID(id string) *EventDeleteOne {
 	builder := c.Delete().Where(event.ID(id))
 	builder.mutation.id = &id
@@ -501,7 +630,7 @@ func (c *TransactionClient) Use(hooks ...Hook) {
 	c.hooks.Transaction = append(c.hooks.Transaction, hooks...)
 }
 
-// Create returns a create builder for Transaction.
+// Create returns a builder for creating a Transaction entity.
 func (c *TransactionClient) Create() *TransactionCreate {
 	mutation := newTransactionMutation(c.config, OpCreate)
 	return &TransactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -536,12 +665,12 @@ func (c *TransactionClient) Delete() *TransactionDelete {
 	return &TransactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TransactionClient) DeleteOne(t *Transaction) *TransactionDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TransactionClient) DeleteOneID(id string) *TransactionDeleteOne {
 	builder := c.Delete().Where(transaction.ID(id))
 	builder.mutation.id = &id
@@ -639,7 +768,7 @@ func (c *TransactionReceiptClient) Use(hooks ...Hook) {
 	c.hooks.TransactionReceipt = append(c.hooks.TransactionReceipt, hooks...)
 }
 
-// Create returns a create builder for TransactionReceipt.
+// Create returns a builder for creating a TransactionReceipt entity.
 func (c *TransactionReceiptClient) Create() *TransactionReceiptCreate {
 	mutation := newTransactionReceiptMutation(c.config, OpCreate)
 	return &TransactionReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -674,12 +803,12 @@ func (c *TransactionReceiptClient) Delete() *TransactionReceiptDelete {
 	return &TransactionReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TransactionReceiptClient) DeleteOne(tr *TransactionReceipt) *TransactionReceiptDeleteOne {
 	return c.DeleteOneID(tr.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TransactionReceiptClient) DeleteOneID(id string) *TransactionReceiptDeleteOne {
 	builder := c.Delete().Where(transactionreceipt.ID(id))
 	builder.mutation.id = &id

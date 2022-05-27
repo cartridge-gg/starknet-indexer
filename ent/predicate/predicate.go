@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Balance is the predicate function for balance builders.
+type Balance func(*sql.Selector)
+
 // Block is the predicate function for block builders.
 type Block func(*sql.Selector)
 

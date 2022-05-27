@@ -4,6 +4,22 @@ package ent
 
 import "context"
 
+func (b *Balance) Account(ctx context.Context) (*Contract, error) {
+	result, err := b.Edges.AccountOrErr()
+	if IsNotLoaded(err) {
+		result, err = b.QueryAccount().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (b *Balance) Contract(ctx context.Context) (*Contract, error) {
+	result, err := b.Edges.ContractOrErr()
+	if IsNotLoaded(err) {
+		result, err = b.QueryContract().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (b *Block) Transactions(ctx context.Context) ([]*Transaction, error) {
 	result, err := b.Edges.TransactionsOrErr()
 	if IsNotLoaded(err) {

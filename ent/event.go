@@ -148,12 +148,14 @@ func (e *Event) Unwrap() *Event {
 func (e *Event) String() string {
 	var builder strings.Builder
 	builder.WriteString("Event(")
-	builder.WriteString(fmt.Sprintf("id=%v", e.ID))
-	builder.WriteString(", from=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", e.ID))
+	builder.WriteString("from=")
 	builder.WriteString(e.From)
-	builder.WriteString(", keys=")
+	builder.WriteString(", ")
+	builder.WriteString("keys=")
 	builder.WriteString(fmt.Sprintf("%v", e.Keys))
-	builder.WriteString(", data=")
+	builder.WriteString(", ")
+	builder.WriteString("data=")
 	builder.WriteString(fmt.Sprintf("%v", e.Data))
 	builder.WriteByte(')')
 	return builder.String()

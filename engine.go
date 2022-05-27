@@ -54,6 +54,7 @@ func (e *Engine) Start(ctx context.Context, h BlockHandler) {
 			e.Lock()
 			if err := e.process(ctx, h); err != nil {
 				log.Err(err).Msg("Processing block.")
+				return
 			}
 			e.Unlock()
 
@@ -99,7 +100,7 @@ func (e *Engine) process(ctx context.Context, h BlockHandler) error {
 		}
 
 		if err := v.callback(); err != nil {
-			log.Err(err).Msg("Writing block.")
+			log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msg("Writing block.")
 			return err
 		}
 

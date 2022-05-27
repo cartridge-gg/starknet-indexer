@@ -23,7 +23,7 @@ func main() {
 
 	drv, err := sql.Open(
 		"sqlite3",
-		"file:ent?mode=memory&cache=shared&_fk=1",
+		"file:db?mode=rwc&cache=shared&_fk=1&_journal_mode=WAL",
 	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("opening ent client")

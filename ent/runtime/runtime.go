@@ -5,6 +5,6 @@ package runtime
 // The schema-stitching logic is generated in github.com/cartridge-gg/starknet-indexer/ent/runtime.go
 
 const (
-	Version = "v0.10.2-0.20220502113020-4ac82f5bb3f0"           // Version of ent codegen.
-	Sum     = "h1:qHA4+ANAzDj6BcDLxNgZuzKxFre/RI9r5wwsI2O+1M4=" // Sum of ent codegen.
+	Version = "v0.10.2-0.20220525124600-e1c5277483cc"           // Version of ent codegen.
+	Sum     = "h1:EDun6SUuFqY6zdMD/3QrecrtIHRqHvuHTolWm2Rejls=" // Sum of ent codegen.
 )

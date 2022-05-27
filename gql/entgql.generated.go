@@ -15,6 +15,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -33,6 +34,486 @@ import (
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Balance_id(ctx context.Context, field graphql.CollectedField, obj *ent.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Balance_tokenid(ctx context.Context, field graphql.CollectedField, obj *ent.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_tokenid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TokenId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(big.Int)
+	fc.Result = res
+	return ec.marshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_tokenid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BigInt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Balance_balance(ctx context.Context, field graphql.CollectedField, obj *ent.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_balance(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Balance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(big.Int)
+	fc.Result = res
+	return ec.marshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_balance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BigInt does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Balance_account(ctx context.Context, field graphql.CollectedField, obj *ent.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_account(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Account(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Contract)
+	fc.Result = res
+	return ec.marshalOContract2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐContract(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_account(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Contract_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Contract_type(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Contract_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Contract_updatedAt(ctx, field)
+			case "transactions":
+				return ec.fieldContext_Contract_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Contract", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Balance_contract(ctx context.Context, field graphql.CollectedField, obj *ent.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_contract(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Contract(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Contract)
+	fc.Result = res
+	return ec.marshalOContract2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐContract(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_contract(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Contract_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Contract_type(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Contract_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Contract_updatedAt(ctx, field)
+			case "transactions":
+				return ec.fieldContext_Contract_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Contract", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BalanceConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.BalanceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BalanceConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.BalanceEdge)
+	fc.Result = res
+	return ec.marshalOBalanceEdge2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalanceEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BalanceConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BalanceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_BalanceEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_BalanceEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BalanceEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BalanceConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.BalanceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BalanceConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BalanceConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BalanceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BalanceConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.BalanceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BalanceConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BalanceConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BalanceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BalanceEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.BalanceEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BalanceEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Balance)
+	fc.Result = res
+	return ec.marshalOBalance2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BalanceEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BalanceEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Balance_id(ctx, field)
+			case "tokenid":
+				return ec.fieldContext_Balance_tokenid(ctx, field)
+			case "balance":
+				return ec.fieldContext_Balance_balance(ctx, field)
+			case "account":
+				return ec.fieldContext_Balance_account(ctx, field)
+			case "contract":
+				return ec.fieldContext_Balance_contract(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Balance", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BalanceEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.BalanceEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BalanceEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BalanceEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BalanceEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Block_id(ctx context.Context, field graphql.CollectedField, obj *ent.Block) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Block_id(ctx, field)
@@ -3231,6 +3712,285 @@ func (ec *executionContext) fieldContext_TransactionReceiptEdge_cursor(ctx conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBalanceWhereInput(ctx context.Context, obj interface{}) (BalanceWhereInput, error) {
+	var it BalanceWhereInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOBalanceWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOBalanceWhereInput2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOBalanceWhereInput2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenid":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenid"))
+			it.Tokenid, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidNEQ"))
+			it.TokenidNeq, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidIn"))
+			it.TokenidIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidNotIn"))
+			it.TokenidNotIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidGT"))
+			it.TokenidGt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidGTE"))
+			it.TokenidGte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidLT"))
+			it.TokenidLt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidLTE"))
+			it.TokenidLte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidIsNil"))
+			it.TokenidIsNil, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tokenidNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tokenidNotNil"))
+			it.TokenidNotNil, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balance":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balance"))
+			it.Balance, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceNEQ"))
+			it.BalanceNeq, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceIn"))
+			it.BalanceIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceNotIn"))
+			it.BalanceNotIn, err = ec.unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceGT"))
+			it.BalanceGt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceGTE"))
+			it.BalanceGte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceLT"))
+			it.BalanceLt, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "balanceLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("balanceLTE"))
+			it.BalanceLte, err = ec.unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			it.IDNeq, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			it.IDIn, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			it.IDNotIn, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			it.IDGt, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			it.IDGte, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			it.IDLt, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			it.IDLte, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasAccount":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAccount"))
+			it.HasAccount, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasAccountWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAccountWith"))
+			it.HasAccountWith, err = ec.unmarshalOContractWhereInput2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐContractWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasContract":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasContract"))
+			it.HasContract, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasContractWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasContractWith"))
+			it.HasContractWith, err = ec.unmarshalOContractWhereInput2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐContractWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputBlockOrder(ctx context.Context, obj interface{}) (ent.BlockOrder, error) {
 	var it ent.BlockOrder
 	asMap := map[string]interface{}{}
@@ -5427,6 +6187,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case *ent.Balance:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Balance(ctx, sel, obj)
 	case *ent.Block:
 		if obj == nil {
 			return graphql.Null
@@ -5460,6 +6225,177 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var balanceImplementors = []string{"Balance", "Node"}
+
+func (ec *executionContext) _Balance(ctx context.Context, sel ast.SelectionSet, obj *ent.Balance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, balanceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Balance")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Balance_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "tokenid":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Balance_tokenid(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "balance":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Balance_balance(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "account":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Balance_account(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "contract":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Balance_contract(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var balanceConnectionImplementors = []string{"BalanceConnection"}
+
+func (ec *executionContext) _BalanceConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.BalanceConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, balanceConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BalanceConnection")
+		case "edges":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BalanceConnection_edges(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageInfo":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BalanceConnection_pageInfo(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BalanceConnection_totalCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var balanceEdgeImplementors = []string{"BalanceEdge"}
+
+func (ec *executionContext) _BalanceEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.BalanceEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, balanceEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BalanceEdge")
+		case "node":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BalanceEdge_node(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "cursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._BalanceEdge_cursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var blockImplementors = []string{"Block", "Node"}
 
@@ -6488,6 +7424,11 @@ func (ec *executionContext) _TransactionReceiptEdge(ctx context.Context, sel ast
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNBalanceWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInput(ctx context.Context, v interface{}) (*BalanceWhereInput, error) {
+	res, err := ec.unmarshalInputBalanceWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNBlockOrderField2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBlockOrderField(ctx context.Context, v interface{}) (*ent.BlockOrderField, error) {
 	var res = new(ent.BlockOrderField)
 	err := res.UnmarshalGQL(v)
@@ -6681,6 +7622,89 @@ func (ec *executionContext) unmarshalNType2githubᚗcomᚋcartridgeᚑggᚋstark
 
 func (ec *executionContext) marshalNType2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋcontractᚐType(ctx context.Context, sel ast.SelectionSet, v contract.Type) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalOBalance2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalance(ctx context.Context, sel ast.SelectionSet, v *ent.Balance) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Balance(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOBalanceEdge2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalanceEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.BalanceEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOBalanceEdge2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalanceEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOBalanceEdge2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBalanceEdge(ctx context.Context, sel ast.SelectionSet, v *ent.BalanceEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BalanceEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOBalanceWhereInput2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInputᚄ(ctx context.Context, v interface{}) ([]*BalanceWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*BalanceWhereInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBalanceWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOBalanceWhereInput2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋgqlᚐBalanceWhereInput(ctx context.Context, v interface{}) (*BalanceWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputBalanceWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBlock2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚐBlock(ctx context.Context, sel ast.SelectionSet, v *ent.Block) graphql.Marshaler {

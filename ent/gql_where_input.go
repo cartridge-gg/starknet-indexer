@@ -6,13 +6,246 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
 	"github.com/cartridge-gg/starknet-indexer/ent/predicate"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/cartridge-gg/starknet-indexer/ent/transaction"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
 )
+
+// BalanceWhereInput represents a where input for filtering Balance queries.
+type BalanceWhereInput struct {
+	Not *BalanceWhereInput   `json:"not,omitempty"`
+	Or  []*BalanceWhereInput `json:"or,omitempty"`
+	And []*BalanceWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *string  `json:"id,omitempty"`
+	IDNEQ   *string  `json:"idNEQ,omitempty"`
+	IDIn    []string `json:"idIn,omitempty"`
+	IDNotIn []string `json:"idNotIn,omitempty"`
+	IDGT    *string  `json:"idGT,omitempty"`
+	IDGTE   *string  `json:"idGTE,omitempty"`
+	IDLT    *string  `json:"idLT,omitempty"`
+	IDLTE   *string  `json:"idLTE,omitempty"`
+
+	// "tokenId" field predicates.
+	TokenId       *big.Int  `json:"tokenid,omitempty"`
+	TokenIdNEQ    *big.Int  `json:"tokenidNEQ,omitempty"`
+	TokenIdIn     []big.Int `json:"tokenidIn,omitempty"`
+	TokenIdNotIn  []big.Int `json:"tokenidNotIn,omitempty"`
+	TokenIdGT     *big.Int  `json:"tokenidGT,omitempty"`
+	TokenIdGTE    *big.Int  `json:"tokenidGTE,omitempty"`
+	TokenIdLT     *big.Int  `json:"tokenidLT,omitempty"`
+	TokenIdLTE    *big.Int  `json:"tokenidLTE,omitempty"`
+	TokenIdIsNil  bool      `json:"tokenidIsNil,omitempty"`
+	TokenIdNotNil bool      `json:"tokenidNotNil,omitempty"`
+
+	// "balance" field predicates.
+	Balance      *big.Int  `json:"balance,omitempty"`
+	BalanceNEQ   *big.Int  `json:"balanceNEQ,omitempty"`
+	BalanceIn    []big.Int `json:"balanceIn,omitempty"`
+	BalanceNotIn []big.Int `json:"balanceNotIn,omitempty"`
+	BalanceGT    *big.Int  `json:"balanceGT,omitempty"`
+	BalanceGTE   *big.Int  `json:"balanceGTE,omitempty"`
+	BalanceLT    *big.Int  `json:"balanceLT,omitempty"`
+	BalanceLTE   *big.Int  `json:"balanceLTE,omitempty"`
+
+	// "account" edge predicates.
+	HasAccount     *bool                 `json:"hasAccount,omitempty"`
+	HasAccountWith []*ContractWhereInput `json:"hasAccountWith,omitempty"`
+
+	// "contract" edge predicates.
+	HasContract     *bool                 `json:"hasContract,omitempty"`
+	HasContractWith []*ContractWhereInput `json:"hasContractWith,omitempty"`
+}
+
+// Filter applies the BalanceWhereInput filter on the BalanceQuery builder.
+func (i *BalanceWhereInput) Filter(q *BalanceQuery) (*BalanceQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering balances.
+// An error is returned if the input is empty or invalid.
+func (i *BalanceWhereInput) P() (predicate.Balance, error) {
+	var predicates []predicate.Balance
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, balance.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Balance, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, balance.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Balance, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, balance.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, balance.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, balance.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, balance.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, balance.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, balance.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, balance.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, balance.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, balance.IDLTE(*i.IDLTE))
+	}
+	if i.TokenId != nil {
+		predicates = append(predicates, balance.TokenIdEQ(*i.TokenId))
+	}
+	if i.TokenIdNEQ != nil {
+		predicates = append(predicates, balance.TokenIdNEQ(*i.TokenIdNEQ))
+	}
+	if len(i.TokenIdIn) > 0 {
+		predicates = append(predicates, balance.TokenIdIn(i.TokenIdIn...))
+	}
+	if len(i.TokenIdNotIn) > 0 {
+		predicates = append(predicates, balance.TokenIdNotIn(i.TokenIdNotIn...))
+	}
+	if i.TokenIdGT != nil {
+		predicates = append(predicates, balance.TokenIdGT(*i.TokenIdGT))
+	}
+	if i.TokenIdGTE != nil {
+		predicates = append(predicates, balance.TokenIdGTE(*i.TokenIdGTE))
+	}
+	if i.TokenIdLT != nil {
+		predicates = append(predicates, balance.TokenIdLT(*i.TokenIdLT))
+	}
+	if i.TokenIdLTE != nil {
+		predicates = append(predicates, balance.TokenIdLTE(*i.TokenIdLTE))
+	}
+	if i.TokenIdIsNil {
+		predicates = append(predicates, balance.TokenIdIsNil())
+	}
+	if i.TokenIdNotNil {
+		predicates = append(predicates, balance.TokenIdNotNil())
+	}
+	if i.Balance != nil {
+		predicates = append(predicates, balance.BalanceEQ(*i.Balance))
+	}
+	if i.BalanceNEQ != nil {
+		predicates = append(predicates, balance.BalanceNEQ(*i.BalanceNEQ))
+	}
+	if len(i.BalanceIn) > 0 {
+		predicates = append(predicates, balance.BalanceIn(i.BalanceIn...))
+	}
+	if len(i.BalanceNotIn) > 0 {
+		predicates = append(predicates, balance.BalanceNotIn(i.BalanceNotIn...))
+	}
+	if i.BalanceGT != nil {
+		predicates = append(predicates, balance.BalanceGT(*i.BalanceGT))
+	}
+	if i.BalanceGTE != nil {
+		predicates = append(predicates, balance.BalanceGTE(*i.BalanceGTE))
+	}
+	if i.BalanceLT != nil {
+		predicates = append(predicates, balance.BalanceLT(*i.BalanceLT))
+	}
+	if i.BalanceLTE != nil {
+		predicates = append(predicates, balance.BalanceLTE(*i.BalanceLTE))
+	}
+
+	if i.HasAccount != nil {
+		p := balance.HasAccount()
+		if !*i.HasAccount {
+			p = balance.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasAccountWith) > 0 {
+		with := make([]predicate.Contract, 0, len(i.HasAccountWith))
+		for _, w := range i.HasAccountWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, balance.HasAccountWith(with...))
+	}
+	if i.HasContract != nil {
+		p := balance.HasContract()
+		if !*i.HasContract {
+			p = balance.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasContractWith) > 0 {
+		with := make([]predicate.Contract, 0, len(i.HasContractWith))
+		for _, w := range i.HasContractWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, balance.HasContractWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("empty predicate BalanceWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return balance.And(predicates...), nil
+	}
+}
 
 // BlockWhereInput represents a where input for filtering Block queries.
 type BlockWhereInput struct {

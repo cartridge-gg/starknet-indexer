@@ -8,6 +8,34 @@ import (
 )
 
 var (
+	// BalancesColumns holds the columns for the "balances" table.
+	BalancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "token_id", Type: field.TypeInt, Nullable: true, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "balance", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "balance_account", Type: field.TypeString, Nullable: true},
+		{Name: "balance_contract", Type: field.TypeString, Nullable: true},
+	}
+	// BalancesTable holds the schema information for the "balances" table.
+	BalancesTable = &schema.Table{
+		Name:       "balances",
+		Columns:    BalancesColumns,
+		PrimaryKey: []*schema.Column{BalancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "balances_contracts_account",
+				Columns:    []*schema.Column{BalancesColumns[3]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "balances_contracts_contract",
+				Columns:    []*schema.Column{BalancesColumns[4]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// BlocksColumns holds the columns for the "blocks" table.
 	BlocksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -124,6 +152,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BalancesTable,
 		BlocksTable,
 		ContractsTable,
 		EventsTable,
@@ -133,6 +162,8 @@ var (
 )
 
 func init() {
+	BalancesTable.ForeignKeys[0].RefTable = ContractsTable
+	BalancesTable.ForeignKeys[1].RefTable = ContractsTable
 	EventsTable.ForeignKeys[0].RefTable = TransactionsTable
 	TransactionsTable.ForeignKeys[0].RefTable = BlocksTable
 	TransactionsTable.ForeignKeys[1].RefTable = ContractsTable

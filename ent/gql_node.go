@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
@@ -42,6 +43,53 @@ type Edge struct {
 	Type string   `json:"type,omitempty"` // edge type.
 	Name string   `json:"name,omitempty"` // edge name.
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (b *Balance) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     b.ID,
+		Type:   "Balance",
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(b.TokenId); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "big.Int",
+		Name:  "tokenId",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(b.Balance); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "big.Int",
+		Name:  "balance",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Contract",
+		Name: "account",
+	}
+	err = b.QueryAccount().
+		Select(contract.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Contract",
+		Name: "contract",
+	}
+	err = b.QueryContract().
+		Select(contract.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
 }
 
 func (b *Block) Node(ctx context.Context) (node *Node, err error) {
@@ -432,6 +480,18 @@ func (c *Client) Noder(ctx context.Context, id string, opts ...NodeOption) (_ No
 
 func (c *Client) noder(ctx context.Context, table string, id string) (Noder, error) {
 	switch table {
+	case balance.Table:
+		query := c.Balance.Query().
+			Where(balance.ID(id))
+		query, err := query.CollectFields(ctx, "Balance")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case block.Table:
 		query := c.Block.Query().
 			Where(block.ID(id))
@@ -565,6 +625,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case balance.Table:
+		query := c.Balance.Query().
+			Where(balance.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Balance")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case block.Table:
 		query := c.Block.Query().
 			Where(block.IDIn(ids...))

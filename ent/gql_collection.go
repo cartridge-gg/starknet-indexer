@@ -10,6 +10,74 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (b *BalanceQuery) CollectFields(ctx context.Context, satisfies ...string) (*BalanceQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return b, nil
+	}
+	if err := b.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (b *BalanceQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "account":
+			var (
+				path  = append(path, field.Name)
+				query = &ContractQuery{config: b.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			b.withAccount = query
+		case "contract":
+			var (
+				path  = append(path, field.Name)
+				query = &ContractQuery{config: b.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			b.withContract = query
+		}
+	}
+	return nil
+}
+
+type balancePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []BalancePaginateOption
+}
+
+func newBalancePaginateArgs(rv map[string]interface{}) *balancePaginateArgs {
+	args := &balancePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v := rv[whereField]; v != nil && v != (*BalanceWhereInput)(nil) {
+		args.opts = append(args.opts, WithBalanceFilter(v.(*BalanceWhereInput).Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (b *BlockQuery) CollectFields(ctx context.Context, satisfies ...string) (*BlockQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {

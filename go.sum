@@ -1,8 +1,8 @@
 ariga.io/atlas v0.3.8-0.20220324144249-d5d77d7dadfa/go.mod h1:2aAhlHuY8tr7rPNz2MgOBTJB/cVjK0sv1VvTIqeYSws=
 ariga.io/atlas v0.3.8-0.20220424181913-f64001131c0e/go.mod h1:2aAhlHuY8tr7rPNz2MgOBTJB/cVjK0sv1VvTIqeYSws=
 ariga.io/atlas v0.3.8-0.20220502090649-c495296ad28c/go.mod h1:URT1boACQmnulqRF07NkSOEkzx/OmO/48AmVX7pPaJg=
-ariga.io/atlas v0.3.8-0.20220505085539-5ec35b058386 h1:is98hS6Y0DOC9WEWSOOesrHrzZrt7xNswjQJov7K2EU=
-ariga.io/atlas v0.3.8-0.20220505085539-5ec35b058386/go.mod h1:D/d0a5QyMFU2R5E8ArmpnWbMjFP9LOr0TsQNbKqhT20=
+ariga.io/atlas v0.4.1 h1:ElhwKE2F28aTQqvnIzHO65oa7Oxn6VcO5blKlp9FzQ4=
+ariga.io/atlas v0.4.1/go.mod h1:CKqqlJeTdRfEmnHaCcNPHg8DD6GPx1TxNPZ1NFknKHU=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -59,8 +59,9 @@ entgo.io/contrib v0.2.1-0.20220421093944-3186275bff87 h1:Nju9l/zbig4ORFj3DMHmuDL
 entgo.io/contrib v0.2.1-0.20220421093944-3186275bff87/go.mod h1:zl4XiE6QLK84yF1WxlkjLOyXl9xbDMZYwWFjiZPp+gI=
 entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd/go.mod h1:N5rSx938yoabKH4MHfkLQ7HQIqUJnqJaUUFXERXWE70=
 entgo.io/ent v0.10.2-0.20220428114225-0c8f9a977c99/go.mod h1:rUH4yiUVADR2XHnv0ZERDnwF/YjR42m3Qra6CZ4ZxBA=
-entgo.io/ent v0.10.2-0.20220502113020-4ac82f5bb3f0 h1:qHA4+ANAzDj6BcDLxNgZuzKxFre/RI9r5wwsI2O+1M4=
 entgo.io/ent v0.10.2-0.20220502113020-4ac82f5bb3f0/go.mod h1:Zh61BPvB+cL6VWEyN8f1YoDacrMjQf2KDlDeX26xq2k=
+entgo.io/ent v0.10.2-0.20220525124600-e1c5277483cc h1:EDun6SUuFqY6zdMD/3QrecrtIHRqHvuHTolWm2Rejls=
+entgo.io/ent v0.10.2-0.20220525124600-e1c5277483cc/go.mod h1:ScHj++CJXG2PiiVVeR5AJLhoSGxaO92l1yAMAl+7puI=
 github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff h1:rKiNowjH/vvpV4gBMIUDn5G969k6tJ5J6zjL1VXGJTA=
 github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff/go.mod h1:K5fzLKwtph+FFgh9j7nFbRUdBKvTcGnsta51fsMTn3o=
 github.com/AlekSi/pointer v1.1.0/go.mod h1:y7BvfRI3wXPWKXEBhU71nbnIEEZX0QTSB2Bj48UJIZE=

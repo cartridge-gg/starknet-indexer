@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/cartridge-gg/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -1194,6 +1195,32 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, v interface{}) (big.Int, error) {
+	var res big.Int
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBigInt2githubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, sel ast.SelectionSet, v big.Int) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, v interface{}) (*big.Int, error) {
+	var res = new(big.Int)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, sel ast.SelectionSet, v *big.Int) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalNFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFelt(ctx context.Context, v interface{}) ([]*types.Felt, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -1333,6 +1360,60 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx context.Context, v interface{}) ([]*big.Int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*big.Int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOBigInt2ᚕᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐIntᚄ(ctx context.Context, sel ast.SelectionSet, v []*big.Int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, v interface{}) (*big.Int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(big.Int)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBigInt2ᚖgithubᚗcomᚋcartridgeᚑggᚋstarknetᚑindexerᚋentᚋschemaᚋbigᚐInt(ctx context.Context, sel ast.SelectionSet, v *big.Int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOFelt2ᚕᚖgithubᚗcomᚋdontpanicdaoᚋcaigoᚋtypesᚐFeltᚄ(ctx context.Context, v interface{}) ([]*types.Felt, error) {

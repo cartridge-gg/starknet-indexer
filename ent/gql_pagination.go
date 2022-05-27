@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/cartridge-gg/starknet-indexer/ent/balance"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
 	"github.com/cartridge-gg/starknet-indexer/ent/event"
@@ -243,6 +244,239 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
+}
+
+// BalanceEdge is the edge representation of Balance.
+type BalanceEdge struct {
+	Node   *Balance `json:"node"`
+	Cursor Cursor   `json:"cursor"`
+}
+
+// BalanceConnection is the connection containing edges to Balance.
+type BalanceConnection struct {
+	Edges      []*BalanceEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
+	TotalCount int            `json:"totalCount"`
+}
+
+func (c *BalanceConnection) build(nodes []*Balance, pager *balancePager, first, last *int) {
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Balance
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Balance {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Balance {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*BalanceEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &BalanceEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// BalancePaginateOption enables pagination customization.
+type BalancePaginateOption func(*balancePager) error
+
+// WithBalanceOrder configures pagination ordering.
+func WithBalanceOrder(order *BalanceOrder) BalancePaginateOption {
+	if order == nil {
+		order = DefaultBalanceOrder
+	}
+	o := *order
+	return func(pager *balancePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultBalanceOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithBalanceFilter configures pagination filter.
+func WithBalanceFilter(filter func(*BalanceQuery) (*BalanceQuery, error)) BalancePaginateOption {
+	return func(pager *balancePager) error {
+		if filter == nil {
+			return errors.New("BalanceQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type balancePager struct {
+	order  *BalanceOrder
+	filter func(*BalanceQuery) (*BalanceQuery, error)
+}
+
+func newBalancePager(opts []BalancePaginateOption) (*balancePager, error) {
+	pager := &balancePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultBalanceOrder
+	}
+	return pager, nil
+}
+
+func (p *balancePager) applyFilter(query *BalanceQuery) (*BalanceQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *balancePager) toCursor(b *Balance) Cursor {
+	return p.order.Field.toCursor(b)
+}
+
+func (p *balancePager) applyCursors(query *BalanceQuery, after, before *Cursor) *BalanceQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultBalanceOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *balancePager) applyOrder(query *BalanceQuery, reverse bool) *BalanceQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultBalanceOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultBalanceOrder.Field.field))
+	}
+	return query
+}
+
+func (p *balancePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultBalanceOrder.Field {
+			b.Comma().Ident(DefaultBalanceOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Balance.
+func (b *BalanceQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...BalancePaginateOption,
+) (*BalanceConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newBalancePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if b, err = pager.applyFilter(b); err != nil {
+		return nil, err
+	}
+	conn := &BalanceConnection{Edges: []*BalanceEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = b.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := b.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	b = pager.applyCursors(b, after, before)
+	b = pager.applyOrder(b, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		b.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := b.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := b.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
+}
+
+// BalanceOrderField defines the ordering field of Balance.
+type BalanceOrderField struct {
+	field    string
+	toCursor func(*Balance) Cursor
+}
+
+// BalanceOrder defines the ordering of Balance.
+type BalanceOrder struct {
+	Direction OrderDirection     `json:"direction"`
+	Field     *BalanceOrderField `json:"field"`
+}
+
+// DefaultBalanceOrder is the default ordering of Balance.
+var DefaultBalanceOrder = &BalanceOrder{
+	Direction: OrderDirectionAsc,
+	Field: &BalanceOrderField{
+		field: balance.FieldID,
+		toCursor: func(b *Balance) Cursor {
+			return Cursor{ID: b.ID}
+		},
+	},
+}
+
+// ToEdge converts Balance into BalanceEdge.
+func (b *Balance) ToEdge(order *BalanceOrder) *BalanceEdge {
+	if order == nil {
+		order = DefaultBalanceOrder
+	}
+	return &BalanceEdge{
+		Node:   b,
+		Cursor: order.Field.toCursor(b),
+	}
 }
 
 // BlockEdge is the edge representation of Block.

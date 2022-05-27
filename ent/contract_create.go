@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
@@ -19,6 +21,7 @@ type ContractCreate struct {
 	config
 	mutation *ContractMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetType sets the "type" field.
@@ -124,9 +127,15 @@ func (cc *ContractCreate) Save(ctx context.Context) (*Contract, error) {
 			}
 			mut = cc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, cc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, cc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Contract)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ContractMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }
@@ -217,6 +226,7 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = cc.conflict
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -267,10 +277,228 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Contract.Create().
+//		SetType(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ContractUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (cc *ContractCreate) OnConflict(opts ...sql.ConflictOption) *ContractUpsertOne {
+	cc.conflict = opts
+	return &ContractUpsertOne{
+		create: cc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Contract.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (cc *ContractCreate) OnConflictColumns(columns ...string) *ContractUpsertOne {
+	cc.conflict = append(cc.conflict, sql.ConflictColumns(columns...))
+	return &ContractUpsertOne{
+		create: cc,
+	}
+}
+
+type (
+	// ContractUpsertOne is the builder for "upsert"-ing
+	//  one Contract node.
+	ContractUpsertOne struct {
+		create *ContractCreate
+	}
+
+	// ContractUpsert is the "OnConflict" setter.
+	ContractUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetType sets the "type" field.
+func (u *ContractUpsert) SetType(v contract.Type) *ContractUpsert {
+	u.Set(contract.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContractUpsert) UpdateType() *ContractUpsert {
+	u.SetExcluded(contract.FieldType)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ContractUpsert) SetCreatedAt(v time.Time) *ContractUpsert {
+	u.Set(contract.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ContractUpsert) UpdateCreatedAt() *ContractUpsert {
+	u.SetExcluded(contract.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ContractUpsert) SetUpdatedAt(v time.Time) *ContractUpsert {
+	u.Set(contract.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ContractUpsert) UpdateUpdatedAt() *ContractUpsert {
+	u.SetExcluded(contract.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Contract.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(contract.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *ContractUpsertOne) UpdateNewValues() *ContractUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(contract.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.Contract.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *ContractUpsertOne) Ignore() *ContractUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ContractUpsertOne) DoNothing() *ContractUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ContractCreate.OnConflict
+// documentation for more info.
+func (u *ContractUpsertOne) Update(set func(*ContractUpsert)) *ContractUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ContractUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ContractUpsertOne) SetType(v contract.Type) *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContractUpsertOne) UpdateType() *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ContractUpsertOne) SetCreatedAt(v time.Time) *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ContractUpsertOne) UpdateCreatedAt() *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ContractUpsertOne) SetUpdatedAt(v time.Time) *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ContractUpsertOne) UpdateUpdatedAt() *ContractUpsertOne {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ContractUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ContractCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ContractUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ContractUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ContractUpsertOne.ID is not supported by MySQL driver. Use ContractUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ContractUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ContractCreateBulk is the builder for creating many Contract entities in bulk.
 type ContractCreateBulk struct {
 	config
 	builders []*ContractCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Contract entities in the database.
@@ -297,6 +525,7 @@ func (ccb *ContractCreateBulk) Save(ctx context.Context) ([]*Contract, error) {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = ccb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ccb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -343,6 +572,164 @@ func (ccb *ContractCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ccb *ContractCreateBulk) ExecX(ctx context.Context) {
 	if err := ccb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Contract.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ContractUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (ccb *ContractCreateBulk) OnConflict(opts ...sql.ConflictOption) *ContractUpsertBulk {
+	ccb.conflict = opts
+	return &ContractUpsertBulk{
+		create: ccb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Contract.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (ccb *ContractCreateBulk) OnConflictColumns(columns ...string) *ContractUpsertBulk {
+	ccb.conflict = append(ccb.conflict, sql.ConflictColumns(columns...))
+	return &ContractUpsertBulk{
+		create: ccb,
+	}
+}
+
+// ContractUpsertBulk is the builder for "upsert"-ing
+// a bulk of Contract nodes.
+type ContractUpsertBulk struct {
+	create *ContractCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Contract.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(contract.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+//
+func (u *ContractUpsertBulk) UpdateNewValues() *ContractUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(contract.FieldID)
+				return
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Contract.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *ContractUpsertBulk) Ignore() *ContractUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ContractUpsertBulk) DoNothing() *ContractUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ContractCreateBulk.OnConflict
+// documentation for more info.
+func (u *ContractUpsertBulk) Update(set func(*ContractUpsert)) *ContractUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ContractUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ContractUpsertBulk) SetType(v contract.Type) *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContractUpsertBulk) UpdateType() *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ContractUpsertBulk) SetCreatedAt(v time.Time) *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ContractUpsertBulk) UpdateCreatedAt() *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ContractUpsertBulk) SetUpdatedAt(v time.Time) *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ContractUpsertBulk) UpdateUpdatedAt() *ContractUpsertBulk {
+	return u.Update(func(s *ContractUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ContractUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ContractCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ContractCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ContractUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
