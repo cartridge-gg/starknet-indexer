@@ -82,13 +82,12 @@ type StoreEvent struct {
 	EventProcessor
 }
 
-func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *types.Event) (func(tx *ent.Tx) error, error) {
+func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	return func(tx *ent.Tx) error {
 		log.Trace().Msgf("Writing event: %s", txn.TransactionHash)
 
 		if err := tx.Event.Create().
-			// TODO: Event index needed for unique id
-			SetID(fmt.Sprintf("%s-%d", txn.TransactionHash, 0)).
+			SetID(fmt.Sprintf("%s-%d", txn.TransactionHash, evt.Index)).
 			SetTransactionID(txn.TransactionHash).
 			SetFrom(evt.FromAddress).
 			SetKeys(evt.Keys).

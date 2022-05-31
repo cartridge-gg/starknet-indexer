@@ -194,9 +194,9 @@ func (f fetcher) Run(ctx context.Context) interface{} {
 			cbs = append(cbs, cb)
 		}
 
-		for _, evt := range t.Events {
+		for i, evt := range t.Events {
 			for _, p := range f.eventProcessors {
-				cb, err := p.Process(ctx, f.provider, block, t, evt)
+				cb, err := p.Process(ctx, f.provider, block, t, &processor.Event{evt, uint64(i)})
 				if err != nil {
 					return response{block, nil, err}
 				}

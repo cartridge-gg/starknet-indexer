@@ -44,7 +44,7 @@ func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bo
 	return true
 }
 
-func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *types.Event) (func(tx *ent.Tx) error, error) {
+func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	if len(evt.Keys) == 0 || evt.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
 		return nil, nil
 	}
