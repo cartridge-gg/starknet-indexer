@@ -2,10 +2,13 @@ package indexer
 
 import (
 	"context"
+	"errors"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/cartridge-gg/starknet-indexer/ent"
+	"github.com/cartridge-gg/starknet-indexer/processor"
 	"github.com/dontpanicdao/caigo/jsonrpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
@@ -13,8 +16,6 @@ import (
 )
 
 const concurrency = 5
-
-type BlockHandler func(ctx context.Context, block *types.Block) (func() error, error)
 
 type Contract struct {
 	Address    string
@@ -30,13 +31,18 @@ type Config struct {
 
 type Engine struct {
 	sync.Mutex
-	latest   uint64
-	provider *jsonrpc.Client
-	ticker   *time.Ticker
+	client                *ent.Client
+	latest                uint64
+	provider              *jsonrpc.Client
+	ticker                *time.Ticker
+	blockProcessors       []processor.BlockProcessor
+	transactionProcessors []processor.TransactionProcessor
+	eventProcessors       []processor.EventProcessor
 }
 
-func NewEngine(ctx context.Context, provider *jsonrpc.Client, config Config) (*Engine, error) {
+func NewEngine(ctx context.Context, client *ent.Client, provider *jsonrpc.Client, config Config) (*Engine, error) {
 	e := &Engine{
+		client:   client,
 		provider: provider,
 		ticker:   time.NewTicker(config.Interval),
 		latest:   config.Head,
@@ -45,14 +51,15 @@ func NewEngine(ctx context.Context, provider *jsonrpc.Client, config Config) (*E
 	return e, nil
 }
 
-func (e *Engine) Start(ctx context.Context, h BlockHandler) {
+func (e *Engine) Start(ctx context.Context) {
 	defer e.ticker.Stop()
+	log.Info().Msg("Starting indexer.")
 
 	for {
 		select {
 		case <-e.ticker.C:
 			e.Lock()
-			if err := e.process(ctx, h); err != nil {
+			if err := e.process(ctx); err != nil {
 				log.Err(err).Msg("Processing block.")
 				return
 			}
@@ -64,11 +71,33 @@ func (e *Engine) Start(ctx context.Context, h BlockHandler) {
 	}
 }
 
+func (e *Engine) Register(ctx context.Context, h interface{}) error {
+	switch h := h.(type) {
+	case processor.BlockProcessor:
+		e.Lock()
+		e.blockProcessors = append(e.blockProcessors, h)
+		e.Unlock()
+		return nil
+	case processor.TransactionProcessor:
+		e.Lock()
+		e.transactionProcessors = append(e.transactionProcessors, h)
+		e.Unlock()
+		return nil
+	case processor.EventProcessor:
+		e.Lock()
+		e.eventProcessors = append(e.eventProcessors, h)
+		e.Unlock()
+		return nil
+	}
+
+	return errors.New("unsupported processor")
+}
+
 func (e *Engine) Subscribe(ctx context.Context) {
 
 }
 
-func (e *Engine) process(ctx context.Context, h BlockHandler) error {
+func (e *Engine) process(ctx context.Context) error {
 	worker := make(chan concurrently.WorkFunction, concurrency)
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: concurrency, OutChannelBuffer: concurrency})
@@ -83,7 +112,7 @@ func (e *Engine) process(ctx context.Context, h BlockHandler) error {
 
 	go func() {
 		for i := e.latest; i < head; i++ {
-			worker <- fetcher{e.provider, i, h}
+			worker <- fetcher{e.provider, i, e.blockProcessors, e.transactionProcessors, e.eventProcessors}
 		}
 		close(worker)
 	}()
@@ -99,8 +128,20 @@ func (e *Engine) process(ctx context.Context, h BlockHandler) error {
 			return v.err
 		}
 
-		if err := v.callback(); err != nil {
-			log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msg("Writing block.")
+		if err := ent.WithTx(ctx, e.client, func(tx *ent.Tx) error {
+			for _, cb := range v.callbacks {
+				if cb == nil {
+					continue
+				}
+
+				if err := cb(tx); err != nil {
+					log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msg("Writing block.")
+					return err
+				}
+			}
+
+			return nil
+		}); err != nil {
 			return err
 		}
 
@@ -112,15 +153,17 @@ func (e *Engine) process(ctx context.Context, h BlockHandler) error {
 
 // Create a type based on your input to the work function
 type fetcher struct {
-	provider    *jsonrpc.Client
-	blockNumber uint64
-	handler     BlockHandler
+	provider              *jsonrpc.Client
+	blockNumber           uint64
+	blockProcessors       []processor.BlockProcessor
+	transactionProcessors []processor.TransactionProcessor
+	eventProcessors       []processor.EventProcessor
 }
 
 type response struct {
-	block    *types.Block
-	callback func() error
-	err      error
+	block     *types.Block
+	callbacks []func(*ent.Tx) error
+	err       error
 }
 
 // The work that needs to be performed
@@ -131,6 +174,37 @@ func (f fetcher) Run(ctx context.Context) interface{} {
 		return response{block, nil, err}
 	}
 
-	h, err := f.handler(ctx, block)
-	return response{block, h, err}
+	var cbs []func(*ent.Tx) error
+	for _, p := range f.blockProcessors {
+		cb, err := p.Process(ctx, f.provider, block)
+		if err != nil {
+			return response{block, nil, err}
+		}
+
+		cbs = append(cbs, cb)
+	}
+
+	for _, t := range block.Transactions {
+		for _, p := range f.transactionProcessors {
+			cb, err := p.Process(ctx, f.provider, block, t)
+			if err != nil {
+				return response{block, nil, err}
+			}
+
+			cbs = append(cbs, cb)
+		}
+
+		for _, evt := range t.Events {
+			for _, p := range f.eventProcessors {
+				cb, err := p.Process(ctx, f.provider, block, t, evt)
+				if err != nil {
+					return response{block, nil, err}
+				}
+
+				cbs = append(cbs, cb)
+			}
+		}
+	}
+
+	return response{block, cbs, nil}
 }
