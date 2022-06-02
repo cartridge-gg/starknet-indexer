@@ -135,8 +135,8 @@ func (e *Engine) process(ctx context.Context) error {
 				}
 
 				if err := cb(tx); err != nil {
-					log.Err(err.Error).Uint64("block", uint64(v.block.BlockNumber)).Msgf("Writing %s", err.Scope)
-					return err.Error
+					log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msgf("Writing block.")
+					return err
 				}
 			}
 
@@ -162,7 +162,7 @@ type fetcher struct {
 
 type response struct {
 	block     *types.Block
-	callbacks []func(*ent.Tx) *processor.ProcessorError
+	callbacks []func(*ent.Tx) error
 	err       error
 }
 
@@ -174,7 +174,7 @@ func (f fetcher) Run(ctx context.Context) interface{} {
 		return response{block, nil, err}
 	}
 
-	var cbs []func(*ent.Tx) *processor.ProcessorError
+	var cbs []func(*ent.Tx) error
 	for _, p := range f.blockProcessors {
 		cb, err := p.Process(ctx, f.provider, block)
 		if err != nil {

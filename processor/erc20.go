@@ -60,12 +60,12 @@ func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) boo
 	return true
 }
 
-func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) *ProcessorError, error) {
+func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	if len(evt.Keys) == 0 || evt.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
 		return nil, nil
 	}
 
-	return func(tx *ent.Tx) *ProcessorError {
+	return func(tx *ent.Tx) error {
 		if err := tx.Balance.Create().
 			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
 			SetAccountID(evt.Data[0].Hex()).
@@ -75,7 +75,7 @@ func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
-				Error: err,
+				Err:   err,
 			}
 		}
 
@@ -89,7 +89,7 @@ func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
-				Error: err,
+				Err:   err,
 			}
 		}
 		return nil

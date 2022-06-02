@@ -18,8 +18,8 @@ type StoreBlock struct {
 	BlockProcessor
 }
 
-func (p *StoreBlock) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block) (func(tx *ent.Tx) *ProcessorError, error) {
-	return func(tx *ent.Tx) *ProcessorError {
+func (p *StoreBlock) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block) (func(tx *ent.Tx) error, error) {
+	return func(tx *ent.Tx) error {
 		log.Debug().Msgf("Writing block: %d", b.BlockNumber)
 
 		if err := tx.Block.Create().
@@ -33,7 +33,7 @@ func (p *StoreBlock) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("block:%d", b.BlockNumber),
-				Error: err,
+				Err:   err,
 			}
 		}
 
@@ -46,8 +46,8 @@ type StoreTransaction struct {
 	TransactionProcessor
 }
 
-func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) *ProcessorError, error) {
-	return func(tx *ent.Tx) *ProcessorError {
+func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
+	return func(tx *ent.Tx) error {
 		log.Trace().Msgf("Writing transaction: %s", txn.TransactionHash)
 
 		if err := tx.Transaction.Create().
@@ -62,7 +62,7 @@ func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("transaction:%s", txn.TransactionHash),
-				Error: err,
+				Err:   err,
 			}
 		}
 
@@ -78,7 +78,7 @@ func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("transaction:%s", txn.TransactionHash),
-				Error: err,
+				Err:   err,
 			}
 		}
 
@@ -91,8 +91,8 @@ type StoreEvent struct {
 	EventProcessor
 }
 
-func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) *ProcessorError, error) {
-	return func(tx *ent.Tx) *ProcessorError {
+func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+	return func(tx *ent.Tx) error {
 		log.Trace().Msgf("Writing event: %s", txn.TransactionHash)
 
 		if err := tx.Event.Create().
@@ -104,7 +104,7 @@ func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("event:%s", txn.TransactionHash),
-				Error: err,
+				Err:   err,
 			}
 		}
 

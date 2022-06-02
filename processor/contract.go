@@ -52,7 +52,7 @@ type StoreContract struct {
 }
 
 // Handle contract persistence
-func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) *ProcessorError, error) {
+func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
 	// txn "type" field empty. check if call data & entry point selector are empty for now
 	// to know if txn is of deploy type
 	if txn.EntryPointSelector != "" || txn.Status == types.REJECTED.String() {
@@ -60,7 +60,7 @@ func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 	}
 
 	m := Match(ctx, rpc, txn.ContractAddress)
-	return func(tx *ent.Tx) *ProcessorError {
+	return func(tx *ent.Tx) error {
 		log.Debug().Msgf("Writing matched contract: %s:%s", m.Type(), m.Address())
 
 		if err := tx.Contract.Create().
@@ -71,7 +71,7 @@ func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 			Exec(ctx); err != nil {
 			return &ProcessorError{
 				Scope: fmt.Sprintf("contract:%s", m.Address()),
-				Error: err,
+				Err:   err,
 			}
 		}
 
