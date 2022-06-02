@@ -135,7 +135,7 @@ func (e *Engine) process(ctx context.Context) error {
 				}
 
 				if err := cb(tx); err != nil {
-					log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msgf("Writing block.")
+					log.Err(err).Uint64("block", uint64(v.block.BlockNumber)).Msg("Writing block.")
 					return err
 				}
 			}
