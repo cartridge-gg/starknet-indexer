@@ -73,7 +73,10 @@ func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 			OnConflictColumns("id").
 			AddBalance(big.FromBase(evt.Data[2].Int).Neg()).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Err:   err,
+			}
 		}
 
 		if err := tx.Balance.Create().
@@ -84,7 +87,10 @@ func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 			OnConflictColumns("id").
 			AddBalance(big.FromBase(evt.Data[2].Int)).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Err:   err,
+			}
 		}
 		return nil
 	}, nil
