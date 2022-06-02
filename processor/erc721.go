@@ -44,12 +44,12 @@ func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bo
 	return true
 }
 
-func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) *ProcessorError, error) {
 	if len(evt.Keys) == 0 || evt.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
 		return nil, nil
 	}
 
-	return func(tx *ent.Tx) error {
+	return func(tx *ent.Tx) *ProcessorError {
 		if err := tx.Balance.Create().
 			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
 			SetAccountID(evt.Data[0].Hex()).
@@ -59,7 +59,10 @@ func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *ty
 			OnConflictColumns("id").
 			SetBalance(big.NewInt(0)).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Error: err,
+			}
 		}
 
 		if err := tx.Balance.Create().
@@ -71,7 +74,10 @@ func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *ty
 			OnConflictColumns("id").
 			SetBalance(big.NewInt(1)).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Error: err,
+			}
 		}
 		return nil
 	}, nil

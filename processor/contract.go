@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
@@ -51,7 +52,7 @@ type StoreContract struct {
 }
 
 // Handle contract persistence
-func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
+func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) *ProcessorError, error) {
 	// txn "type" field empty. check if call data & entry point selector are empty for now
 	// to know if txn is of deploy type
 	if txn.EntryPointSelector != "" || txn.Status == types.REJECTED.String() {
@@ -59,16 +60,19 @@ func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 	}
 
 	m := Match(ctx, rpc, txn.ContractAddress)
-	log.Debug().Msgf("Matched contract: %s", m.Type())
+	return func(tx *ent.Tx) *ProcessorError {
+		log.Debug().Msgf("Writing matched contract: %s:%s", m.Type(), m.Address())
 
-	return func(tx *ent.Tx) error {
 		if err := tx.Contract.Create().
 			SetID(m.Address()).
 			SetType(contract.Type(m.Type())).
 			OnConflictColumns("id").
 			DoNothing().
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("contract:%s", m.Address()),
+				Error: err,
+			}
 		}
 
 		return nil
