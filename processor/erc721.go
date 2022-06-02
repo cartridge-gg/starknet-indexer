@@ -72,7 +72,7 @@ func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *ty
 
 		// receiver
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", receiver.Hex(), evt.FromAddress, tokenId.String())).
+			SetID(fmt.Sprintf("%s:%s:%s", receiver.Hex(), evt.FromAddress, tokenId.String())).
 			SetAccountID(receiver.Hex()).
 			SetContractID(evt.FromAddress).
 			SetTokenId(big.FromBase(tokenId.Int)).
