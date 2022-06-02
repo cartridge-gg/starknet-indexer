@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
@@ -59,16 +60,19 @@ func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 	}
 
 	m := Match(ctx, rpc, txn.ContractAddress)
-	log.Debug().Msgf("Matched contract: %s", m.Type())
-
 	return func(tx *ent.Tx) error {
+		log.Debug().Msgf("Writing matched contract: %s:%s", m.Type(), m.Address())
+
 		if err := tx.Contract.Create().
 			SetID(m.Address()).
 			SetType(contract.Type(m.Type())).
 			OnConflictColumns("id").
 			DoNothing().
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("contract:%s", m.Address()),
+				Err:   err,
+			}
 		}
 
 		return nil

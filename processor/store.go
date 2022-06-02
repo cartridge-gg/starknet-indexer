@@ -31,7 +31,10 @@ func (p *StoreBlock) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.
 			SetTimestamp(time.Unix(int64(b.AcceptedTime), 0).UTC()).
 			SetStatus(block.Status(b.Status)).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("block:%d", b.BlockNumber),
+				Err:   err,
+			}
 		}
 
 		return nil
@@ -57,7 +60,10 @@ func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *
 			SetCalldata(txn.Calldata).
 			SetSignature(txn.Signature).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("transaction:%s", txn.TransactionHash),
+				Err:   err,
+			}
 		}
 
 		if err := tx.TransactionReceipt.Create().
@@ -70,7 +76,10 @@ func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *
 			SetMessagesSent(txn.TransactionReceipt.MessagesSent).
 			SetL1OriginMessage(txn.TransactionReceipt.L1OriginMessage).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("transaction:%s", txn.TransactionHash),
+				Err:   err,
+			}
 		}
 
 		return nil
@@ -93,7 +102,10 @@ func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.
 			SetKeys(evt.Keys).
 			SetData(evt.Data).
 			Exec(ctx); err != nil {
-			return err
+			return &ProcessorError{
+				Scope: fmt.Sprintf("event:%s", txn.TransactionHash),
+				Err:   err,
+			}
 		}
 
 		return nil
