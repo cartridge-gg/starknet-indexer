@@ -2,7 +2,6 @@ package processor
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/cartridge-gg/starknet-indexer/ent"
@@ -45,13 +44,9 @@ func (c *ERC1155Contract) Match(ctx context.Context, provider *jsonrpc.Client) b
 	return true
 }
 
-func (c *ERC1155Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
-	if len(evt.Keys) == 0 {
-		return nil, nil
-	}
-
-	handleTransfer := func(tx *ent.Tx) error {
-		sender, receiver, tokenId, value := evt.Data[1], evt.Data[2], evt.Data[3], evt.Data[4]
+func (c *ERC1155Contract) handleTransfer(ctx context.Context, evt *Event, transferIdx uint64) func(tx *ent.Tx) error {
+	return func(tx *ent.Tx) error {
+		sender, receiver, tokenId, value := evt.Data[1], evt.Data[2], evt.Data[3+transferIdx], evt.Data[4+transferIdx]
 		// sender
 		if err := tx.Balance.Create().
 			SetID(fmt.Sprintf("%s:%s:%s", sender.Hex(), evt.FromAddress, tokenId.String())).
@@ -82,7 +77,14 @@ func (c *ERC1155Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *t
 				Err:   err,
 			}
 		}
+
 		return nil
+	}
+}
+
+func (c *ERC1155Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+	if len(evt.Keys) == 0 {
+		return nil, nil
 	}
 
 	// https://eips.ethereum.org/EIPS/eip-1155#specification
@@ -90,13 +92,20 @@ func (c *ERC1155Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *t
 	// event TransferBatch(address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _values)
 	// NOTE: balance entity id is in this structure: account:contract:tokenId
 	if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferSingle")) != 0 {
-		return handleTransfer, nil
+		return c.handleTransfer(ctx, evt, 0), nil
 	} else if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferBatch")) != 0 {
-		// TransferBatch(address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _values)
-		return nil, &ProcessorError{
-			Scope: "erc1155:TransferBatch",
-			Err:   errors.New("not implemented"),
-		}
+		// get length of "_ids" and "_values" in event data
+		// and divide by 2 to get the number of transfers
+		// NOTE: we assume that _ids and _values have the same length
+		transfers := uint64((len(evt.Data) - 3) / 2)
+		return func(tx *ent.Tx) error {
+			for i := uint64(0); i < transfers; i++ {
+				if err := c.handleTransfer(ctx, evt, i)(tx); err != nil {
+					return err
+				}
+			}
+			return nil
+		}, nil
 	}
 
 	return nil, nil
