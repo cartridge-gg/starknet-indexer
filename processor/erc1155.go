@@ -91,9 +91,9 @@ func (c *ERC1155Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *t
 	// event TransferSingle(address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _value)
 	// event TransferBatch(address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _values)
 	// NOTE: balance entity id is in this structure: account:contract:tokenId
-	if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferSingle")) != 0 {
+	if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferSingle")) == 0 {
 		return c.handleTransfer(ctx, evt, 0), nil
-	} else if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferBatch")) != 0 {
+	} else if evt.Keys[0].Cmp(caigo.GetSelectorFromName("TransferBatch")) == 0 {
 		// get length of "_ids" and "_values" in event data
 		// and divide by 2 to get the number of transfers
 		// NOTE: we assume that _ids and _values have the same length
