@@ -7,7 +7,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -30,26 +30,26 @@ func (c *ERC20Contract) Type() string {
 	return "ERC20"
 }
 
-func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) bool {
+func (c *ERC20Contract) Match(ctx context.Context, provider *rpc.Client) bool {
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc20/interfaces/IERC20.cairo
 	// stark_call function / set of functions
 
 	// check symbol, decimals and balanceOf functions
-	// if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	// if _, err := provider.Call(ctx, rpc.FunctionCall{
 	// 	ContractAddress:    c.address,
 	// 	EntryPointSelector: "symbol",
 	// }, "latest"); err != nil {
 	// 	return false
 	// }
 
-	// if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	// if _, err := provider.Call(ctx, rpc.FunctionCall{
 	// 	ContractAddress:    c.address,
 	// 	EntryPointSelector: "decimals",
 	// }, "latest"); err != nil {
 	// 	return false
 	// }
 
-	if _, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	if _, err := provider.Call(ctx, types.FunctionCall{
 		ContractAddress:    c.address,
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{"0x050c47150563ff7cf60dd60f7d0bd4d62a9cc5331441916e5099e905bdd8c4bc"},
@@ -60,35 +60,35 @@ func (c *ERC20Contract) Match(ctx context.Context, provider *jsonrpc.Client) boo
 	return true
 }
 
-func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+func (c *ERC20Contract) Process(ctx context.Context, rpc *rpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	if len(evt.Keys) == 0 || evt.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
 		return nil, nil
 	}
 
 	return func(tx *ent.Tx) error {
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", evt.Data[0], evt.FromAddress)).
+			SetAccountID(evt.Data[0].String()).
 			SetContractID(evt.FromAddress).
 			OnConflictColumns("id").
 			AddBalance(big.FromBase(evt.Data[2].Int).Neg()).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0], evt.FromAddress),
 				Err:   err,
 			}
 		}
 
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", evt.Data[0], evt.FromAddress)).
+			SetAccountID(evt.Data[0].String()).
 			SetContractID(evt.FromAddress).
 			SetBalance(big.FromBase(evt.Data[2].Int)).
 			OnConflictColumns("id").
 			AddBalance(big.FromBase(evt.Data[2].Int)).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0], evt.FromAddress),
 				Err:   err,
 			}
 		}

@@ -849,6 +849,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputBalanceWhereInput,
+		ec.unmarshalInputBlockOrder,
+		ec.unmarshalInputBlockWhereInput,
+		ec.unmarshalInputContractOrder,
+		ec.unmarshalInputContractWhereInput,
+		ec.unmarshalInputEventWhereInput,
+		ec.unmarshalInputTransactionOrder,
+		ec.unmarshalInputTransactionReceiptWhereInput,
+		ec.unmarshalInputTransactionWhereInput,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -858,6 +869,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				return nil
 			}
 			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
@@ -872,7 +884,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		var buf bytes.Buffer
 		return func(ctx context.Context) *graphql.Response {
 			buf.Reset()
-			data := next()
+			data := next(ctx)
 
 			if data == nil {
 				return nil
@@ -909,7 +921,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+	{Name: "../entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type Balance implements Node {
   id: ID!
@@ -1484,7 +1496,7 @@ enum Type @goModel(model: "github.com/cartridge-gg/starknet-indexer/ent/contract
   ERC721
 }
 `, BuiltIn: false},
-	{Name: "schema.graphql", Input: `scalar Time
+	{Name: "../schema.graphql", Input: `scalar Time
 scalar Long
 scalar JSON
 scalar Felt

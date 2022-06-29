@@ -9,7 +9,7 @@ import (
 
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/processor"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 	concurrently "github.com/tejzpr/ordered-concurrently/v3"
@@ -33,14 +33,14 @@ type Engine struct {
 	sync.Mutex
 	client                *ent.Client
 	latest                uint64
-	provider              *jsonrpc.Client
+	provider              *rpc.Client
 	ticker                *time.Ticker
 	blockProcessors       []processor.BlockProcessor
 	transactionProcessors []processor.TransactionProcessor
 	eventProcessors       []processor.EventProcessor
 }
 
-func NewEngine(ctx context.Context, client *ent.Client, provider *jsonrpc.Client, config Config) (*Engine, error) {
+func NewEngine(ctx context.Context, client *ent.Client, provider *rpc.Client, config Config) (*Engine, error) {
 	e := &Engine{
 		client:   client,
 		provider: provider,
@@ -153,7 +153,7 @@ func (e *Engine) process(ctx context.Context) error {
 
 // Create a type based on your input to the work function
 type fetcher struct {
-	provider              *jsonrpc.Client
+	provider              *rpc.Client
 	blockNumber           uint64
 	blockProcessors       []processor.BlockProcessor
 	transactionProcessors []processor.TransactionProcessor
@@ -196,7 +196,7 @@ func (f fetcher) Run(ctx context.Context) interface{} {
 
 		for i, evt := range t.Events {
 			for _, p := range f.eventProcessors {
-				cb, err := p.Process(ctx, f.provider, block, t, &processor.Event{evt, uint64(i)})
+				cb, err := p.Process(ctx, f.provider, block, t, &processor.Event{Event: evt, Index: uint64(i)})
 				if err != nil {
 					return response{block, nil, err}
 				}

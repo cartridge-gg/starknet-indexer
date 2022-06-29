@@ -6,7 +6,7 @@ import (
 
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/contract"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 )
@@ -14,7 +14,7 @@ import (
 type MatchableContract interface {
 	Address() string
 	Type() string
-	Match(ctx context.Context, provider *jsonrpc.Client) bool
+	Match(ctx context.Context, provider *rpc.Client) bool
 }
 
 // Unknown
@@ -35,7 +35,7 @@ func (c *UnknownContract) Type() string {
 	return "UNKNOWN"
 }
 
-func Match(ctx context.Context, provider *jsonrpc.Client, address string) MatchableContract {
+func Match(ctx context.Context, provider *rpc.Client, address string) MatchableContract {
 	if c := NewERC20Contract(address); c.Match(ctx, provider) {
 		return c
 	}
@@ -52,7 +52,7 @@ type StoreContract struct {
 }
 
 // Handle contract persistence
-func (p *StoreContract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
+func (p *StoreContract) Process(ctx context.Context, rpc *rpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
 	// txn "type" field empty. check if call data & entry point selector are empty for now
 	// to know if txn is of deploy type
 	if txn.EntryPointSelector != "" || txn.Status == types.REJECTED.String() {

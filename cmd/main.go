@@ -8,7 +8,7 @@ import (
 	"github.com/alecthomas/kong"
 	indexer "github.com/cartridge-gg/starknet-indexer"
 	_ "github.com/cartridge-gg/starknet-indexer/ent/runtime"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
@@ -29,7 +29,7 @@ func main() {
 		log.Fatal().Err(err).Msg("opening ent client")
 	}
 
-	provider, err := jsonrpc.DialContext(context.Background(), "https://starknet-goerli.cartridge.gg/")
+	provider, err := rpc.DialContext(context.Background(), "https://starknet-goerli.cartridge.gg/")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Dialing provider")
 	}
