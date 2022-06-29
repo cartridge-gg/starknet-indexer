@@ -58,12 +58,10 @@ func (e *Engine) Start(ctx context.Context) {
 	for {
 		select {
 		case <-e.ticker.C:
-			e.Lock()
 			if err := e.process(ctx); err != nil {
 				log.Err(err).Msg("Processing block.")
 				return
 			}
-			e.Unlock()
 
 		case <-ctx.Done():
 			return
@@ -98,6 +96,8 @@ func (e *Engine) Subscribe(ctx context.Context) {
 }
 
 func (e *Engine) process(ctx context.Context) error {
+	e.Lock()
+	defer e.Unlock()
 	worker := make(chan concurrently.WorkFunction, concurrency)
 
 	outputs := concurrently.Process(ctx, worker, &concurrently.Options{PoolSize: concurrency, OutChannelBuffer: concurrency})
