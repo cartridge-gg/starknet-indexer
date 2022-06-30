@@ -7,7 +7,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/schema/big"
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -30,10 +30,10 @@ func (c *ERC721Contract) Type() string {
 	return "ERC721"
 }
 
-func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bool {
+func (c *ERC721Contract) Match(ctx context.Context, provider *rpc.Client) bool {
 	// https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/token/erc721/ERC721_Mintable_Burnable.cairo
 	// supportsInterface
-	if res, err := provider.Call(ctx, jsonrpc.FunctionCall{
+	if res, err := provider.Call(ctx, types.FunctionCall{
 		ContractAddress:    c.address,
 		EntryPointSelector: "supportsInterface",
 		Calldata:           []string{"0x80ac58cd"},
@@ -44,15 +44,15 @@ func (c *ERC721Contract) Match(ctx context.Context, provider *jsonrpc.Client) bo
 	return true
 }
 
-func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+func (c *ERC721Contract) Process(ctx context.Context, rpc *rpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	if len(evt.Keys) == 0 || evt.Keys[0].Cmp(caigo.GetSelectorFromName("Transfer")) != 0 {
 		return nil, nil
 	}
 
 	return func(tx *ent.Tx) error {
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", evt.Data[0], evt.FromAddress)).
+			SetAccountID(evt.Data[0].String()).
 			SetContractID(evt.FromAddress).
 			SetTokenId(big.FromBase(evt.Data[2].Int)).
 			SetBalance(big.NewInt(0)).
@@ -60,14 +60,14 @@ func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *ty
 			SetBalance(big.NewInt(0)).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0], evt.FromAddress),
 				Err:   err,
 			}
 		}
 
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[1].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", evt.Data[1], evt.FromAddress)).
+			SetAccountID(evt.Data[0].String()).
 			SetContractID(evt.FromAddress).
 			SetTokenId(big.FromBase(evt.Data[2].Int)).
 			SetBalance(big.NewInt(1)).
@@ -75,7 +75,7 @@ func (c *ERC721Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *ty
 			SetBalance(big.NewInt(1)).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0], evt.FromAddress),
 				Err:   err,
 			}
 		}

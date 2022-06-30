@@ -8,7 +8,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/ent/transactionreceipt"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 )
@@ -18,7 +18,7 @@ type StoreBlock struct {
 	BlockProcessor
 }
 
-func (p *StoreBlock) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block) (func(tx *ent.Tx) error, error) {
+func (p *StoreBlock) Process(ctx context.Context, rpc *rpc.Client, b *types.Block) (func(tx *ent.Tx) error, error) {
 	return func(tx *ent.Tx) error {
 		log.Debug().Msgf("Writing block: %d", b.BlockNumber)
 
@@ -46,7 +46,7 @@ type StoreTransaction struct {
 	TransactionProcessor
 }
 
-func (p *StoreTransaction) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
+func (p *StoreTransaction) Process(ctx context.Context, rpc *rpc.Client, b *types.Block, txn *types.Transaction) (func(tx *ent.Tx) error, error) {
 	return func(tx *ent.Tx) error {
 		log.Trace().Msgf("Writing transaction: %s", txn.TransactionHash)
 
@@ -91,7 +91,7 @@ type StoreEvent struct {
 	EventProcessor
 }
 
-func (p *StoreEvent) Process(ctx context.Context, rpc *jsonrpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
+func (p *StoreEvent) Process(ctx context.Context, rpc *rpc.Client, b *types.Block, txn *types.Transaction, evt *Event) (func(tx *ent.Tx) error, error) {
 	return func(tx *ent.Tx) error {
 		log.Trace().Msgf("Writing event: %s", txn.TransactionHash)
 

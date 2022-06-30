@@ -13,7 +13,7 @@ import (
 	"github.com/cartridge-gg/starknet-indexer/ent"
 	"github.com/cartridge-gg/starknet-indexer/ent/block"
 	"github.com/cartridge-gg/starknet-indexer/processor"
-	"github.com/dontpanicdao/caigo/jsonrpc"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/rs/zerolog/log"
 )
@@ -26,7 +26,7 @@ type BalanceUpdate struct {
 	ContractType    string
 }
 
-func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, opts ...IndexerOption) {
+func New(addr string, drv *sql.Driver, provider *rpc.Client, config Config, opts ...IndexerOption) {
 	iopts := indexerOptions{
 		debug:  false,
 		client: http.DefaultClient,
