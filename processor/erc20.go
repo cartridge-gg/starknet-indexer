@@ -65,30 +65,36 @@ func (c *ERC20Contract) Process(ctx context.Context, rpc *jsonrpc.Client, b *typ
 		return nil, nil
 	}
 
+	// https://eips.ethereum.org/EIPS/eip-20#events
+	// event Transfer(address indexed _from, address indexed _to, uint256 _value)
+	// NOTE: balance entity id is in this structure: account:contract
 	return func(tx *ent.Tx) error {
+		sender, receiver, value := evt.Data[0], evt.Data[1], evt.Data[2]
+		// sender
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", sender.Hex(), evt.FromAddress)).
+			SetAccountID(sender.Hex()).
 			SetContractID(evt.FromAddress).
 			OnConflictColumns("id").
-			AddBalance(big.FromBase(evt.Data[2].Int).Neg()).
+			AddBalance(big.FromBase(value.Int).Neg()).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", sender.Hex(), evt.FromAddress),
 				Err:   err,
 			}
 		}
 
+		// receiver
 		if err := tx.Balance.Create().
-			SetID(fmt.Sprintf("%s:%s", evt.Data[0].Hex(), evt.FromAddress)).
-			SetAccountID(evt.Data[0].Hex()).
+			SetID(fmt.Sprintf("%s:%s", receiver.Hex(), evt.FromAddress)).
+			SetAccountID(receiver.Hex()).
 			SetContractID(evt.FromAddress).
-			SetBalance(big.FromBase(evt.Data[2].Int)).
+			SetBalance(big.FromBase(value.Int)).
 			OnConflictColumns("id").
-			AddBalance(big.FromBase(evt.Data[2].Int)).
+			AddBalance(big.FromBase(value.Int)).
 			Exec(ctx); err != nil {
 			return &ProcessorError{
-				Scope: fmt.Sprintf("balance:%s:%s", evt.Data[0].Hex(), evt.FromAddress),
+				Scope: fmt.Sprintf("balance:%s:%s", receiver.Hex(), evt.FromAddress),
 				Err:   err,
 			}
 		}

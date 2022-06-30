@@ -91,6 +91,9 @@ func New(addr string, drv *sql.Driver, provider *jsonrpc.Client, config Config, 
 	if err := e.Register(ctx, new(processor.ERC721Contract)); err != nil {
 		log.Fatal().Err(err).Msg("Registering processor.")
 	}
+	if err := e.Register(ctx, new(processor.ERC1155Contract)); err != nil {
+		log.Fatal().Err(err).Msg("Registering processor.")
+	}
 
 	go e.Start(ctx)
 
